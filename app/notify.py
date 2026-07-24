@@ -1,0 +1,91 @@
+"""텔레그램 알림 전송 + 메시지 포매팅."""
+from __future__ import annotations
+
+import logging
+import os
+from collections import defaultdict
+
+import requests
+
+from .engine import Alert
+from .links import google_flights_url, naver_url
+from .settings import Settings
+
+log = logging.getLogger(__name__)
+
+_WEEKDAY = "월화수목금토일"
+
+
+def _d(date) -> str:
+    return f"{date.month}/{date.day}({_WEEKDAY[date.weekday()]})"
+
+
+def _won(n: int) -> str:
+    return f"₩{n:,}"
+
+
+def format_alerts(cfg: Settings, alerts: list[Alert]) -> list[str]:
+    """노선별로 묶어 메시지 생성. 노선당 1개 메시지, 최저 top N 요약."""
+    by_route: dict[str, list[Alert]] = defaultdict(list)
+    for a in alerts:
+        by_route[a.combo.route.key].append(a)
+
+    messages = []
+    for _key, items in by_route.items():
+        items.sort(key=lambda a: a.combo.price)
+        top = items[: cfg.bundle_top_n]
+        route = top[0].combo.route
+        month = top[0].combo.dep.month
+        record = any(a.kind == "record" for a in top)
+        head = f"{'🏆' if record else '✈️'} <b>{route.label}</b> " \
+               f"{'역대 최저가 갱신!' if record else f'{month}월 기준가 이하 특가'}"
+
+        lines = [head]
+        for a in top:
+            c = a.combo
+            lines.append("")
+            lines.append(
+                f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
+                f"<b>{_won(c.price)}</b> (성인 {cfg.adults}명 총액)"
+            )
+            lines.append(
+                f"가는 편 {c.out_leg.get('dep_time','?')} {c.out_leg.get('airline','')} / "
+                f"오는 편 {c.ret_leg.get('dep_time','?')} {c.ret_leg.get('airline','')}"
+            )
+            if a.kind == "record" and a.prev_min:
+                drop = (a.prev_min - c.price) / a.prev_min * 100
+                lines.append(f"이전 최저 {_won(a.prev_min)} → <b>-{drop:.1f}%</b>")
+            else:
+                lines.append(f"기준가 {_won(a.baseline)}")
+            g = google_flights_url(route, c.dep, c.ret)
+            n = naver_url(route, c.dep, c.ret, cfg.adults)
+            lines.append(f'<a href="{g}">Google Flights</a> · <a href="{n}">네이버항공권</a>')
+        if len(items) > len(top):
+            lines.append(f"\n…외 {len(items) - len(top)}건 더 조건 충족")
+        messages.append("\n".join(lines))
+    return messages
+
+
+def send(text: str) -> bool:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        log.error("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 미설정")
+        return False
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            },
+            timeout=15,
+        )
+        if r.status_code != 200:
+            log.error("telegram %s: %s", r.status_code, r.text[:200])
+        return r.status_code == 200
+    except requests.RequestException as e:
+        log.error("telegram send failed: %s", e)
+        return False
