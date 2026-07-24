@@ -5,6 +5,12 @@
    "at": "2026-07-24T06:14:13+00:00",
    "attempted": 329,
    "failed": 213
+  },
+  {
+   "at": "2026-07-24T12:04:44+00:00",
+   "attempted": 87,
+   "failed": 9
   }
- ]
+ ],
+ "startup_sent": true
 }
