@@ -104,7 +104,7 @@ def main() -> int:
 
     if alerts:
         sent_ok = True
-        for msg in notify.format_alerts(cfg, alerts):
+        for msg in notify.format_alerts(cfg, alerts, combos):
             sent_ok = deliver(msg) and sent_ok
         if sent_ok:
             engine.mark_sent(state, alerts)  # 전송 실패 시 다음 실행에서 재시도

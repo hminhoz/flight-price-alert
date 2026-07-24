@@ -24,11 +24,19 @@ def _won(n: int) -> str:
     return f"₩{n:,}"
 
 
-def format_alerts(cfg: Settings, alerts: list[Alert]) -> list[str]:
-    """노선별로 묶어 메시지 생성. 노선당 1개 메시지, 최저 top N 요약."""
+def format_alerts(cfg: Settings, alerts: list[Alert],
+                  all_combos: list | None = None) -> list[str]:
+    """노선별로 묶어 메시지 생성. 노선당 1개 메시지, 최저 top N 요약.
+
+    all_combos를 주면 알림 조건 미충족이어도 '최저가 +N% 이내'인
+    다른 날짜 조합을 함께 보여준다 (추가 검색 비용 0 — 이미 수집된 데이터).
+    """
     by_route: dict[str, list[Alert]] = defaultdict(list)
     for a in alerts:
         by_route[a.combo.route.key].append(a)
+    combos_by_route: dict[str, list] = defaultdict(list)
+    for c in all_combos or []:
+        combos_by_route[c.route.key].append(c)
 
     messages = []
     for _key, items in by_route.items():
@@ -62,6 +70,21 @@ def format_alerts(cfg: Settings, alerts: list[Alert]) -> list[str]:
             lines.append(f'<a href="{g}">Google Flights</a> · <a href="{n}">네이버항공권</a>')
         if len(items) > len(top):
             lines.append(f"\n…외 {len(items) - len(top)}건 더 조건 충족")
+
+        # 유사 가격대 다른 날짜 (알림 조건 미충족 포함)
+        shown = {a.combo.key for a in top}
+        floor = top[0].combo.price
+        limit = floor * (1 + cfg.similar_margin_pct / 100)
+        similar = sorted(
+            (c for c in combos_by_route.get(_key, [])
+             if c.key not in shown and c.price <= limit),
+            key=lambda c: c.price,
+        )[: cfg.similar_top_n]
+        if similar:
+            lines.append(f"\n📅 <b>비슷한 가격대 다른 날짜</b> (+{cfg.similar_margin_pct:.0f}% 이내)")
+            for c in similar:
+                lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 {_won(c.price)}")
+
         messages.append("\n".join(lines))
     return messages
 

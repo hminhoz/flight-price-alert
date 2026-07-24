@@ -37,8 +37,14 @@ class Leg:
         return self.route.destination if self.direction == "out" else self.route.origin
 
 
+def is_excluded_departure(cfg: Settings, d: dt.date) -> bool:
+    if d.weekday() in cfg.exclude_weekdays:
+        return True
+    return any(a <= d <= b for a, b in cfg.exclude_departures)
+
+
 def all_legs(cfg: Settings, today: dt.date) -> list[Leg]:
-    """오늘 이후, 기간 내 유효한 모든 leg."""
+    """오늘 이후, 기간 내 유효한 모든 leg. 제외 출발일은 검색에서 뺀다."""
     legs: list[Leg] = []
     start = max(cfg.period_start, today)
     for route in cfg.routes:
@@ -46,11 +52,12 @@ def all_legs(cfg: Settings, today: dt.date) -> list[Leg]:
         ret_dates: set[dt.date] = set()
         d = start
         while d <= cfg.period_end:
-            for n in cfg.trip_nights:
-                r = d + dt.timedelta(days=n)
-                if r <= cfg.period_end:
-                    out_dates.add(d)
-                    ret_dates.add(r)
+            if not is_excluded_departure(cfg, d):
+                for n in cfg.trip_nights:
+                    r = d + dt.timedelta(days=n)
+                    if r <= cfg.period_end:
+                        out_dates.add(d)
+                        ret_dates.add(r)
             d += dt.timedelta(days=1)
         legs += [Leg(route, "out", d) for d in sorted(out_dates)]
         legs += [Leg(route, "ret", d) for d in sorted(ret_dates)]
@@ -128,6 +135,9 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
     for route in cfg.routes:
         d = max(cfg.period_start, today)
         while d <= cfg.period_end:
+            if is_excluded_departure(cfg, d):  # 과거 수집분이 남아있어도 콤보 제외
+                d += dt.timedelta(days=1)
+                continue
             out = state.fresh_leg_price(
                 State.leg_key(route.key, "out", d.isoformat()), cfg.leg_freshness_days)
             if out:

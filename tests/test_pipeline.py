@@ -70,7 +70,7 @@ def main():
     _, alerts = run_day(state, TODAY0 + dt.timedelta(days=4), 99_000, 101_000)
     assert alerts, "특가에 알림 미발생"
     assert all(a.kind == "record" for a in alerts)
-    msgs = format_alerts(CFG, alerts)
+    msgs = format_alerts(CFG, alerts, combos)
     assert len(msgs) == 1 and "역대 최저가" in msgs[0] and "200,000" in msgs[0]
     engine.mark_sent(state, alerts)
     print(f"OK Day5 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")

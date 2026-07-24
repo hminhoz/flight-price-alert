@@ -30,6 +30,8 @@ class Settings:
     outbound_window: tuple[dt.time, dt.time]
     return_window: tuple[dt.time, dt.time]
     direct_only: bool
+    exclude_departures: list
+    exclude_weekdays: list
     adults: int
     currency: str
     routes: list[Route]
@@ -40,6 +42,8 @@ class Settings:
     observation_days: int
     baseline_recalc_window: int
     bundle_top_n: int
+    similar_margin_pct: float
+    similar_top_n: int
     retry: int
     failure_alert_threshold: float
     failure_alert_streak: int
@@ -47,6 +51,20 @@ class Settings:
     leg_freshness_days: int = 3  # 콤보 계산 시 다리(leg) 가격의 최대 허용 나이
 
     raw: dict = field(default_factory=dict, repr=False)
+
+
+def _parse_excludes(items: list) -> list:
+    """["2026-09-24", "2026-10-01~2026-10-05"] → [(시작일, 종료일), ...]"""
+    out = []
+    for it in items:
+        s = str(it)
+        if "~" in s:
+            a, b = s.split("~")
+            out.append((dt.date.fromisoformat(a.strip()), dt.date.fromisoformat(b.strip())))
+        else:
+            d = dt.date.fromisoformat(s.strip())
+            out.append((d, d))
+    return out
 
 
 def _parse_time(s: str) -> dt.time:
@@ -71,6 +89,8 @@ def load(path: Path | None = None) -> Settings:
             _parse_time(s["return_departure"]["latest"]),
         ),
         direct_only=bool(s.get("direct_only", True)),
+        exclude_departures=_parse_excludes(s.get("exclude_departures") or []),
+        exclude_weekdays=["월화수목금토일".index(str(w)[0]) for w in (s.get("exclude_weekdays") or [])],
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
         routes=[Route(**r) for r in raw["routes"]],
@@ -81,6 +101,8 @@ def load(path: Path | None = None) -> Settings:
         observation_days=int(al["observation_days"]),
         baseline_recalc_window=int(al["baseline_recalc_window"]),
         bundle_top_n=int(al["bundle_top_n"]),
+        similar_margin_pct=float(al.get("similar_margin_pct", 10)),
+        similar_top_n=int(al.get("similar_top_n", 4)),
         retry=int(er["retry"]),
         failure_alert_threshold=float(er["failure_alert_threshold"]),
         failure_alert_streak=int(er["failure_alert_streak"]),

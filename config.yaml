@@ -15,6 +15,8 @@ search:
     earliest: "18:00"
     latest: "23:59"
   direct_only: true
+  exclude_departures: []      # 출발일 제외. 예: ["2026-09-24", "2026-10-01~2026-10-05"]
+  exclude_weekdays: ["일", "월", "화"]  # 출발 요일 제외 (귀국편은 무관)
   adults: 2
   currency: "KRW"
 
@@ -42,6 +44,8 @@ alerts:
   baseline_recalc_window: 14     # 최근 N일 기준 기준가 하향 재계산
   dedup: "lower_price_only"      # 같은 조합은 직전 알림가보다 낮을 때만 재알림
   bundle_top_n: 3                # 같은 노선 다수 조건 충족 시 묶음 알림 최대 개수
+  similar_margin_pct: 10         # 알림에 '최저가 +N% 이내 다른 날짜'도 함께 표시
+  similar_top_n: 4               # 위 유사가격 날짜 최대 표시 개수
 
 errors:
   retry: 3
