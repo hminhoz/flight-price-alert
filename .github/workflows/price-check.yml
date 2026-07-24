@@ -1,0 +1,54 @@
+name: flight-price-check
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"   # 2시간마다 (정각 혼잡 회피를 위해 17분 오프셋)
+  workflow_dispatch:          # 수동 실행 버튼 (테스트용)
+    inputs:
+      dry_run:
+        description: "DRY_RUN (1이면 텔레그램 대신 로그 출력)"
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: price-check
+  cancel-in-progress: false   # 이전 실행이 끝날 때까지 대기 (커밋 충돌 방지)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run price check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: python main.py
+
+      - name: Commit state
+        run: |
+          git config user.name "price-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore: price data $(date -u +'%Y-%m-%d %H:%M')"
+            # 동시 푸시 충돌 대비 재시도
+            for i in 1 2 3; do
+              git push && break
+              git pull --rebase && sleep 3
+            done
+          fi
