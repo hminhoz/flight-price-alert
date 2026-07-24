@@ -31,8 +31,9 @@ routes:
   - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
 
 schedule:
-  shards: 6                   # 전체 조합을 나눌 샤드 수 (하루 12회 실행 ÷ 6 = 조합당 2회/일)
-  imminent_days: 10           # 출발 N일 이내는 매 실행 체크 (늘리면 실행시간 증가 주의)
+  shards: 12                  # 12샤드 × 하루 12회 실행 = 모든 조합 하루 1회 (2시간 슬롯당 1샤드)
+  imminent_days: 5            # 임박: 출발 N일 이내 → 매 실행(2시간마다) 체크
+  attention_days: 21          # 주시: 출발 N일 이내 → 하루 2회 (단거리 최저가 형성 구간)
   request_delay_sec: [1, 2]   # 요청 간 무작위 대기 (차단 방지)
 
 alerts:

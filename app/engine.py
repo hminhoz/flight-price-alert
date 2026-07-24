@@ -57,18 +57,41 @@ def all_legs(cfg: Settings, today: dt.date) -> list[Leg]:
     return legs
 
 
+def _leg_hash(leg: Leg) -> int:
+    return hashlib.sha256(leg.key.encode()).digest()[0] * 256 + \
+        hashlib.sha256(leg.key.encode()).digest()[1]
+
+
 def shard_of(leg: Leg, shards: int) -> int:
-    h = hashlib.sha256(leg.key.encode()).digest()
-    return h[0] % shards
+    return _leg_hash(leg) % shards
 
 
 def legs_for_run(cfg: Settings, today: dt.date, current_shard: int) -> list[Leg]:
-    """이번 실행이 검색할 leg: 담당 샤드 + 출발 임박분(항상)."""
+    """이번 실행이 검색할 leg — 3단계 계층 (SPEC §5):
+
+      임박(≤imminent_days)   : 매 실행 체크 (하루 12회)
+      주시(≤attention_days)  : 하루 2회 체크
+      원거리(그 외)          : 하루 1회 체크
+
+    `offset = today.toordinal()` 을 해시에 더해 배정 슬롯이 매일 회전한다.
+    → 특정 조합이 항상 같은 시각에만 체크되어 생기는 사각(항공사별
+    고정 갱신 시각과의 어긋남)을 제거.
+    """
     imminent_until = today + dt.timedelta(days=cfg.imminent_days)
+    attention_until = today + dt.timedelta(days=cfg.attention_days)
+    offset = today.toordinal()
+    half = max(1, cfg.shards // 2)  # shards=12 → 6: 하루 12슬롯 중 2회 적중
+
     picked = []
     for leg in all_legs(cfg, today):
-        if leg.date <= imminent_until or shard_of(leg, cfg.shards) == current_shard:
+        if leg.date <= imminent_until:
             picked.append(leg)
+        elif leg.date <= attention_until:
+            if (_leg_hash(leg) + offset) % half == current_shard % half:
+                picked.append(leg)
+        else:
+            if (_leg_hash(leg) + offset) % cfg.shards == current_shard:
+                picked.append(leg)
     return picked
 
 
@@ -200,6 +223,38 @@ def mark_sent(state: State, alerts: list[Alert]) -> None:
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     for a in alerts:
         state.alerts_sent[a.combo.key] = {"price": a.combo.price, "at": now}
+
+
+# ---------------------------------------------------------------- 관측기간 리포트
+
+def is_observing(cfg: Settings, state: State, today: dt.date) -> bool:
+    first_run = state.first_run_date(today)
+    return today < first_run + dt.timedelta(days=cfg.observation_days)
+
+
+def observation_report(cfg: Settings, state: State, today: dt.date) -> str | None:
+    """관측 기간 중 하루 1회, 형성 중인 기준가 요약 메시지. 이미 보냈으면 None."""
+    if not is_observing(cfg, state, today):
+        return None
+    if state.meta.get("last_obs_report") == today.isoformat():
+        return None
+    if not state.baselines:
+        return None
+    state.meta["last_obs_report"] = today.isoformat()
+
+    labels = {r.key: r.label for r in cfg.routes}
+    day_n = (today - state.first_run_date(today)).days + 1
+    lines = [f"📡 <b>관측 {day_n}일차</b> — 기준가 형성 중 "
+             f"(총 {cfg.observation_days}일, 이후 특가 알림 시작)"]
+    for unit in sorted(state.baselines):
+        b = state.baselines[unit]
+        if "baseline" not in b:
+            continue
+        route_key, month = unit.split("|")
+        m = int(month.split("-")[1])
+        lines.append(f"· {labels.get(route_key, route_key)} {m}월: "
+                     f"현재 최저 ₩{b['baseline']:,}")
+    return "\n".join(lines) if len(lines) > 1 else None
 
 
 # ---------------------------------------------------------------- 오류 감시

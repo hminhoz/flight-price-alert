@@ -35,6 +35,7 @@ class Settings:
     routes: list[Route]
     shards: int
     imminent_days: int
+    attention_days: int
     request_delay_sec: tuple[float, float]
     observation_days: int
     baseline_recalc_window: int
@@ -75,6 +76,7 @@ def load(path: Path | None = None) -> Settings:
         routes=[Route(**r) for r in raw["routes"]],
         shards=int(sch["shards"]),
         imminent_days=int(sch["imminent_days"]),
+        attention_days=int(sch.get("attention_days", 21)),
         request_delay_sec=tuple(sch["request_delay_sec"]),
         observation_days=int(al["observation_days"]),
         baseline_recalc_window=int(al["baseline_recalc_window"]),

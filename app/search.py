@@ -91,6 +91,10 @@ def search_leg(
         try:
             results = get_flights(q)
             return _pick_best(results, window, direct_only, date)
+        except IndexError:
+            # HTTP 200이지만 항공편 데이터가 없는 페이지를 파서가 못 넘기는 경우
+            # (국내선 등 구글에 가격이 없는 노선에서 빈발). 재시도 무의미 → 즉시 no-data.
+            raise NoFlightData(f"{origin}-{dest} {date}")
         except Exception as e:  # noqa: BLE001 - 비공식 라이브러리, 광범위 방어
             last_err = e
             wait = (2 ** attempt) + random.uniform(0, 1)
@@ -102,6 +106,10 @@ def search_leg(
 
 class SearchError(RuntimeError):
     pass
+
+
+class NoFlightData(RuntimeError):
+    """검색은 됐으나 해당 날짜/노선에 파싱 가능한 가격 데이터가 없음."""
 
 
 def _pick_best(results, window, direct_only, date) -> LegResult | None:

@@ -72,3 +72,18 @@ tests/test_pipeline.py      네트워크 없는 통합 테스트 (python tests/t
 - fast-flights는 비공식 스크래핑: Google 개편 시 일시 중단될 수 있음 (경고 알림 옴)
 - 편도 합산 방식이라 대한항공/아시아나 왕복 전용 특가는 일부 놓칠 수 있음
 - GitHub Actions cron은 수 분~수십 분 지연될 수 있음
+
+## 노선 추가/제거
+
+`config.yaml`의 `routes` 목록에 한 줄 추가하고 커밋하면 끝 (코드 수정 불필요):
+
+```yaml
+  - { origin: ICN, destination: DAD, label: "인천-다낭" }          # 국제선
+  - { origin: GMP, destination: PUS, label: "김포-부산", domestic: true }  # 국내선은 domestic 표시
+```
+
+- 공항 코드는 IATA 3글자 (도쿄처럼 도시 통합 코드 TYO도 가능)
+- 새 노선은 해당 노선만 3일 관측을 새로 거친 뒤 알림 시작 (기존 노선은 영향 없음)
+- 비용: 노선 1개당 실행 시간 약 +5분 (실측 8초/검색 기준).
+  현재 평시 ~30분 / 타임아웃 75분이라 **7~8개 노선 추가까지는 조정 불필요.**
+  그 이상이면 `imminent_days`를 줄이거나 여행 기간을 좁혀 시간을 되찾을 것.
