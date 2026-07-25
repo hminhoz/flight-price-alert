@@ -34,6 +34,17 @@ def main() -> int:
         log.info("여행 가능 기간 종료. 할 일 없음.")
         return 0
 
+    dry = os.environ.get("DRY_RUN") == "1"
+
+    # v2 준비: 네이버 API 탐침. DRY_RUN에서만, 검색보다 먼저 실행해 로그 앞쪽에
+    # 결과가 오도록 한다(4요청·1분 이내). 구조 확정 후 이 블록과 모듈은 삭제.
+    if dry:
+        try:
+            from app import naver_probe
+            naver_probe.run(adults=cfg.adults, today=today)
+        except Exception as e:  # noqa: BLE001 - 탐침 실패가 본 작업을 막지 않는다
+            log.info("네이버 탐침 오류: %s", str(e)[:200])
+
     state.prune_past_legs(today)
     state.first_run_date(today)
 
@@ -101,8 +112,6 @@ def main() -> int:
     combos = engine.build_combos(cfg, state, today)
     alerts = engine.process(cfg, state, combos, today)
     log.info("콤보 %d개, 알림 후보 %d건", len(combos), len(alerts))
-
-    dry = os.environ.get("DRY_RUN") == "1"
 
     def dry_skip_network() -> bool:
         """DRY_RUN 중에도 왕복 검증은 실제로 돌려봐야 진단이 되므로 기본은 실행.
