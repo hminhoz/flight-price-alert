@@ -146,25 +146,30 @@ def test_roundtrip_verification():
     a = engine.Alert(kind="record", combo=combo, baseline=850_000,
                      prev_min=900_000)
 
-    # 왕복가 미확보 → 편도 2장 합산만 표시
+    # 왕복가 미확보 → 편도 2장만 표시
     msg = format_alerts(cfg, [a])[0]
-    assert "800,000" in msg and "편도 2장 합산" in msg, msg
+    assert "800,000" in msg and "편도 2장" in msg, msg
     assert "왕복 티켓" not in msg
 
-    # 왕복가 확보 → 대표 금액은 그대로 편도 2장, 왕복은 참고 줄 (2026-07-25 실측:
-    # 왕복이 오히려 35~59% 비쌌으므로 대표 금액을 왕복으로 바꾸면 안 된다)
+    # 왕복이 더 비싼 경우 → 편도 2장 쪽에 저렴 표시
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
-    assert "800,000" in msg and "편도 2장 합산" in msg, msg
-    assert "1,200,000" in msg and "+50%" in msg, msg
-    assert "편도 2장이 저렴" in msg, msg
-    assert "-11.1%" in msg, f"하락률이 편도합산 기준이 아니다: {msg}"
+    assert "800,000" in msg and "1,200,000" in msg, msg
+    one_way_line = [l for l in msg.split("\n") if "편도 2장" in l][0]
+    round_line = [l for l in msg.split("\n") if "왕복 티켓" in l][0]
+    assert "50% 저렴" in one_way_line, one_way_line
+    assert "저렴" not in round_line, round_line
 
-    # 왕복이 더 싼 경우도 올바르게 안내
+    # 왕복이 더 싼 경우 → 왕복 쪽에 저렴 표시 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
-    assert "왕복권이 저렴" in msg, msg
-    print("OK 알림 표시: 편도 2장이 대표 금액, 왕복은 참고 비교로 병기")
+    round_line = [l for l in msg.split("\n") if "왕복 티켓" in l][0]
+    one_way_line = [l for l in msg.split("\n") if "편도 2장" in l][0]
+    assert "25% 저렴" in round_line, round_line
+    assert "저렴" not in one_way_line, one_way_line
+    # 판정 근거는 어느 쪽이든 편도합산 기준 유지 (기준가와 같은 척도)
+    assert "-11.1%" in msg, f"하락률이 편도합산 기준이 아니다: {msg}"
+    print("OK 알림 표시: 편도 2장과 왕복 티켓 병기, 싼 쪽 자동 강조")
 
 
 def test_display_selection():

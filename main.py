@@ -192,7 +192,8 @@ def main() -> int:
                 log.info("  %s %s~%s %d박: 왕복 조회 실패 (편도합산 %d)",
                          c.route.key, c.dep, c.ret, c.nights, c.price)
             polite_delay(cfg.request_delay_sec)
-        log.info("=== 사전 점검 결과: 3건 중 %d건 확보 ===", ok)
+        log.info("=== 사전 점검 결과: %d건 중 %d건 확보 ===",
+                 len(cheapest_per_route), ok)
 
     err = engine.failure_alert_needed(cfg, state)
     if err:

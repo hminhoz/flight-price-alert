@@ -52,26 +52,31 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         for a in top:
             c = a.combo
             lines.append("")
-            # 대표 금액은 편도 2장 합산. 이것이 실제로 구매 가능한 조합이고,
-            # 2026-07-25 실측에서 왕복 티켓보다 35~59% 저렴했다 (v1.13).
-            # 왕복 티켓가는 참고용 비교로만 덧붙인다.
-            lines.append(
-                f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
-                f"<b>{_won(c.price)}</b> (성인 {cfg.adults}명 · 편도 2장 합산)"
-            )
-            lines.append(
-                f"가는 편 {c.out_leg.get('dep_time','?')} {c.out_leg.get('airline','')} / "
-                f"오는 편 {c.ret_leg.get('dep_time','?')} {c.ret_leg.get('airline','')}"
-            )
+            # 편도 2장과 왕복 티켓 중 어느 쪽이 싼지는 노선마다 다르다 (v1.14).
+            # 2026-07-25 실측: 하네다 -34%, 오키나와 -25%, 가고시마 -8%는 왕복이,
+            # 삿포로 +7%, 나고야 +59%는 편도 2장이 저렴. 한쪽을 대표로 고정하면
+            # 절반의 경우 실제보다 비싼 금액을 알리게 되므로 둘 다 싣고 싼 쪽을 표시.
+            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
+                         f"성인 {cfg.adults}명")
+            legs_txt = (f"가는 편 {c.out_leg.get('dep_time','?')} {c.out_leg.get('airline','')} / "
+                        f"오는 편 {c.ret_leg.get('dep_time','?')} {c.ret_leg.get('airline','')}")
+            if a.rt_price:
+                gap = (a.rt_price - c.price) / max(c.price, 1) * 100
+                if gap >= 0:
+                    lines.append(f"· <b>편도 2장 {_won(c.price)}</b> ← {gap:.0f}% 저렴")
+                    lines.append(f"· 왕복 티켓 {_won(a.rt_price)}")
+                else:
+                    lines.append(f"· 편도 2장 {_won(c.price)}")
+                    lines.append(f"· <b>왕복 티켓 {_won(a.rt_price)}</b> ← {-gap:.0f}% 저렴")
+                lines.append(f"{legs_txt} (편도 2장 기준)")
+            else:
+                lines.append(f"· <b>편도 2장 {_won(c.price)}</b>")
+                lines.append(legs_txt)
             if a.kind == "record" and a.prev_min:
                 drop = (a.prev_min - c.price) / a.prev_min * 100
                 lines.append(f"이전 최저 {_won(a.prev_min)} 대비 <b>-{drop:.1f}%</b>")
             else:
                 lines.append(f"기준가 {_won(a.baseline)}")
-            if a.rt_price:
-                gap = (a.rt_price - c.price) / c.price * 100
-                cheaper = "왕복권이 저렴" if gap < 0 else "편도 2장이 저렴"
-                lines.append(f"참고: 왕복 티켓 {_won(a.rt_price)} ({gap:+.0f}%) → {cheaper}")
             g = google_flights_url(route, c.dep, c.ret)
             n = naver_url(route, c.dep, c.ret, cfg.adults)
             lines.append(f'<a href="{g}">Google Flights</a> · <a href="{n}">네이버항공권</a>')
