@@ -2,7 +2,8 @@ name: flight-price-check
 
 on:
   schedule:
-    - cron: "17 */2 * * *"   # 2시간마다 (정각 혼잡 회피를 위해 17분 오프셋)
+    - cron: "43 * * * *"     # 1시간마다 시도. GitHub이 절반을 지연/생략해도
+                             # 커서 샤딩이라 누락 없이 하루 8회+ 확보 (v1.6)
   workflow_dispatch:          # 수동 실행 버튼 (테스트용)
     inputs:
       dry_run:
