@@ -41,8 +41,13 @@
    "at": "2026-07-25T12:32:32+00:00",
    "attempted": 214,
    "failed": 22
+  },
+  {
+   "at": "2026-07-25T12:52:50+00:00",
+   "attempted": 258,
+   "failed": 17
   }
  ],
- "shard_cursor": 1,
+ "shard_cursor": 2,
  "startup_sent": true
 }
