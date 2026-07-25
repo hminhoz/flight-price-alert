@@ -20,13 +20,21 @@ search:
   adults: 2
   currency: "KRW"
 
+# 노선별 시간창 override (v1.11)
+#   전역 시간창은 노선마다 다른 운항 스케줄을 반영하지 못해 일부 노선을 죽인다.
+#   아래처럼 outbound_departure / return_departure 를 노선에 직접 붙이면 그
+#   노선만 덮어쓴다. earliest·latest 중 하나만 써도 되고, 안 쓴 쪽은 전역값 유지.
 routes:
   # ---- 구글 소스로 정상 가동 중인 노선 ----
   - { origin: ICN, destination: NGO, label: "인천-나고야" }
-  - { origin: ICN, destination: CTS, label: "인천-삿포로" }
+  - { origin: ICN, destination: CTS, label: "인천-삿포로",
+      # CTS→ICN 은 저녁 출발편이 거의 없음 (실측: 오는 편 가격 확보 1/58)
+      return_departure: { earliest: "15:00" } }
   - { origin: GMP, destination: HND, label: "김포-하네다" }
   - { origin: ICN, destination: OKA, label: "인천-오키나와" }
-  - { origin: ICN, destination: KOJ, label: "인천-가고시마" }
+  - { origin: ICN, destination: KOJ, label: "인천-가고시마",
+      # ICN→KOJ 출발편은 12:47·15:45 등 오후 편중 (실측: 가는 편 0/39)
+      outbound_departure: { latest: "16:00" } }
   # ---- 구글 불가 확정 → 네이버 소스(v2) 개발 후 부활시킬 것 (2026-07-25 진단) ----
   # - { origin: ICN, destination: KIX, label: "인천-오사카" }
   # - { origin: ICN, destination: NRT, label: "인천-나리타" }
@@ -49,6 +57,14 @@ alerts:
   bundle_top_n: 3                # 같은 노선 다수 조건 충족 시 묶음 알림 최대 개수
   similar_margin_pct: 10         # 알림에 '최저가 +N% 이내 다른 날짜'도 함께 표시
   similar_top_n: 4               # 위 유사가격 날짜 최대 표시 개수
+  verify_roundtrip: true         # 알림 직전 왕복 실가 재조회 (v1.12, 아래 설명)
+  verify_max_queries: 6          # 실행당 왕복 검증 쿼리 상한
+# ── 왕복 검증이 필요한 이유 ──────────────────────────────
+# 이 시스템은 오는 편 시간 조건을 걸기 위해 편도 2회로 나눠 검색한다. 그런데
+# 일본 출발 편도 요금은 한국 발권 왕복보다 훨씬 비싸서(실측 1.5~2배) 편도
+# 합산가는 실구매가가 아니다. 그래서 편도 합산가는 '변동 감지 지표'로만 쓰고,
+# 알림이 확정된 조합만 왕복으로 다시 조회해 실제 금액을 메시지에 싣는다.
+# 기준가는 감지 지표와 같은 척도라 리셋 없이 그대로 유지된다.
 
 errors:
   retry: 3

@@ -14,7 +14,8 @@ import os
 import sys
 
 from app import engine, notify
-from app.search import NoFlightData, SearchError, polite_delay, search_leg
+from app.search import (NoFlightData, SearchError, polite_delay, search_leg,
+                        search_roundtrip)
 from app.settings import load
 from app.state import State
 
@@ -48,6 +49,12 @@ def main() -> int:
     if max_legs:
         legs = legs[: int(max_legs)]
     log.info("shard=%d 검색 대상 %d개 leg", shard, len(legs))
+    for r in cfg.routes:
+        if cfg.has_window_override(r.key):
+            o, rt = cfg.window_for(r.key, "out"), cfg.window_for(r.key, "ret")
+            log.info("  시간창 override %s: 가는 편 %s~%s / 오는 편 %s~%s", r.key,
+                     o[0].strftime("%H:%M"), o[1].strftime("%H:%M"),
+                     rt[0].strftime("%H:%M"), rt[1].strftime("%H:%M"))
 
     # ---- 검색 ----
     from collections import defaultdict
@@ -56,7 +63,7 @@ def main() -> int:
     attempted = failed = 0
     for leg in legs:
         attempted += 1
-        window = cfg.outbound_window if leg.direction == "out" else cfg.return_window
+        window = cfg.window_for(leg.route.key, leg.direction)
         try:
             res = search_leg(
                 leg.origin, leg.dest, leg.date.isoformat(),
@@ -97,6 +104,11 @@ def main() -> int:
 
     dry = os.environ.get("DRY_RUN") == "1"
 
+    def dry_skip_network() -> bool:
+        """DRY_RUN 중에도 왕복 검증은 실제로 돌려봐야 진단이 되므로 기본은 실행.
+        NO_VERIFY=1 이면 건너뛴다 (오프라인 테스트용)."""
+        return os.environ.get("NO_VERIFY") == "1"
+
     def deliver(msg: str) -> bool:
         if dry:
             print("\n----- DRY RUN 메시지 -----\n" + msg)
@@ -113,6 +125,29 @@ def main() -> int:
             "이후 특가 알림이 시작됩니다."
         ):
             state.meta["startup_sent"] = True
+
+    # ---- 왕복 실가 검증 (v1.12) ----
+    # 판정은 편도 합산 기준 그대로. 메시지에 노출될 조합만 왕복으로 재조회해
+    # 표시 금액을 실구매가에 가깝게 만든다. 실패해도 알림은 그대로 나간다.
+    if alerts and cfg.verify_roundtrip and not dry_skip_network():
+        targets = engine.display_selection(cfg, alerts)[: cfg.verify_max_queries]
+        ok = 0
+        for a in targets:
+            c = a.combo
+            a.rt_price = search_roundtrip(
+                c.route.origin, c.route.destination,
+                c.dep.isoformat(), c.ret.isoformat(),
+                adults=cfg.adults,
+                out_window=cfg.window_for(c.route.key, "out"),
+                currency=cfg.currency, direct_only=cfg.direct_only,
+            )
+            if a.rt_price:
+                ok += 1
+                gap = (c.price - a.rt_price) / c.price * 100
+                log.info("RTVERIFY %s %s %d박: 편도합산 %d → 왕복실가 %d (%.0f%% 낮음)",
+                         c.route.key, c.dep, c.nights, c.price, a.rt_price, gap)
+            polite_delay(cfg.request_delay_sec)
+        log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
 
     if alerts:
         sent_ok = True

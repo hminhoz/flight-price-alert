@@ -22,6 +22,16 @@ class Route:
         return f"{self.origin}-{self.destination}"
 
 
+# 노선별 시간창 override 지원 이유 (v1.11):
+#   전역 시간창(가는 편 06~13시 / 오는 편 18시 이후)은 노선마다 운항 스케줄
+#   구조가 달라서 일부 노선을 통째로 죽인다. 실측 확인:
+#     - ICN→KOJ 는 출발편이 12:47·15:45 등 오후에 몰려 있어 out 콤보 0개
+#     - CTS→ICN 은 저녁 출발편이 없어 ret 가격 확보 1/58
+#   → config의 routes 항목에 outbound_departure / return_departure 를 부분
+#     지정하면 그 노선만 덮어쓴다 (지정하지 않은 쪽 경계는 전역값 유지).
+_WINDOW_KEYS = ("outbound_departure", "return_departure")
+
+
 @dataclass
 class Settings:
     period_start: dt.date
@@ -50,7 +60,20 @@ class Settings:
     failure_alert_cooldown_hours: int
     leg_freshness_days: int = 3  # 콤보 계산 시 다리(leg) 가격의 최대 허용 나이
 
+    # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
+    route_windows: dict = field(default_factory=dict, repr=False)
+    verify_roundtrip: bool = True   # 알림 직전 왕복 실가 조회 (v1.12)
+    verify_max_queries: int = 6     # 실행당 왕복 검증 쿼리 상한
+
     raw: dict = field(default_factory=dict, repr=False)
+
+    def window_for(self, route_key: str, direction: str) -> tuple[dt.time, dt.time]:
+        """해당 노선·방향에 적용할 출발 시각 범위. override 없으면 전역값."""
+        default = self.outbound_window if direction == "out" else self.return_window
+        return self.route_windows.get(route_key, {}).get(direction, default)
+
+    def has_window_override(self, route_key: str) -> bool:
+        return bool(self.route_windows.get(route_key))
 
 
 def _parse_excludes(items: list) -> list:
@@ -76,24 +99,44 @@ def load(path: Path | None = None) -> Settings:
     path = path or ROOT / "config.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     s, sch, al, er = raw["search"], raw["schedule"], raw["alerts"], raw["errors"]
+
+    global_out = (_parse_time(s["outbound_departure"]["earliest"]),
+                  _parse_time(s["outbound_departure"]["latest"]))
+    global_ret = (_parse_time(s["return_departure"]["earliest"]),
+                  _parse_time(s["return_departure"]["latest"]))
+
+    # 노선 정의에서 시간창 override 키를 분리한 뒤 Route를 만든다
+    routes: list[Route] = []
+    route_windows: dict[str, dict[str, tuple[dt.time, dt.time]]] = {}
+    for item in raw["routes"]:
+        spec = dict(item)
+        overrides = {k: spec.pop(k) for k in _WINDOW_KEYS if k in spec}
+        route = Route(**spec)
+        routes.append(route)
+        for key, direction, base in (("outbound_departure", "out", global_out),
+                                     ("return_departure", "ret", global_ret)):
+            if key not in overrides:
+                continue
+            o = overrides[key] or {}
+            lo = _parse_time(o["earliest"]) if "earliest" in o else base[0]
+            hi = _parse_time(o["latest"]) if "latest" in o else base[1]
+            route_windows.setdefault(route.key, {})[direction] = (lo, hi)
+
     return Settings(
         period_start=dt.date.fromisoformat(s["period"]["start"]),
         period_end=dt.date.fromisoformat(s["period"]["end"]),
         trip_nights=list(s["trip_nights"]),
-        outbound_window=(
-            _parse_time(s["outbound_departure"]["earliest"]),
-            _parse_time(s["outbound_departure"]["latest"]),
-        ),
-        return_window=(
-            _parse_time(s["return_departure"]["earliest"]),
-            _parse_time(s["return_departure"]["latest"]),
-        ),
+        outbound_window=global_out,
+        return_window=global_ret,
         direct_only=bool(s.get("direct_only", True)),
         exclude_departures=_parse_excludes(s.get("exclude_departures") or []),
         exclude_weekdays=["월화수목금토일".index(str(w)[0]) for w in (s.get("exclude_weekdays") or [])],
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
-        routes=[Route(**r) for r in raw["routes"]],
+        routes=routes,
+        route_windows=route_windows,
+        verify_roundtrip=bool(al.get("verify_roundtrip", True)),
+        verify_max_queries=int(al.get("verify_max_queries", 6)),
         shards=int(sch["shards"]),
         imminent_days=int(sch["imminent_days"]),
         attention_days=int(sch.get("attention_days", 21)),

@@ -52,19 +52,28 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         for a in top:
             c = a.combo
             lines.append("")
-            lines.append(
-                f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
-                f"<b>{_won(c.price)}</b> (성인 {cfg.adults}명 총액)"
-            )
+            # 표시 금액: 왕복 실가가 확보되면 그것을 앞세운다. 편도 합산가는
+            # 오는 편이 일본 시장 요금이라 실구매가보다 크게 높다 (v1.12).
+            if a.rt_price:
+                lines.append(
+                    f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
+                    f"<b>{_won(a.rt_price)}</b> (성인 {cfg.adults}명 왕복 총액)"
+                )
+            else:
+                lines.append(
+                    f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박 · "
+                    f"<b>{_won(c.price)}</b> (편도합산 참고치 · 왕복 실가 확인 필요)"
+                )
             lines.append(
                 f"가는 편 {c.out_leg.get('dep_time','?')} {c.out_leg.get('airline','')} / "
                 f"오는 편 {c.ret_leg.get('dep_time','?')} {c.ret_leg.get('airline','')}"
             )
             if a.kind == "record" and a.prev_min:
                 drop = (a.prev_min - c.price) / a.prev_min * 100
-                lines.append(f"이전 최저 {_won(a.prev_min)} → <b>-{drop:.1f}%</b>")
+                lines.append(f"이전 최저 대비 <b>-{drop:.1f}%</b> "
+                             f"(감지지표 {_won(c.price)} · 이전 {_won(a.prev_min)})")
             else:
-                lines.append(f"기준가 {_won(a.baseline)}")
+                lines.append(f"감지지표 {_won(c.price)} · 기준가 {_won(a.baseline)}")
             g = google_flights_url(route, c.dep, c.ret)
             n = naver_url(route, c.dep, c.ret, cfg.adults)
             lines.append(f'<a href="{g}">Google Flights</a> · <a href="{n}">네이버항공권</a>')
@@ -81,7 +90,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             key=lambda c: c.price,
         )[: cfg.similar_top_n]
         if similar:
-            lines.append(f"\n📅 <b>비슷한 가격대 다른 날짜</b> (+{cfg.similar_margin_pct:.0f}% 이내)")
+            lines.append(f"\n📅 <b>비슷한 가격대 다른 날짜</b> "
+                         f"(+{cfg.similar_margin_pct:.0f}% 이내 · 편도합산 기준)")
             for c in similar:
                 lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 {_won(c.price)}")
 

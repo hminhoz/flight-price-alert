@@ -161,6 +161,27 @@ class Alert:
     combo: Combo
     baseline: int
     prev_min: int | None
+    # v1.12: 알림 확정 후 왕복 재조회로 얻은 실제 왕복 총액. 조회 실패 시 None.
+    # 판정(기준가/역대최저)은 여전히 combo.price(편도 합산) 기준 — 기준가와 같은
+    # 척도라야 비교가 성립하므로 이 값은 표시 전용이다.
+    rt_price: int | None = None
+
+
+def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
+    """알림 메시지 본문에 실제로 노출될 알림들 (노선별 저가 top N).
+
+    notify.format_alerts 와 동일한 선별 규칙 — 왕복 검증 쿼리를 표시될 건에만
+    쓰기 위해 분리했다.
+    """
+    from collections import defaultdict
+    by_route: dict[str, list[Alert]] = defaultdict(list)
+    for a in alerts:
+        by_route[a.combo.route.key].append(a)
+    picked: list[Alert] = []
+    for items in by_route.values():
+        items.sort(key=lambda a: a.combo.price)
+        picked += items[: cfg.bundle_top_n]
+    return picked
 
 
 def process(cfg: Settings, state: State, combos: list[Combo],

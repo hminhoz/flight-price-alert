@@ -149,12 +149,8 @@ _fallback_logged: set[tuple[str, str]] = set()
 
 
 def _do_fetch(origin, dest, date, adults, currency, max_stops, korea_market=False):
-    """실제 조회 1회. 테스트에서 이 함수를 바꿔치기해 시나리오를 주입한다.
-
-    korea_market=True면 gl=KR 파라미터를 붙여 한국 시장 기준 응답을 요청한다
-    (시각·가격은 숫자 payload라 언어와 무관하게 파싱됨).
-    """
-    from fast_flights import FlightQuery, Passengers, create_query, get_flights
+    """편도 조회 1회. 테스트에서 이 함수를 바꿔치기해 시나리오를 주입한다."""
+    from fast_flights import FlightQuery, Passengers, create_query
     q = create_query(
         flights=[FlightQuery(date=date, from_airport=origin, to_airport=dest,
                              max_stops=max_stops)],
@@ -163,7 +159,17 @@ def _do_fetch(origin, dest, date, adults, currency, max_stops, korea_market=Fals
         language="ko" if korea_market else "en-US",
         currency=currency,
     )
+    return _run_query(q, korea_market)
+
+
+def _run_query(q, korea_market=False):
+    """쿼리 1건 실행.
+
+    korea_market=True면 gl=KR 파라미터를 붙여 한국 시장 기준 응답을 요청한다
+    (시각·가격은 숫자 payload라 언어와 무관하게 파싱됨).
+    """
     if not korea_market:
+        from fast_flights import get_flights
         return get_flights(q)
     from primp import Client
     from fast_flights.parser import parse
@@ -172,6 +178,80 @@ def _do_fetch(origin, dest, date, adults, currency, max_stops, korea_market=Fals
     params = {**q.params(), "gl": "KR"}
     res = client.get("https://www.google.com/travel/flights", params=params)
     return parse(res.text)
+
+
+def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,
+                 max_stops, korea_market=False):
+    """왕복 조회 1회. 반환 항목의 price는 왕복 총액이다."""
+    from fast_flights import FlightQuery, Passengers, create_query
+    q = create_query(
+        flights=[
+            FlightQuery(date=dep_date, from_airport=origin, to_airport=dest,
+                        max_stops=max_stops),
+            FlightQuery(date=ret_date, from_airport=dest, to_airport=origin,
+                        max_stops=max_stops),
+        ],
+        trip="round-trip",
+        passengers=Passengers(adults=adults),
+        language="ko" if korea_market else "en-US",
+        currency=currency,
+    )
+    return _run_query(q, korea_market)
+
+
+def search_roundtrip(
+    origin: str,
+    dest: str,
+    dep_date: str,
+    ret_date: str,
+    *,
+    adults: int,
+    out_window: tuple[dt.time, dt.time] | None = None,
+    currency: str = "KRW",
+    direct_only: bool = True,
+) -> int | None:
+    """해당 날짜쌍의 실제 왕복 총액 최저가. 실패하면 None (예외 안 던짐).
+
+    왜 필요한가 (v1.12):
+      편도 합산 방식은 '오는 편'을 일본 시장 편도 요금으로 잡는다. 구글이 이를
+      환산해 주는데, 실측상 한국 발권 왕복 총액보다 크게 비싸다(노선별 1.5~2배).
+      따라서 편도 합산가는 '변동 감지 신호'로는 쓸 수 있어도 알림에 표시할
+      금액으로는 부적절하다. 알림이 확정된 조합만 왕복으로 재조회해 실구매가에
+      가까운 금액을 얻는다. 실행당 몇 건뿐이라 부하 영향은 없다.
+
+    한계: 왕복 쿼리는 '가는 편' 목록만 반환하므로 오는 편 출발 시각은 검증할 수
+    없다. 시간 조건 충족 여부는 편도 검색 결과가 이미 보장하고, 이 값은 금액
+    참조용이다.
+    """
+    stops = 0 if direct_only else None
+    for korea_market in (False, True):
+        try:
+            results = _do_fetch_rt(origin, dest, dep_date, ret_date,
+                                   adults, currency, stops, korea_market)
+        except Exception as e:  # noqa: BLE001 - 검증 실패는 알림을 막지 않는다
+            log.info("RTVERIFY %s-%s %s/%s 실패(korea=%s): %s",
+                     origin, dest, dep_date, ret_date, korea_market, str(e)[:120])
+            continue
+        best = None
+        for item in results or []:
+            try:
+                legs = getattr(item, "flights", None) or []
+                if direct_only and len(legs) != 1:
+                    continue
+                price = parse_price(getattr(item, "price", None))
+                if not price or price <= 0:
+                    continue
+                if out_window is not None:
+                    t = parse_time(getattr(getattr(legs[0], "departure", None), "time", None))
+                    if t is None or not (out_window[0] <= t <= out_window[1]):
+                        continue
+                if best is None or price < best:
+                    best = price
+            except Exception:
+                continue
+        if best is not None:
+            return best
+    return None
 
 
 class SearchError(RuntimeError):
