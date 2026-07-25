@@ -87,20 +87,26 @@ def search_leg(
     )
 
     last_err: Exception | None = None
+    nodata_hits = 0
     for attempt in range(retries):
         try:
             results = get_flights(q)
             return _pick_best(results, window, direct_only, date)
         except IndexError:
-            # HTTP 200이지만 항공편 데이터가 없는 페이지를 파서가 못 넘기는 경우
-            # (국내선 등 구글에 가격이 없는 노선에서 빈발). 재시도 무의미 → 즉시 no-data.
-            raise NoFlightData(f"{origin}-{dest} {date}")
+            # HTTP 200이지만 파서가 못 넘기는 페이지. 일시적일 수 있어 1회만 재시도,
+            # 반복되면 no-data (국내선 등 구글에 가격이 없는 노선에서 빈발).
+            nodata_hits += 1
+            if nodata_hits >= 2:
+                raise NoFlightData(f"{origin}-{dest} {date}")
+            time.sleep(2 + random.uniform(0, 2))
         except Exception as e:  # noqa: BLE001 - 비공식 라이브러리, 광범위 방어
             last_err = e
             wait = (2 ** attempt) + random.uniform(0, 1)
             log.warning("search fail %s-%s %s (try %d/%d): %s",
                         origin, dest, date, attempt + 1, retries, e)
             time.sleep(wait)
+    if nodata_hits and last_err is None:
+        raise NoFlightData(f"{origin}-{dest} {date}")
     raise SearchError(f"{origin}-{dest} {date}: {last_err}") from last_err
 
 

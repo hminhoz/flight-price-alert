@@ -36,8 +36,13 @@ def main() -> int:
     state.prune_past_legs(today)
     state.first_run_date(today)
 
-    shard = int(os.environ.get("SHARD_OVERRIDE",
-                engine.current_shard_from_hour(now.hour, cfg.shards)))
+    # 샤드는 실행 시각이 아닌 저장된 커서로 순환: GitHub이 예약 슬롯을 건너뛰거나
+    # 지연시켜도 "실행할 때마다 다음 샤드"라서 검색 누락이 생기지 않는다. (v1.6)
+    if "SHARD_OVERRIDE" in os.environ:
+        shard = int(os.environ["SHARD_OVERRIDE"]) % cfg.shards
+    else:
+        shard = (int(state.meta.get("shard_cursor", -1)) + 1) % cfg.shards
+    state.meta["shard_cursor"] = shard
     legs = engine.legs_for_run(cfg, today, shard)
     max_legs = os.environ.get("MAX_LEGS")
     if max_legs:
@@ -47,6 +52,7 @@ def main() -> int:
     # ---- 검색 ----
     from collections import defaultdict
     stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])  # [성공, 실패, 데이터없음]
+    last_errors: dict[str, str] = {}
     attempted = failed = 0
     for leg in legs:
         attempted += 1
@@ -66,9 +72,10 @@ def main() -> int:
         except NoFlightData:
             state.record_leg(leg.key, price=None)
             stats[leg.route.key][2] += 1
-        except SearchError:
+        except SearchError as e:
             failed += 1
             stats[leg.route.key][1] += 1
+            last_errors[leg.route.key] = str(e)[:140]
         polite_delay(cfg.request_delay_sec)
 
     state.record_run_stats(attempted=attempted, failed=failed)
@@ -77,6 +84,8 @@ def main() -> int:
     for rk in sorted(stats):
         ok, ng, nd = stats[rk]
         log.info("  %-8s 성공 %3d · 실패 %3d · 데이터없음 %3d", rk, ok, ng, nd)
+    for rk, msg in sorted(last_errors.items()):
+        log.info("  ⤷ %s 마지막 에러: %s", rk, msg)
 
     # ---- 판정 & 알림 ----
     combos = engine.build_combos(cfg, state, today)

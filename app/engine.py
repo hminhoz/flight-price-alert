@@ -243,28 +243,49 @@ def is_observing(cfg: Settings, state: State, today: dt.date) -> bool:
 
 
 def observation_report(cfg: Settings, state: State, today: dt.date) -> str | None:
-    """관측 기간 중 하루 1회, 형성 중인 기준가 요약 메시지. 이미 보냈으면 None."""
+    """관측 기간 중 하루 1회 상황 메시지. 콤보(기준가)가 있으면 기준가 요약,
+    아직 없으면 수집 현황을 보낸다 — 침묵으로 시스템 생사를 알 수 없는 상태 방지."""
     if not is_observing(cfg, state, today):
         return None
     if state.meta.get("last_obs_report") == today.isoformat():
-        return None
-    if not state.baselines:
         return None
     state.meta["last_obs_report"] = today.isoformat()
 
     labels = {r.key: r.label for r in cfg.routes}
     day_n = (today - state.first_run_date(today)).days + 1
-    lines = [f"📡 <b>관측 {day_n}일차</b> — 기준가 형성 중 "
-             f"(총 {cfg.observation_days}일, 이후 특가 알림 시작)"]
-    for unit in sorted(state.baselines):
-        b = state.baselines[unit]
-        if "baseline" not in b:
+    head = (f"📡 <b>관측 {day_n}일차</b> "
+            f"(총 {cfg.observation_days}일, 이후 특가 알림 시작)")
+
+    if state.baselines:  # 콤보가 생겨 기준가 형성 중
+        lines = [head + " — 기준가 형성 중"]
+        for unit in sorted(state.baselines):
+            b = state.baselines[unit]
+            if "baseline" not in b:
+                continue
+            route_key, month = unit.split("|")
+            m = int(month.split("-")[1])
+            lines.append(f"· {labels.get(route_key, route_key)} {m}월: "
+                         f"현재 최저 ₩{b['baseline']:,}")
+        if len(lines) > 1:
+            return "\n".join(lines)
+
+    # 콤보가 아직 없음 → 편도 수집 현황으로 대체
+    per_route: dict[str, list[int]] = {r.key: [0, 0] for r in cfg.routes}  # [가격확보, 조회완료]
+    for key, e in state.legs.items():
+        rk = key.split("|")[0]
+        if rk not in per_route:
             continue
-        route_key, month = unit.split("|")
-        m = int(month.split("-")[1])
-        lines.append(f"· {labels.get(route_key, route_key)} {m}월: "
-                     f"현재 최저 ₩{b['baseline']:,}")
-    return "\n".join(lines) if len(lines) > 1 else None
+        per_route[rk][1] += 1
+        if e.get("price") is not None:
+            per_route[rk][0] += 1
+    total = sum(v[0] for v in per_route.values())
+    lines = [head + " — 편도 가격 수집 중",
+             f"수집된 편도 최저가 {total}건 · 왕복 조합은 짝이 모이면 자동 생성"]
+    for rk in sorted(per_route, key=lambda k: -per_route[k][0]):
+        got, seen = per_route[rk]
+        note = " ⚠️ 데이터 없음" if seen >= 5 and got == 0 else ""
+        lines.append(f"· {labels[rk]}: {got}건{note}")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------- 오류 감시
