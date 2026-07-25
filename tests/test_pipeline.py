@@ -102,7 +102,43 @@ def main():
     test_roundtrip_verification()
     test_display_selection()
 
+    test_tolerant_parser()
+
     print("\n=== 전체 통과 ===")
+
+
+def test_tolerant_parser():
+    """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
+
+    기본 파서는 payload[7][1][0](항공동맹 메타)과 flight[22](탄소)를 고정
+    인덱스로 읽다가 취항사 많은 노선에서 IndexError로 결과를 통째로 버린다.
+    둘 다 이 프로젝트가 안 쓰는 값이므로 관대 파서는 무시해야 한다.
+    """
+    import json
+    from app.gparse import parse_tolerant
+
+    seg = [None, None, None, "ICN", "Incheon", "Kansai", "KIX", None, [6, 55],
+           None, [9, 0], 125, None, None, None, None, None, "A350", None, None,
+           [2026, 8, 25], [2026, 8, 25]]
+    flight = ["OZ", ["Asiana Airlines"], [seg]]          # flight[22] 없음
+    payload = [None, None, None, [[[flight, [[None, 412000]]]]],
+               None, None, None, [None, []]]            # payload[7][1][0] 없음
+    html = ('<html><script class="ds:1">AF_initDataCallback({key:1, data:%s, '
+            'sideChannel:{}});</script></html>' % json.dumps(payload))
+
+    res = parse_tolerant(html)
+    assert res and len(res) == 1, res
+    it = res[0]
+    assert it.price == 412000 and it.airlines == ["Asiana Airlines"]
+    s = it.flights[0]
+    assert s.from_airport.code == "ICN" and s.to_airport.code == "KIX"
+    assert s.departure.time == [6, 55]
+
+    # 구글이 실제로 오류를 준 응답은 None → 기존 재시도·폴백 흐름 유지
+    err = ('<html><script class="ds:1">AF_initDataCallback({key:1, '
+           'data: errorHasStatus: true,});</script></html>')
+    assert parse_tolerant(err) is None
+    print("OK 관대 파서: 메타·탄소 없는 페이로드 복구 · 오류 응답은 None 유지")
 
 
 # ---------------------------------------------------------------- v1.11 / v1.12

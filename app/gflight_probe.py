@@ -23,6 +23,7 @@
   D 성인 1명     인원수가 변수인지
   E 왕복         편도 대신 왕복 쿼리
   F 문자열 쿼리  tfs 프로토버프 대신 자연어 q= 경로
+  G 관대 파서    안 쓰는 필드를 건너뛰고 가격·시각만 추출 ← 2차 본가설
   + 실패 시 원본 HTML 상태를 함께 기록
 """
 from __future__ import annotations
@@ -111,6 +112,32 @@ def _probe_route(origin: str, dest: str, city: str | None, dep: dt.date,
     # F. 문자열(자연어) 쿼리 — tfs 프로토버프를 우회하는 다른 경로
     _try(f"F.문자열 {dest}",
          lambda: get_flights(f"Flights from {origin} to {dest} on {_ymd(dep)}"))
+
+    # G. 관대 파서 (v1.20 본가설) — 기본 파서가 IndexError로 버리는 응답을 직접 판다
+    from .gparse import parse_tolerant
+    for label, query in ((f"G.관대 {dest}", q()),
+                         (f"G2.관대+항공사 {dest}", q(fq=[
+                             FlightQuery(date=_ymd(dep), from_airport=origin,
+                                         to_airport=dest, max_stops=0,
+                                         airlines=_KR_CARRIERS)]))):
+        try:
+            html = fetch_flights_html(query)
+            items = parse_tolerant(html)
+        except Exception as e:  # noqa: BLE001
+            log.info("GPROBE %-22s 실패: %s", label, str(e)[:110])
+            continue
+        if not items:
+            log.info("GPROBE %-22s 추출 0건 (구글이 실제 오류 응답)", label)
+            continue
+        direct = [i for i in items if len(i.flights) == 1]
+        log.info("GPROBE %-22s ✅ 성공 · 총 %d개(직항 %d개) · 직항 최저 %s",
+                 label, len(items), len(direct),
+                 min((i.price for i in direct), default="-"))
+        for i in direct[:3]:
+            s = i.flights[0]
+            log.info("GPROBE %-22s    %s %s→%s %s %s원", label, i.airlines,
+                     s.from_airport.code, s.to_airport.code,
+                     s.departure.time, f"{i.price:,}")
 
 
 def run(adults: int = 2, currency: str = "KRW", today: dt.date | None = None) -> None:

@@ -163,21 +163,56 @@ def _do_fetch(origin, dest, date, adults, currency, max_stops, korea_market=Fals
 
 
 def _run_query(q, korea_market=False):
-    """쿼리 1건 실행.
+    """쿼리 1건 실행. 기본 파서가 죽으면 관대 파서로 한 번 더 시도한다.
 
     korea_market=True면 gl=KR 파라미터를 붙여 한국 시장 기준 응답을 요청한다
     (시각·가격은 숫자 payload라 언어와 무관하게 파싱됨).
+
+    관대 파서 폴백 (v1.20): fast-flights 기본 파서는 안 쓰는 메타데이터를
+    고정 인덱스로 읽다가 취항사 많은 노선에서 IndexError로 죽는다. 그때
+    app/gparse.py 가 가격·시각만 다시 뽑는다. 구글이 진짜 오류를 준
+    경우에는 관대 파서도 None을 주므로 기존 재시도 흐름이 그대로 살아 있다.
     """
     if not korea_market:
         from fast_flights import get_flights
-        return get_flights(q)
+        try:
+            return get_flights(q)
+        except Exception as e:  # noqa: BLE001
+            return _tolerant_retry(q, None, e)
+
     from primp import Client
     from fast_flights.parser import parse
     client = Client(impersonate="chrome_145", impersonate_os="macos",
                     referer=True, cookie_store=True)
     params = {**q.params(), "gl": "KR"}
     res = client.get("https://www.google.com/travel/flights", params=params)
-    return parse(res.text)
+    try:
+        return parse(res.text)
+    except Exception as e:  # noqa: BLE001
+        return _tolerant_retry(q, res.text, e)
+
+
+_tolerant_hits: set[str] = set()
+
+
+def _tolerant_retry(q, html, original_exc):
+    """기본 파서 실패분을 관대 파서로 재시도. 실패하면 원래 예외를 다시 던진다."""
+    from .gparse import parse_tolerant
+    try:
+        if html is None:
+            from fast_flights import fetch_flights_html
+            html = fetch_flights_html(q)
+        items = parse_tolerant(html)
+    except Exception:  # noqa: BLE001
+        raise original_exc from None
+    if not items:
+        raise original_exc from None
+    key = type(original_exc).__name__
+    if key not in _tolerant_hits:
+        _tolerant_hits.add(key)
+        log.info("TOLERANT 기본 파서 실패(%s: %s)를 관대 파서가 복구 · 항목 %d개",
+                 key, str(original_exc)[:60], len(items))
+    return items
 
 
 def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,
