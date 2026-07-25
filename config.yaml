@@ -29,12 +29,14 @@ routes:
   - { origin: ICN, destination: NGO, label: "인천-나고야" }
   - { origin: ICN, destination: CTS, label: "인천-삿포로",
       # CTS→ICN 은 저녁 출발편이 거의 없음 (실측: 오는 편 가격 확보 1/58)
-      return_departure: { earliest: "15:00" } }
+      # 15:00 으로는 14:30 출발편이 30분 차이로 탈락 → 14:00 (v1.12.1)
+      return_departure: { earliest: "14:00" } }
   - { origin: GMP, destination: HND, label: "김포-하네다" }
   - { origin: ICN, destination: OKA, label: "인천-오키나와" }
   - { origin: ICN, destination: KOJ, label: "인천-가고시마",
       # ICN→KOJ 출발편은 12:47·15:45 등 오후 편중 (실측: 가는 편 0/39)
-      outbound_departure: { latest: "16:00" } }
+      # 16:00 으로는 대한항공 16:20 편이 20분 차이로 탈락 → 17:00 (v1.12.1)
+      outbound_departure: { latest: "17:00" } }
   # ---- 구글 불가 확정 → 네이버 소스(v2) 개발 후 부활시킬 것 (2026-07-25 진단) ----
   # - { origin: ICN, destination: KIX, label: "인천-오사카" }
   # - { origin: ICN, destination: NRT, label: "인천-나리타" }

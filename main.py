@@ -161,6 +161,31 @@ def main() -> int:
     if obs:
         deliver(obs)
 
+    # 관측 기간이라 알림이 아직 없을 때, DRY_RUN 실행이면 왕복 조회가 실제로
+    # 되는지 미리 확인한다. 7/28 첫 알림까지 기다리지 않고 검증하기 위함 (v1.12.1).
+    # 전송·저장 없이 로그만 남긴다.
+    if dry and not alerts and combos and cfg.verify_roundtrip:
+        log.info("=== 왕복 검증 사전 점검 (DRY_RUN) ===")
+        ok = 0
+        for c in sorted(combos, key=lambda x: x.price)[:3]:
+            rt = search_roundtrip(
+                c.route.origin, c.route.destination,
+                c.dep.isoformat(), c.ret.isoformat(),
+                adults=cfg.adults,
+                out_window=cfg.window_for(c.route.key, "out"),
+                currency=cfg.currency, direct_only=cfg.direct_only,
+            )
+            if rt:
+                ok += 1
+                log.info("  %s %s~%s %d박: 편도합산 %d → 왕복실가 %d (%.0f%% 낮음)",
+                         c.route.key, c.dep, c.ret, c.nights, c.price, rt,
+                         (c.price - rt) / c.price * 100)
+            else:
+                log.info("  %s %s~%s %d박: 왕복 조회 실패 (편도합산 %d)",
+                         c.route.key, c.dep, c.ret, c.nights, c.price)
+            polite_delay(cfg.request_delay_sec)
+        log.info("=== 사전 점검 결과: 3건 중 %d건 확보 ===", ok)
+
     err = engine.failure_alert_needed(cfg, state)
     if err:
         deliver(err)
