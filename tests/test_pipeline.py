@@ -106,6 +106,7 @@ def main():
     test_tolerant_parser()
     test_preview_alerts()
     test_per_person_and_link()
+    test_price_ordering()
 
     print("\n=== 전체 통과 ===")
 
@@ -154,6 +155,38 @@ def test_per_person_and_link():
     msg2 = format_alerts(cfg, [a])[0]
     assert "검색결과" in msg2 and "해당 항공사만" not in msg2
     print("OK 1인당 표기 + 항공사 필터 링크")
+
+
+def test_price_ordering():
+    """표시 순서가 실제 강조 금액(편도·왕복 중 싼 쪽) 오름차순인지 (v1.25)."""
+    cfg = load()
+    r1, r2 = cfg.routes[0], cfg.routes[1]
+
+    def mk(route, day, one_way, rt):
+        c = engine.Combo(route=route, dep=dt.date(2026, 9, day), nights=3,
+                         price=one_way,
+                         out_leg={"price": 1, "dep_time": "07:30",
+                                  "airline": "X", "carrier": "7C"},
+                         ret_leg={"price": 1, "dep_time": "19:40",
+                                  "airline": "X", "carrier": "7C"})
+        a = engine.Alert(kind="baseline", combo=c, baseline=one_way, prev_min=None)
+        a.rt_price = rt
+        return a
+
+    # 같은 노선 안: 편도 기준으론 800<850 이지만 실제 금액은 500<800
+    alerts = [mk(r1, 10, 800_000, 1_200_000),   # 표시 800,000
+              mk(r1, 11, 850_000, 500_000),     # 표시 500,000
+              # 다른 노선은 더 싸다 → 메시지가 먼저 나가야 한다
+              mk(r2, 12, 400_000, None)]        # 표시 400,000
+    msgs = format_alerts(cfg, alerts)
+    assert len(msgs) == 2, msgs
+    assert r2.label in msgs[0], "더 싼 노선의 메시지가 먼저 와야 한다"
+
+    body = msgs[1]
+    i_cheap = body.index("250,000/인")   # 500,000 / 2명
+    i_exp = body.index("400,000/인")     # 800,000 / 2명
+    assert i_cheap < i_exp, f"싼 항목이 위에 와야 한다:\n{body}"
+    print("OK 정렬: 노선 간·노선 내 모두 실제 금액 오름차순")
 
 
 def test_tolerant_parser():

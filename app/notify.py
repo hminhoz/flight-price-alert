@@ -45,10 +45,25 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
     for c in all_combos or []:
         combos_by_route[c.route.key].append(c)
 
-    messages = []
+    def best_price(a) -> int:
+        """실제로 화면에 강조되는 금액 = 편도 2장과 왕복 티켓 중 싼 쪽.
+
+        정렬은 이 값으로 해야 한다. 감지 지표(편도 2장)로 정렬하면 왕복이 더
+        싼 항목이 뒤로 밀려서 눈에 보이는 숫자가 뒤죽박죽이 된다 (v1.25).
+        """
+        cands = [a.combo.price]
+        if a.rt_price:
+            cands.append(a.rt_price)
+        return min(cands)
+
+    messages: list[tuple[int, str]] = []
     for _key, items in by_route.items():
+        # 노출 대상 선별은 감지 지표 기준 (engine.display_selection과 동일해야
+        # 왕복 검증을 받은 항목과 실제 표시 항목이 어긋나지 않는다)
         items.sort(key=lambda a: a.combo.price)
         top = items[: cfg.bundle_top_n]
+        # 선별이 끝난 뒤 표시 순서만 실제 금액 기준으로 다시 정렬
+        top.sort(key=best_price)
         route = top[0].combo.route
         month = top[0].combo.dep.month
         record = any(a.kind == "record" for a in top)
@@ -111,8 +126,11 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 "
                              f"{_won(round(c.price / max(cfg.adults, 1)))}/인")
 
-        messages.append("\n".join(lines))
-    return messages
+        messages.append((best_price(top[0]), "\n".join(lines)))
+
+    # 노선 간에도 싼 순서로: 가장 저렴한 노선의 메시지가 먼저 간다
+    messages.sort(key=lambda m: m[0])
+    return [m for _, m in messages]
 
 
 def send(text: str) -> bool:
