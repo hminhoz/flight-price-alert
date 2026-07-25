@@ -166,20 +166,28 @@ def main() -> int:
     # 전송·저장 없이 로그만 남긴다.
     if dry and not alerts and combos and cfg.verify_roundtrip:
         log.info("=== 왕복 검증 사전 점검 (DRY_RUN) ===")
+        # 노선별 최저가 1건씩. 전체 최저 3건만 뽑으면 한 노선에 몰려서
+        # (2026-07-25 1차 점검이 전부 나고야였음) 노선 간 차이를 못 본다.
+        cheapest_per_route: dict[str, object] = {}
+        for c in combos:
+            cur = cheapest_per_route.get(c.route.key)
+            if cur is None or c.price < cur.price:
+                cheapest_per_route[c.route.key] = c
         ok = 0
-        for c in sorted(combos, key=lambda x: x.price)[:3]:
+        for c in sorted(cheapest_per_route.values(), key=lambda x: x.route.key):
             rt = search_roundtrip(
                 c.route.origin, c.route.destination,
                 c.dep.isoformat(), c.ret.isoformat(),
                 adults=cfg.adults,
                 out_window=cfg.window_for(c.route.key, "out"),
                 currency=cfg.currency, direct_only=cfg.direct_only,
+                diag=True,
             )
             if rt:
                 ok += 1
-                log.info("  %s %s~%s %d박: 편도합산 %d → 왕복실가 %d (%.0f%% 낮음)",
-                         c.route.key, c.dep, c.ret, c.nights, c.price, rt,
-                         (c.price - rt) / c.price * 100)
+                gap = (rt - c.price) / c.price * 100
+                log.info("  %s %s~%s %d박: 편도2장 %d / 왕복티켓 %d (왕복이 %+.0f%%)",
+                         c.route.key, c.dep, c.ret, c.nights, c.price, rt, gap)
             else:
                 log.info("  %s %s~%s %d박: 왕복 조회 실패 (편도합산 %d)",
                          c.route.key, c.dep, c.ret, c.nights, c.price)

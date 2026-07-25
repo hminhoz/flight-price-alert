@@ -146,20 +146,25 @@ def test_roundtrip_verification():
     a = engine.Alert(kind="record", combo=combo, baseline=850_000,
                      prev_min=900_000)
 
-    # 검증 실패(None) → 편도합산 참고치임을 명시해야 한다
+    # 왕복가 미확보 → 편도 2장 합산만 표시
     msg = format_alerts(cfg, [a])[0]
-    assert "800,000" in msg and "편도합산 참고치" in msg, msg
-    assert "왕복 총액" not in msg
+    assert "800,000" in msg and "편도 2장 합산" in msg, msg
+    assert "왕복 티켓" not in msg
 
-    # 검증 성공 → 왕복 실가가 주 금액
-    a.rt_price = 520_000
+    # 왕복가 확보 → 대표 금액은 그대로 편도 2장, 왕복은 참고 줄 (2026-07-25 실측:
+    # 왕복이 오히려 35~59% 비쌌으므로 대표 금액을 왕복으로 바꾸면 안 된다)
+    a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
-    assert "520,000" in msg and "왕복 총액" in msg, msg
-    assert "참고치" not in msg
-    assert "800,000" in msg, "감지지표(편도합산)도 함께 보여야 한다"
-    # 판정 근거는 여전히 편도합산 기준이어야 한다 (기준가와 같은 척도)
+    assert "800,000" in msg and "편도 2장 합산" in msg, msg
+    assert "1,200,000" in msg and "+50%" in msg, msg
+    assert "편도 2장이 저렴" in msg, msg
     assert "-11.1%" in msg, f"하락률이 편도합산 기준이 아니다: {msg}"
-    print("OK 왕복 검증 표시: 실가 확보 시 왕복 총액, 실패 시 참고치 명시")
+
+    # 왕복이 더 싼 경우도 올바르게 안내
+    a.rt_price = 600_000
+    msg = format_alerts(cfg, [a])[0]
+    assert "왕복권이 저렴" in msg, msg
+    print("OK 알림 표시: 편도 2장이 대표 금액, 왕복은 참고 비교로 병기")
 
 
 def test_display_selection():

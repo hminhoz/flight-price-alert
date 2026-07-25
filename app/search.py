@@ -209,6 +209,7 @@ def search_roundtrip(
     out_window: tuple[dt.time, dt.time] | None = None,
     currency: str = "KRW",
     direct_only: bool = True,
+    diag: bool = False,
 ) -> int | None:
     """해당 날짜쌍의 실제 왕복 총액 최저가. 실패하면 None (예외 안 던짐).
 
@@ -232,11 +233,24 @@ def search_roundtrip(
             log.info("RTVERIFY %s-%s %s/%s 실패(korea=%s): %s",
                      origin, dest, dep_date, ret_date, korea_market, str(e)[:120])
             continue
+        if diag:
+            # 왕복 응답의 항목 구조를 확인한다. 왕복은 항목 하나에 가는 편+오는 편이
+            # 함께 담길 수 있어(legs=2), 편도용 직항 판정(legs==1)이 오작동할 소지가
+            # 있다. 2026-07-25 왕복가가 편도합산보다 비싸게 나온 원인 후보.
+            shapes = [(len(getattr(i, "flights", None) or []),
+                       parse_price(getattr(i, "price", None)))
+                      for i in (results or [])[:8]]
+            log.info("RTDIAG %s-%s %s: 항목 %d개, (구간수,가격) %s",
+                     origin, dest, dep_date, len(results or []), shapes)
+            if results:
+                log.info("RTDIAG 샘플=%s", repr(results[0])[:500])
         best = None
         for item in results or []:
             try:
                 legs = getattr(item, "flights", None) or []
-                if direct_only and len(legs) != 1:
+                # 왕복 응답은 legs가 1(가는 편만) 또는 2(가는 편+오는 편)일 수 있다.
+                # 각 방향이 직항이면 되므로 2까지 허용한다.
+                if direct_only and len(legs) not in (1, 2):
                     continue
                 price = parse_price(getattr(item, "price", None))
                 if not price or price <= 0:
