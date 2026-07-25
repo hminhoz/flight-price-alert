@@ -92,31 +92,31 @@ def search_leg(
       - None: 검색은 성공했으나 조건(시간대/직항) 만족 항공편 없음
       - raises SearchError: 검색 자체가 실패 (재시도 소진)
     """
-    from fast_flights import (FlightQuery, FlightsNotFound, Passengers,
-                              create_query, get_flights)
-
-    q = create_query(
-        flights=[FlightQuery(
-            date=date, from_airport=origin, to_airport=dest,
-            max_stops=0 if direct_only else None,
-        )],
-        trip="one-way",
-        passengers=Passengers(adults=adults),
-        language="en-US",   # 시간 표기 파싱 안정성을 위해 고정
-        currency=currency,
-    )
+    from fast_flights import FlightsNotFound
 
     last_err: Exception | None = None
     nodata_hits = 0
     for attempt in range(retries):
         try:
-            results = get_flights(q)
+            try:
+                results = _do_fetch(origin, dest, date, adults, currency,
+                                    max_stops=0 if direct_only else None)
+            except (FlightsNotFound, IndexError, TypeError):
+                if not direct_only:
+                    raise
+                # 대형 노선에서 직항 필터 쿼리가 구글 오류 응답/파서 붕괴를 유발하는
+                # 사례 관찰(KIX·FUK·NRT 전량 no-data, 2026-07-25) → 무필터로 재조회하고
+                # 직항 선별은 _pick_best에서 직접 수행 (v1.8)
+                if (origin, dest) not in _fallback_logged:
+                    _fallback_logged.add((origin, dest))
+                    log.info("FALLBACK %s-%s: 직항필터 쿼리 실패 → 무필터 재조회", origin, dest)
+                results = _do_fetch(origin, dest, date, adults, currency, max_stops=None)
             return _pick_best(results, window, direct_only, date, origin, dest)
         except FlightsNotFound:
             raise NoFlightData(f"{origin}-{dest} {date}")
-        except IndexError:
-            # HTTP 200이지만 파서가 못 넘기는 페이지. 일시적일 수 있어 1회만 재시도,
-            # 반복되면 no-data (국내선 등 구글에 가격이 없는 노선에서 빈발).
+        except (IndexError, TypeError):
+            # HTTP 200이지만 파서가 못 넘기는 페이지 구조. 일시적일 수 있어 1회 재시도,
+            # 반복되면 no-data.
             nodata_hits += 1
             if nodata_hits >= 2:
                 raise NoFlightData(f"{origin}-{dest} {date}")
@@ -130,6 +130,23 @@ def search_leg(
     if nodata_hits and last_err is None:
         raise NoFlightData(f"{origin}-{dest} {date}")
     raise SearchError(f"{origin}-{dest} {date}: {last_err}") from last_err
+
+
+_fallback_logged: set[tuple[str, str]] = set()
+
+
+def _do_fetch(origin, dest, date, adults, currency, max_stops):
+    """실제 조회 1회. 테스트에서 이 함수를 바꿔치기해 시나리오를 주입한다."""
+    from fast_flights import FlightQuery, Passengers, create_query, get_flights
+    q = create_query(
+        flights=[FlightQuery(date=date, from_airport=origin, to_airport=dest,
+                             max_stops=max_stops)],
+        trip="one-way",
+        passengers=Passengers(adults=adults),
+        language="en-US",   # 시간 표기 파싱 안정성을 위해 고정
+        currency=currency,
+    )
+    return get_flights(q)
 
 
 class SearchError(RuntimeError):
