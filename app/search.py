@@ -39,10 +39,10 @@ def parse_time(raw) -> dt.time | None:
     if raw is None:
         return None
     if isinstance(raw, (list, tuple)):
-        if not raw or raw[0] is None:
+        if not raw:
             return None
         try:
-            h = int(raw[0])
+            h = int(raw[0]) if raw[0] is not None else 0  # 구글은 0시를 null로 보냄
             m = int(raw[1]) if len(raw) > 1 and raw[1] is not None else 0
         except (TypeError, ValueError):
             return None
@@ -93,32 +93,43 @@ def search_leg(
       - raises SearchError: 검색 자체가 실패 (재시도 소진)
     """
     from fast_flights import FlightsNotFound
+    _soft = (FlightsNotFound, IndexError, TypeError)  # 구글이 오류/이형 페이지를 준 경우
 
     last_err: Exception | None = None
-    nodata_hits = 0
+    soft_fails = 0
+    stops = 0 if direct_only else None
     for attempt in range(retries):
         try:
+            used_fallback = False
             try:
-                results = _do_fetch(origin, dest, date, adults, currency,
-                                    max_stops=0 if direct_only else None)
-            except (FlightsNotFound, IndexError, TypeError):
-                if not direct_only:
-                    raise
-                # 대형 노선에서 직항 필터 쿼리가 구글 오류 응답/파서 붕괴를 유발하는
-                # 사례 관찰(KIX·FUK·NRT 전량 no-data, 2026-07-25) → 무필터로 재조회하고
-                # 직항 선별은 _pick_best에서 직접 수행 (v1.8)
-                if (origin, dest) not in _fallback_logged:
-                    _fallback_logged.add((origin, dest))
-                    log.info("FALLBACK %s-%s: 직항필터 쿼리 실패 → 무필터 재조회", origin, dest)
-                results = _do_fetch(origin, dest, date, adults, currency, max_stops=None)
-            return _pick_best(results, window, direct_only, date, origin, dest)
-        except FlightsNotFound:
-            raise NoFlightData(f"{origin}-{dest} {date}")
-        except (IndexError, TypeError):
-            # HTTP 200이지만 파서가 못 넘기는 페이지 구조. 일시적일 수 있어 1회 재시도,
-            # 반복되면 no-data.
-            nodata_hits += 1
-            if nodata_hits >= 2:
+                results = _do_fetch(origin, dest, date, adults, currency, max_stops=stops)
+            except _soft:
+                # (v1.8) 직항 필터 쿼리 실패 → 무필터 재조회, 직항 선별은 우리가 직접
+                try:
+                    used_fallback = True
+                    results = _do_fetch(origin, dest, date, adults, currency, max_stops=None)
+                except _soft:
+                    # (v1.9) 무필터마저 실패 → 한국 마켓(gl=KR) 파라미터로 재시도.
+                    # 실행 서버가 미국이라 구글이 미국 시장 응답을 주는 것이
+                    # 대형 노선 오류의 원인일 수 있음 (2026-07-25 진단)
+                    used_fallback = False
+                    if (origin, dest) not in _fallback_logged:
+                        _fallback_logged.add((origin, dest))
+                        log.info("KRFALLBACK %s-%s: 무필터도 실패 → 한국 마켓 재시도",
+                                 origin, dest)
+                    results = _do_fetch(origin, dest, date, adults, currency,
+                                        max_stops=stops, korea_market=True)
+            best = _pick_best(results, window, direct_only, date, origin, dest)
+            if best is not None:
+                return best
+            if not used_fallback:
+                return None  # 필터 쿼리가 정상 응답 + 조건 맞는 편 없음 → 신뢰
+            # 폴백 응답이 경유편 위주(직항 누락)였을 수 있음(v1.9 진단:
+            # ICN-HND 등에서 폴백이 경유만 반환) → 직항 쿼리에 기회를 더 준다
+            time.sleep(1.5 + random.uniform(0, 1.5))
+        except _soft:
+            soft_fails += 1
+            if soft_fails >= 2:
                 raise NoFlightData(f"{origin}-{dest} {date}")
             time.sleep(2 + random.uniform(0, 2))
         except Exception as e:  # noqa: BLE001 - 비공식 라이브러리, 광범위 방어
@@ -127,26 +138,40 @@ def search_leg(
             log.warning("search fail %s-%s %s (try %d/%d): %s",
                         origin, dest, date, attempt + 1, retries, e)
             time.sleep(wait)
-    if nodata_hits and last_err is None:
+    if last_err is not None:
+        raise SearchError(f"{origin}-{dest} {date}: {last_err}") from last_err
+    if soft_fails:
         raise NoFlightData(f"{origin}-{dest} {date}")
-    raise SearchError(f"{origin}-{dest} {date}: {last_err}") from last_err
+    return None  # 폴백 경유편만 반복 → 조건불일치로 기록
 
 
 _fallback_logged: set[tuple[str, str]] = set()
 
 
-def _do_fetch(origin, dest, date, adults, currency, max_stops):
-    """실제 조회 1회. 테스트에서 이 함수를 바꿔치기해 시나리오를 주입한다."""
+def _do_fetch(origin, dest, date, adults, currency, max_stops, korea_market=False):
+    """실제 조회 1회. 테스트에서 이 함수를 바꿔치기해 시나리오를 주입한다.
+
+    korea_market=True면 gl=KR 파라미터를 붙여 한국 시장 기준 응답을 요청한다
+    (시각·가격은 숫자 payload라 언어와 무관하게 파싱됨).
+    """
     from fast_flights import FlightQuery, Passengers, create_query, get_flights
     q = create_query(
         flights=[FlightQuery(date=date, from_airport=origin, to_airport=dest,
                              max_stops=max_stops)],
         trip="one-way",
         passengers=Passengers(adults=adults),
-        language="en-US",   # 시간 표기 파싱 안정성을 위해 고정
+        language="ko" if korea_market else "en-US",
         currency=currency,
     )
-    return get_flights(q)
+    if not korea_market:
+        return get_flights(q)
+    from primp import Client
+    from fast_flights.parser import parse
+    client = Client(impersonate="chrome_145", impersonate_os="macos",
+                    referer=True, cookie_store=True)
+    params = {**q.params(), "gl": "KR"}
+    res = client.get("https://www.google.com/travel/flights", params=params)
+    return parse(res.text)
 
 
 class SearchError(RuntimeError):
