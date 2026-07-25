@@ -167,6 +167,24 @@ class Alert:
     rt_price: int | None = None
 
 
+def preview_alerts(cfg: Settings, combos: list[Combo]) -> list[Alert]:
+    """미리보기용: 기준가·중복억제를 무시하고 노선별 최저 조합만 뽑는다.
+
+    "알림이 실제로 어떻게 오는지 지금 보고 싶다"는 용도. 판정 로직을 타지 않으므로
+    상태를 바꾸지 않고, 호출부에서 저장 없이 전송만 한다.
+    """
+    from collections import defaultdict
+    by_route: dict[str, list[Combo]] = defaultdict(list)
+    for c in combos:
+        by_route[c.route.key].append(c)
+    out: list[Alert] = []
+    for items in by_route.values():
+        items.sort(key=lambda c: c.price)
+        for c in items[: cfg.bundle_top_n]:
+            out.append(Alert(kind="baseline", combo=c, baseline=c.price, prev_min=None))
+    return out
+
+
 def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
     """알림 메시지 본문에 실제로 노출될 알림들 (노선별 저가 top N).
 

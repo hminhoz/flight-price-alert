@@ -34,16 +34,13 @@ def main() -> int:
         log.info("여행 가능 기간 종료. 할 일 없음.")
         return 0
 
-    dry = os.environ.get("DRY_RUN") == "1"
-
-    # v2 재도전: 구글 불가 노선 우회 탐침. DRY_RUN에서만, 검색 전에 실행.
-    # 결론이 나면 이 블록과 app/gflight_probe.py 를 삭제한다.
-    if dry:
-        try:
-            from app import gflight_probe
-            gflight_probe.run(adults=cfg.adults, currency=cfg.currency, today=today)
-        except Exception as e:  # noqa: BLE001 - 탐침 실패가 본 작업을 막지 않는다
-            log.info("구글 우회 탐침 오류: %s", str(e)[:200])
+    # DRY_RUN 값으로 세 가지 모드를 가른다 (워크플로우 수정 없이 쓰기 위함):
+    #   빈값     → 실전
+    #   "1"      → 테스트 (전송·저장 없음)
+    #   "preview"→ 미리보기 (기준가 무시하고 현재 최저가를 실제로 1회 전송, 저장 없음)
+    _mode = (os.environ.get("DRY_RUN") or "").strip().lower()
+    dry = _mode == "1"
+    preview = _mode == "preview"
 
     state.prune_past_legs(today)
     state.first_run_date(today)
@@ -138,8 +135,10 @@ def main() -> int:
     # ---- 왕복 실가 검증 (v1.12) ----
     # 판정은 편도 합산 기준 그대로. 메시지에 노출될 조합만 왕복으로 재조회해
     # 표시 금액을 실구매가에 가깝게 만든다. 실패해도 알림은 그대로 나간다.
-    if alerts and cfg.verify_roundtrip and not dry_skip_network():
-        targets = engine.display_selection(cfg, alerts)[: cfg.verify_max_queries]
+    def verify_roundtrips(alerts_):
+        if not (alerts_ and cfg.verify_roundtrip) or dry_skip_network():
+            return
+        targets = engine.display_selection(cfg, alerts_)[: cfg.verify_max_queries]
         ok = 0
         for a in targets:
             c = a.combo
@@ -157,6 +156,24 @@ def main() -> int:
                          c.route.key, c.dep, c.nights, c.price, a.rt_price, gap)
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
+
+    # ---- 미리보기 모드: 기준가와 무관하게 지금 최저가를 실제로 보내본다 ----
+    if preview:
+        pv = engine.preview_alerts(cfg, combos)
+        log.info("미리보기 모드: 노선별 최저 %d건 전송 예정", len(pv))
+        if not pv:
+            log.info("콤보가 아직 없어 보낼 것이 없음")
+            return 0
+        verify_roundtrips(pv)
+        notify.send("🔎 <b>미리보기</b>\n"
+                    "기준가와 무관하게 <b>지금 최저가</b>를 보여드립니다.\n"
+                    "실제 특가 알림이 아니고, 기록도 남기지 않습니다.")
+        for msg in notify.format_alerts(cfg, pv, combos):
+            notify.send(msg)
+        log.info("미리보기 전송 완료 · 상태 저장하지 않음")
+        return 0
+
+    verify_roundtrips(alerts)
 
     if alerts:
         sent_ok = True

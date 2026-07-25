@@ -51,43 +51,44 @@ def main():
     state = State.__new__(State)
     state.legs, state.baselines, state.alerts_sent, state.meta = {}, {}, {}, {}
 
-    # Day 1~3: 관측 기간 (120,000 + 130,000 = 250,000)
-    for i in range(3):
+    # 관측 기간 (120,000 + 130,000 = 250,000) — 길이는 config를 따른다
+    obs = CFG.observation_days
+    for i in range(obs):
         day = TODAY0 + dt.timedelta(days=i)
         combos, alerts = run_day(state, day, 120_000, 130_000)
         assert combos, "콤보 생성 실패"
         assert alerts == [], f"관측 기간에 알림 발생: day{i+1}"
     unit = "ICN-NGO|2026-09"
     assert state.baselines[unit]["baseline"] == 250_000
-    print(f"OK 관측기간: 기준가 {state.baselines[unit]['baseline']:,}원, 알림 0건")
+    print(f"OK 관측기간 {obs}일: 기준가 {state.baselines[unit]['baseline']:,}원, 알림 0건")
 
-    # Day 4: 평범한 가격 (260,000) → 알림 없음
-    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=3), 125_000, 135_000)
+    # 관측 직후: 평범한 가격 (260,000) → 알림 없음
+    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=obs), 125_000, 135_000)
     assert alerts == [], "평범한 가격에 알림 발생"
-    print("OK Day4 평상가: 알림 0건")
+    print("OK 관측직후 평상가: 알림 0건")
 
-    # Day 5: 특가 (99,000 + 101,000 = 200,000) → record 알림
-    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=4), 99_000, 101_000)
+    # 특가 (99,000 + 101,000 = 200,000) → record 알림
+    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=obs + 1), 99_000, 101_000)
     assert alerts, "특가에 알림 미발생"
     assert all(a.kind == "record" for a in alerts)
     msgs = format_alerts(CFG, alerts, combos)
     assert len(msgs) == 1 and "역대 최저가" in msgs[0] and "200,000" in msgs[0]
     engine.mark_sent(state, alerts)
-    print(f"OK Day5 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")
+    print(f"OK 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")
     print("\n----- 메시지 미리보기 -----")
     import re
     print(re.sub(r"<[^>]+>", "", msgs[0]))
     print("-----\n")
 
-    # Day 5b: 같은 가격 재실행 → 중복 억제
-    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=4), 99_000, 101_000)
+    # 같은 가격 재실행 → 중복 억제
+    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=obs + 1), 99_000, 101_000)
     assert alerts == [], "중복 억제 실패"
-    print("OK Day5b 동일가 재실행: 알림 0건 (중복 억제)")
+    print("OK 동일가 재실행: 알림 0건 (중복 억제)")
 
-    # Day 6: 더 낮은 특가 (190,000) → 재알림
-    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=5), 95_000, 95_000)
+    # 더 낮은 특가 (190,000) → 재알림
+    _, alerts = run_day(state, TODAY0 + dt.timedelta(days=obs + 2), 95_000, 95_000)
     assert alerts, "더 낮은 특가에 재알림 미발생"
-    print(f"OK Day6 추가 하락: 재알림 {len(alerts)}건")
+    print(f"OK 추가 하락: 재알림 {len(alerts)}건")
 
     # 샤딩 검증: 전 leg가 6개 샤드에 고르게 분배 + 임박분 포함 여부
     legs = engine.all_legs(CFG, TODAY0)
@@ -103,8 +104,27 @@ def main():
     test_display_selection()
 
     test_tolerant_parser()
+    test_preview_alerts()
 
     print("\n=== 전체 통과 ===")
+
+
+def test_preview_alerts():
+    """미리보기가 기준가·중복억제와 무관하게 노선별 최저를 뽑는지 (v1.22)."""
+    cfg = load()
+    route = cfg.routes[0]
+    combos = [engine.Combo(route=route, dep=dt.date(2026, 9, 10) + dt.timedelta(days=i),
+                           nights=3, price=900_000 - i * 1000,
+                           out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                           ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+              for i in range(6)]
+    pv = engine.preview_alerts(cfg, combos)
+    assert len(pv) == cfg.bundle_top_n, len(pv)
+    assert min(a.combo.price for a in pv) == min(c.price for c in combos)
+    # 기준가를 조합가와 같게 세팅하므로 메시지에 '기준가' 줄이 자연스럽게 나온다
+    msg = format_alerts(cfg, pv, combos)[0]
+    assert "편도 2장" in msg
+    print(f"OK 미리보기: 콤보 {len(combos)}개 → 노선별 최저 {len(pv)}건")
 
 
 def test_tolerant_parser():
