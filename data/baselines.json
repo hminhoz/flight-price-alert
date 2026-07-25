@@ -8,6 +8,15 @@
    "2026-07-25": 1774759
   }
  },
+ "GMP-HND|2026-10": {
+  "alltime_min": 2456567,
+  "alltime_min_at": "2026-07-25T13:11:39+00:00",
+  "alltime_min_prev": null,
+  "baseline": 2456567,
+  "daily_min": {
+   "2026-07-25": 2456567
+  }
+ },
  "ICN-NGO|2026-08": {
   "alltime_min": 1062770,
   "alltime_min_at": "2026-07-25T12:52:50+00:00",
@@ -27,12 +36,12 @@
   }
  },
  "ICN-NGO|2026-10": {
-  "alltime_min": 1533150,
-  "alltime_min_at": "2026-07-25T12:52:50+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1533150,
+  "alltime_min": 1306170,
+  "alltime_min_at": "2026-07-25T13:11:39+00:00",
+  "alltime_min_prev": 1533150,
+  "baseline": 1306170,
   "daily_min": {
-   "2026-07-25": 1533150
+   "2026-07-25": 1306170
   }
  },
  "ICN-OKA|2026-08": {
@@ -45,12 +54,21 @@
   }
  },
  "ICN-OKA|2026-09": {
-  "alltime_min": 1175380,
-  "alltime_min_at": "2026-07-25T12:52:50+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1175380,
+  "alltime_min": 1091380,
+  "alltime_min_at": "2026-07-25T13:11:39+00:00",
+  "alltime_min_prev": 1175380,
+  "baseline": 1091380,
   "daily_min": {
-   "2026-07-25": 1175380
+   "2026-07-25": 1091380
+  }
+ },
+ "ICN-OKA|2026-10": {
+  "alltime_min": 1479565,
+  "alltime_min_at": "2026-07-25T13:11:39+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1479565,
+  "daily_min": {
+   "2026-07-25": 1479565
   }
  }
 }
