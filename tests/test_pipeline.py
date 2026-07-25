@@ -187,7 +187,24 @@ def test_tolerant_parser():
     err = ('<html><script class="ds:1">AF_initDataCallback({key:1, '
            'data: errorHasStatus: true,});</script></html>')
     assert parse_tolerant(err) is None
-    print("OK 관대 파서: 메타·탄소 없는 페이로드 복구 · 오류 응답은 None 유지")
+
+    # 뒤쪽 구획(그 외 항공편)까지 긁는지 + 중복 제거 (v1.24)
+    def mk(price, hh):
+        s = [None, None, None, "GMP", "Gimpo", "Jeju", "CJU", None, [hh, 0],
+             None, [hh + 1, 10], 70, None, None, None, None, None, "738",
+             None, None, [2026, 8, 1], [2026, 8, 1]]
+        return [["7C", ["Jeju Air"], [s]], [[None, price]]]
+
+    multi = [None, None, None,
+             [[mk(257400, 15)],                 # 추천 구획
+              [mk(198000, 7), mk(257400, 15)]], # 그 외 구획 (겹침 1건 포함)
+             None, None, None, [None, []]]
+    html2 = ('<html><script class="ds:1">AF_initDataCallback({key:1, data:%s, '
+             'sideChannel:{}});</script></html>' % json.dumps(multi))
+    got = parse_tolerant(html2)
+    assert got is not None and len(got) == 2, got      # 중복 1건 제거
+    assert min(i.price for i in got) == 198000, got     # 오전 7시 편을 건졌다
+    print("OK 관대 파서: 전 구획 수집·중복 제거 · 오류 응답은 None 유지")
 
 
 # ---------------------------------------------------------------- v1.11 / v1.12

@@ -175,45 +175,62 @@ def _run_query(q, korea_market=False):
     경우에는 관대 파서도 None을 주므로 기존 재시도 흐름이 그대로 살아 있다.
     """
     if not korea_market:
-        from fast_flights import get_flights
-        try:
-            return get_flights(q)
-        except Exception as e:  # noqa: BLE001
-            return _tolerant_retry(q, None, e)
+        from fast_flights import fetch_flights_html
+        html = fetch_flights_html(q)
+    else:
+        from primp import Client
+        client = Client(impersonate="chrome_145", impersonate_os="macos",
+                        referer=True, cookie_store=True)
+        params = {**q.params(), "gl": "KR"}
+        html = client.get("https://www.google.com/travel/flights",
+                          params=params).text
+    return _parse_both(html)
 
-    from primp import Client
+
+def _parse_both(html):
+    """같은 응답을 기본·관대 두 파서로 읽고 더 많이 건진 쪽을 쓴다 (v1.24).
+
+    - 기본 파서는 `payload[3][0]`(추천 항공편) 한 구획만 읽는다.
+    - 관대 파서는 뒤쪽 구획(그 외 항공편)까지 긁으므로 보통 더 많다.
+    항공편이 많은 노선(김포-제주 등)에서 오전 편이 통째로 안 잡히던 원인이라
+    항목 수가 많은 쪽을 채택한다. 요청은 여전히 1회다.
+    """
     from fast_flights.parser import parse
-    client = Client(impersonate="chrome_145", impersonate_os="macos",
-                    referer=True, cookie_store=True)
-    params = {**q.params(), "gl": "KR"}
-    res = client.get("https://www.google.com/travel/flights", params=params)
-    try:
-        return parse(res.text)
-    except Exception as e:  # noqa: BLE001
-        return _tolerant_retry(q, res.text, e)
-
-
-_tolerant_hits: set[str] = set()
-
-
-def _tolerant_retry(q, html, original_exc):
-    """기본 파서 실패분을 관대 파서로 재시도. 실패하면 원래 예외를 다시 던진다."""
     from .gparse import parse_tolerant
+
+    std = std_err = None
     try:
-        if html is None:
-            from fast_flights import fetch_flights_html
-            html = fetch_flights_html(q)
-        items = parse_tolerant(html)
+        std = parse(html)
+    except Exception as e:  # noqa: BLE001
+        std_err = e
+    try:
+        tol = parse_tolerant(html)
     except Exception:  # noqa: BLE001
-        raise original_exc from None
-    if not items:
-        raise original_exc from None
-    key = type(original_exc).__name__
-    if key not in _tolerant_hits:
-        _tolerant_hits.add(key)
-        log.info("TOLERANT 기본 파서 실패(%s: %s)를 관대 파서가 복구 · 항목 %d개",
-                 key, str(original_exc)[:60], len(items))
-    return items
+        tol = None
+
+    n_std, n_tol = len(std or []), len(tol or [])
+    if n_tol > n_std:
+        if n_std == 0 and std_err is not None:
+            _log_once("recover", "TOLERANT 기본 파서 실패(%s)를 관대 파서가 복구 · %d건",
+                      type(std_err).__name__, n_tol)
+        else:
+            _log_once("wider", "TOLERANT 구획 추가 수집: 기본 %d건 → 관대 %d건", n_std, n_tol)
+        return tol
+    if std is not None:
+        return std
+    if std_err is not None:
+        raise std_err
+    return []
+
+
+_logged_once: set = set()
+
+
+def _log_once(key: str, fmt: str, *args) -> None:
+    if key in _logged_once:
+        return
+    _logged_once.add(key)
+    log.info(fmt, *args)
 
 
 def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,

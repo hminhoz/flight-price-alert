@@ -8,7 +8,8 @@
   IndexError가 나고 결과 전체가 버려진다. 실제로 GPROBE에서 그 노선들이
   `list index out of range`로 실패했고, 응답 HTML은 1.8MB로 멀쩡했다.
 
-이 모듈은 **가격·항공사·구간 시각만** 방어적으로 뽑는다. 없거나 모양이
+이 모듈은 **가격·항공사·구간 시각만** 방어적으로 뽑고, 기본 파서가 무시하는
+뒤쪽 구획(그 외 항공편)까지 함께 긁는다. 없거나 모양이
 다른 필드는 조용히 건너뛴다. 기본 파서가 성공하면 그대로 쓰고, 실패할 때만
 이쪽으로 넘어온다(app/search.py의 `_run_query`).
 
@@ -98,11 +99,19 @@ def parse_tolerant(html: str) -> list | None:
     if payload is None or payload is False:
         return None
 
-    raw = _get(_get(payload, 3, []), 0)
+    # payload[3] 아래에는 구획이 여러 개 있다(추천 항공편 / 그 외 항공편 …).
+    # 기본 파서는 [3][0] 하나만 읽어서 나머지를 통째로 버린다. 실측에서
+    # 김포-제주가 13편만 잡히고 그마저 전부 시간창 밖이었던 원인 (v1.24).
+    sections = _get(payload, 3) or []
+    raw: list = []
+    for sec in sections:
+        if isinstance(sec, list):
+            raw.extend(x for x in sec if isinstance(x, list))
     if not raw:
         return None
 
     out: list[_Itinerary] = []
+    seen: set = set()
     for k in raw:
         try:
             flight = _get(k, 0)
@@ -125,6 +134,14 @@ def parse_tolerant(html: str) -> list | None:
                 ))
             if not segs:
                 continue
+
+            # 구획이 겹칠 수 있으므로 중복 제거
+            sig = (int(price), tuple((s.from_airport.code, s.to_airport.code,
+                                      tuple(s.departure.time or ()))
+                                     for s in segs))
+            if sig in seen:
+                continue
+            seen.add(sig)
 
             out.append(_Itinerary(
                 type=_get(flight, 0),
