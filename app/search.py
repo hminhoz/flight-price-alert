@@ -30,10 +30,26 @@ class LegResult:
 _AMPM = re.compile(r"(\d{1,2}):(\d{2})\s*(AM|PM)?", re.IGNORECASE)
 
 
-def parse_time(raw: str) -> dt.time | None:
-    """'6:30 AM' / '18:05' / '6:30\u202fPM' 등 다양한 표기를 24h time으로."""
+def parse_time(raw) -> dt.time | None:
+    """구글 원본 [시, 분] 배열, 정수(시), '6:30 AM'/'18:05' 문자열을 모두 24h time으로.
+
+    fast-flights는 구글 내부 payload의 시각을 가공 없이 넘긴다: [6, 30] 또는
+    분이 0이면 [6] 형태 (v1.7에서 소스 확인). 문자열 케이스도 방어적으로 유지.
+    """
     if raw is None:
         return None
+    if isinstance(raw, (list, tuple)):
+        if not raw or raw[0] is None:
+            return None
+        try:
+            h = int(raw[0])
+            m = int(raw[1]) if len(raw) > 1 and raw[1] is not None else 0
+        except (TypeError, ValueError):
+            return None
+        return dt.time(h, m) if (0 <= h <= 23 and 0 <= m <= 59) else None
+    if isinstance(raw, (int, float)):
+        h = int(raw)
+        return dt.time(h, 0) if 0 <= h <= 23 else None
     m = _AMPM.search(str(raw).replace("\u202f", " ").replace("\u00a0", " "))
     if not m:
         return None
@@ -76,7 +92,8 @@ def search_leg(
       - None: 검색은 성공했으나 조건(시간대/직항) 만족 항공편 없음
       - raises SearchError: 검색 자체가 실패 (재시도 소진)
     """
-    from fast_flights import FlightQuery, Passengers, create_query, get_flights
+    from fast_flights import (FlightQuery, FlightsNotFound, Passengers,
+                              create_query, get_flights)
 
     q = create_query(
         flights=[FlightQuery(
@@ -95,6 +112,8 @@ def search_leg(
         try:
             results = get_flights(q)
             return _pick_best(results, window, direct_only, date, origin, dest)
+        except FlightsNotFound:
+            raise NoFlightData(f"{origin}-{dest} {date}")
         except IndexError:
             # HTTP 200이지만 파서가 못 넘기는 페이지. 일시적일 수 있어 1회만 재시도,
             # 반복되면 no-data (국내선 등 구글에 가격이 없는 노선에서 빈발).
@@ -144,7 +163,8 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?") -> LegR
                 n_time += 1
                 continue
             airlines = getattr(item, "airlines", None) or []
-            name = getattr(airlines[0], "name", "?") if airlines else "?"
+            a0 = airlines[0] if airlines else None
+            name = getattr(a0, "name", None) or (str(a0) if a0 is not None else "?")
             cand = LegResult(
                 price=price, airline=str(name),
                 dep_time=t.strftime("%H:%M"),
