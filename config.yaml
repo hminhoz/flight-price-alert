@@ -21,17 +21,19 @@ search:
   currency: "KRW"
 
 routes:
-  - { origin: ICN, destination: KIX, label: "인천-오사카" }
+  # ---- 구글 소스로 정상 가동 중인 노선 ----
   - { origin: ICN, destination: NGO, label: "인천-나고야" }
   - { origin: ICN, destination: CTS, label: "인천-삿포로" }
-  - { origin: ICN, destination: NRT, label: "인천-나리타" }
-  - { origin: ICN, destination: HND, label: "인천-하네다" }
   - { origin: GMP, destination: HND, label: "김포-하네다" }
-  - { origin: ICN, destination: FUK, label: "인천-후쿠오카" }
   - { origin: ICN, destination: OKA, label: "인천-오키나와" }
   - { origin: ICN, destination: KOJ, label: "인천-가고시마" }
-  - { origin: ICN, destination: CJU, label: "인천-제주", domestic: true }
-  - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
+  # ---- 구글 불가 확정 → 네이버 소스(v2) 개발 후 부활시킬 것 (2026-07-25 진단) ----
+  # - { origin: ICN, destination: KIX, label: "인천-오사카" }
+  # - { origin: ICN, destination: NRT, label: "인천-나리타" }
+  # - { origin: ICN, destination: HND, label: "인천-하네다" }
+  # - { origin: ICN, destination: FUK, label: "인천-후쿠오카" }
+  # - { origin: ICN, destination: CJU, label: "인천-제주", domestic: true }
+  # - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
 
 schedule:
   shards: 6                   # 실행마다 다음 샤드 순환(커서 방식). 6회 실행 = 전 조합 1바퀴

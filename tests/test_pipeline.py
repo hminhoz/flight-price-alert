@@ -26,7 +26,7 @@ TODAY0 = dt.date(2026, 8, 1)
 
 
 def fake_fill_legs(state: State, day: dt.date, out_price: int, ret_price: int,
-                   route_key: str = "ICN-KIX") -> None:
+                   route_key: str = "ICN-NGO") -> None:
     """해당 노선의 9월 일부 날짜 leg를 가짜 가격으로 채운다."""
     now = dt.datetime.combine(day, dt.time(12), tzinfo=dt.timezone.utc)
     for d in [dt.date(2026, 9, 10), dt.date(2026, 9, 11)]:
@@ -57,7 +57,7 @@ def main():
         combos, alerts = run_day(state, day, 120_000, 130_000)
         assert combos, "콤보 생성 실패"
         assert alerts == [], f"관측 기간에 알림 발생: day{i+1}"
-    unit = "ICN-KIX|2026-09"
+    unit = "ICN-NGO|2026-09"
     assert state.baselines[unit]["baseline"] == 250_000
     print(f"OK 관측기간: 기준가 {state.baselines[unit]['baseline']:,}원, 알림 0건")
 
