@@ -56,6 +56,9 @@ def parse_price(raw) -> int | None:
     return int(digits) if digits else None
 
 
+_diag_logged: set[tuple[str, str]] = set()
+
+
 def search_leg(
     origin: str,
     dest: str,
@@ -91,7 +94,7 @@ def search_leg(
     for attempt in range(retries):
         try:
             results = get_flights(q)
-            return _pick_best(results, window, direct_only, date)
+            return _pick_best(results, window, direct_only, date, origin, dest)
         except IndexError:
             # HTTP 200이지만 파서가 못 넘기는 페이지. 일시적일 수 있어 1회만 재시도,
             # 반복되면 no-data (국내선 등 구글에 가격이 없는 노선에서 빈발).
@@ -118,22 +121,27 @@ class NoFlightData(RuntimeError):
     """검색은 됐으나 해당 날짜/노선에 파싱 가능한 가격 데이터가 없음."""
 
 
-def _pick_best(results, window, direct_only, date) -> LegResult | None:
+def _pick_best(results, window, direct_only, date, origin="?", dest="?") -> LegResult | None:
     lo, hi = window
     best: LegResult | None = None
+    n_items = n_direct = n_price = n_time = 0
     for item in results or []:
         try:
+            n_items += 1
             legs = getattr(item, "flights", None) or []
             if direct_only and len(legs) != 1:
+                n_direct += 1
                 continue
             price = parse_price(getattr(item, "price", None))
             if not price or price <= 0:
+                n_price += 1
                 continue
             first = legs[0]
             dep = getattr(getattr(first, "departure", None), "time", None)
             arr = getattr(getattr(first, "arrival", None), "time", None)
             t = parse_time(dep)
             if t is None or not (lo <= t <= hi):
+                n_time += 1
                 continue
             airlines = getattr(item, "airlines", None) or []
             name = getattr(airlines[0], "name", "?") if airlines else "?"
@@ -147,6 +155,14 @@ def _pick_best(results, window, direct_only, date) -> LegResult | None:
                 best = cand
         except Exception:  # 항목 하나 파싱 실패는 무시하고 계속
             continue
+    # 진단: 결과는 있는데 조건 통과가 0건이면, 왜 탈락했는지 + 원본 샘플을 노선당 1회 기록
+    if best is None and n_items and (origin, dest) not in _diag_logged:
+        _diag_logged.add((origin, dest))
+        sample = repr(results[0])[:400]
+        log.info("DIAG %s-%s %s: 항목 %d개 전원 탈락 (직항아님 %d · 가격파싱 %d · 시간창밖 %d, "
+                 "시간창 %s~%s) 샘플=%s",
+                 origin, dest, date, n_items, n_direct, n_price, n_time,
+                 lo.strftime("%H:%M"), hi.strftime("%H:%M"), sample)
     return best
 
 

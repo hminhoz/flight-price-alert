@@ -51,7 +51,7 @@ def main() -> int:
 
     # ---- 검색 ----
     from collections import defaultdict
-    stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])  # [성공, 실패, 데이터없음]
+    stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0, 0])  # [가격확보, 조건불일치, 실패, 데이터없음]
     last_errors: dict[str, str] = {}
     attempted = failed = 0
     for leg in legs:
@@ -66,24 +66,27 @@ def main() -> int:
             if res:
                 state.record_leg(leg.key, price=res.price, airline=res.airline,
                                  dep_time=res.dep_time, arr_time=res.arr_time)
+                stats[leg.route.key][0] += 1
             else:
                 state.record_leg(leg.key, price=None)
-            stats[leg.route.key][0] += 1
+                stats[leg.route.key][1] += 1
         except NoFlightData:
             state.record_leg(leg.key, price=None)
-            stats[leg.route.key][2] += 1
+            stats[leg.route.key][3] += 1
         except SearchError as e:
             failed += 1
-            stats[leg.route.key][1] += 1
+            stats[leg.route.key][2] += 1
             last_errors[leg.route.key] = str(e)[:140]
         polite_delay(cfg.request_delay_sec)
 
     state.record_run_stats(attempted=attempted, failed=failed)
-    log.info("검색 완료: %d 시도 / %d 실패 / %d 데이터없음",
-             attempted, failed, sum(v[2] for v in stats.values()))
+    log.info("검색 완료: %d 시도 → 가격확보 %d / 조건불일치 %d / 실패 %d / 데이터없음 %d",
+             attempted, sum(v[0] for v in stats.values()), sum(v[1] for v in stats.values()),
+             failed, sum(v[3] for v in stats.values()))
     for rk in sorted(stats):
-        ok, ng, nd = stats[rk]
-        log.info("  %-8s 성공 %3d · 실패 %3d · 데이터없음 %3d", rk, ok, ng, nd)
+        got, miss, ng, nd = stats[rk]
+        log.info("  %-8s 가격확보 %3d · 조건불일치 %3d · 실패 %3d · 데이터없음 %3d",
+                 rk, got, miss, ng, nd)
     for rk, msg in sorted(last_errors.items()):
         log.info("  ⤷ %s 마지막 에러: %s", rk, msg)
 
