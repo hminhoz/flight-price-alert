@@ -1,33 +1,31 @@
-"""네이버 항공권 API 탐침 2차 — 차단 원인 판별용.
+"""네이버 항공권 API 탐침 3차 — TLS 지문 우회 + 실제 엔드포인트 탐색.
 
-1차 결과(2026-07-25): 후보 4종이 모두 HTTP 503 nginx 기본 페이지(592바이트 동일).
-엔드포인트 오류(404)도 인증 오류(401/403)도 아닌 획일적 거절 → API 앞단 차단.
+경과:
+  1차: 후보 4종 모두 HTTP 503 (nginx 기본 페이지, 592바이트 동일)
+  2차: www.naver.com 200 · 항공권 페이지 200 · **API만 503**
+       → IP 차단 아님. API 앞단이 이 클라이언트를 골라내고 있다.
 
-두 가설이 남았다:
-  H1. IP 차단 — GitHub Actions 러너가 미국 애저 IP라 네이버가 통째로 막는다.
-      → 일반 페이지(www.naver.com)도 503이면 이 쪽. 해결 불가에 가깝다.
-  H2. 세션/헤더 부족 — 쿠키 없이 API를 직접 POST해서 거절당한다.
-      → 일반 페이지는 200인데 API만 503이면 이 쪽. 세션 확보로 뚫릴 수 있다.
+남은 유력 원인은 TLS 지문이다. requests는 브라우저와 다른 핸드셰이크 특성을
+남기고, 요즘 API 게이트웨이는 이걸로 봇을 거른다. 일반 페이지는 통과시키고
+API만 막는 패턴이 정확히 이 증상이다.
 
-그래서 순서대로 확인한다:
-  1) www.naver.com GET      — IP 차단 여부 (대조군)
-  2) flight.naver.com 페이지 GET — 항공권 서비스 접근 + 쿠키 확보
-  3) 같은 세션으로 API POST  — 쿠키를 달면 달라지는지
+마침 primp가 이미 설치돼 있다(fast-flights 의존성). 구글 한국 마켓 폴백에서
+쓰고 있는 그 라이브러리로, 크롬 TLS 지문을 흉내 낸다.
 
-판별이 끝나면 이 파일은 삭제할 것.
+3차에서 확인할 것:
+  A. primp로 REST 엔드포인트 재시도
+  B. primp로 GraphQL 엔드포인트 재시도
+  C. 항공권 페이지 HTML에서 실제 API 주소 추출
+     (블로그 자료가 낡아 엔드포인트 자체가 바뀌었을 수 있다)
 """
 from __future__ import annotations
 
 import datetime as dt
-import json
 import logging
-
-import requests
+import re
 
 log = logging.getLogger(__name__)
 
-_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-       "(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36")
 _TIMEOUT = 25
 
 
@@ -35,47 +33,47 @@ def _ymd(d: dt.date) -> str:
     return d.strftime("%Y%m%d")
 
 
-def _log_result(name: str, r, body_head: int = 300) -> None:
-    body = r.text or ""
-    log.info("NVPROBE %-16s HTTP %s · %s · %d bytes",
-             name, r.status_code, r.headers.get("Content-Type", "?"), len(body))
-    head = " ".join(body[:body_head].split())
-    log.info("NVPROBE %-16s 본문: %s", name, head)
+def _client():
+    from primp import Client
+    return Client(impersonate="chrome_145", impersonate_os="macos",
+                  referer=True, cookie_store=True, timeout=_TIMEOUT)
+
+
+def _log_res(name: str, res, head: int = 400) -> None:
+    body = getattr(res, "text", "") or ""
+    log.info("NVPROBE %-12s HTTP %s · %d bytes", name, res.status_code, len(body))
+    log.info("NVPROBE %-12s 본문: %s", name, " ".join(body[:head].split()))
 
 
 def run(adults: int = 2, today: dt.date | None = None) -> None:
     today = today or dt.date.today()
     dep = today + dt.timedelta(days=30)
     ret = dep + dt.timedelta(days=3)
-    log.info("=== 네이버 탐침 2차: 차단 원인 판별 (%s~%s) ===", dep, ret)
+    log.info("=== 네이버 탐침 3차: primp(크롬 TLS) + 엔드포인트 탐색 ===")
 
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": _UA,
-        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    })
-
-    # 1) 대조군 — 네이버 메인. 여기가 503이면 IP 차단(H1) 확정.
-    try:
-        r = s.get("https://www.naver.com", timeout=_TIMEOUT)
-        _log_result("1.대조군메인", r, 200)
-    except Exception as e:  # noqa: BLE001
-        log.info("NVPROBE 1.대조군메인     요청 실패: %s", str(e)[:200])
-
-    # 2) 항공권 페이지 — 서비스 접근 확인 + 쿠키 확보
     page = (f"https://flight.naver.com/flights/international/"
             f"ICN-KIX-{_ymd(dep)}/KIX-ICN-{_ymd(ret)}?adult={adults}"
             f"&isDirect=true&fareType=Y")
-    try:
-        r = s.get(page, timeout=_TIMEOUT)
-        _log_result("2.항공권페이지", r, 200)
-        log.info("NVPROBE 2.항공권페이지     확보 쿠키: %s",
-                 list(s.cookies.get_dict())[:10] or "없음")
-    except Exception as e:  # noqa: BLE001
-        log.info("NVPROBE 2.항공권페이지   요청 실패: %s", str(e)[:200])
 
-    # 3) 같은 세션으로 API POST — 쿠키가 붙으면 달라지는지
+    try:
+        c = _client()
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE primp 초기화 실패: %s", str(e)[:200])
+        return
+
+    # 먼저 페이지를 열어 세션·쿠키를 만든다 (브라우저와 같은 순서)
+    html = ""
+    try:
+        r = c.get(page)
+        html = getattr(r, "text", "") or ""
+        log.info("NVPROBE 0.페이지     HTTP %s · %d bytes", r.status_code, len(html))
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE 0.페이지     실패: %s", str(e)[:200])
+
+    headers = {"Content-Type": "application/json", "Referer": page,
+               "Origin": "https://flight.naver.com",
+               "Accept-Language": "ko-KR,ko;q=0.9"}
+
     payload = {
         "adultCount": adults, "childCount": 0, "infantCount": 0,
         "device": "pc", "isNonstop": True,
@@ -92,22 +90,48 @@ def run(adults: int = 2, today: dt.date | None = None) -> None:
                          "sort": {"adultMinFare": 1}},
         "initialRequest": True,
     }
-    try:
-        r = s.post("https://flight-api.naver.com/flight/international/searchFlights",
-                   json=payload, timeout=_TIMEOUT,
-                   headers={"Accept": "text/event-stream",
-                            "Content-Type": "application/json",
-                            "Referer": page,
-                            "Origin": "https://flight.naver.com"})
-        _log_result("3.세션API", r, 400)
-        if r.status_code < 400:
-            lines = [ln for ln in (r.text or "").splitlines() if ln.startswith("data:")]
-            log.info("NVPROBE 3.세션API        data 줄 %d개", len(lines))
-            if lines:
-                log.info("NVPROBE 3.세션API        마지막 data(700자): %s", lines[-1][:700])
-    except Exception as e:  # noqa: BLE001
-        log.info("NVPROBE 3.세션API        요청 실패: %s", str(e)[:200])
 
-    log.info("판별: 1번이 503이면 IP 차단(해결 어려움) · "
-             "1·2번 200인데 3번만 503이면 세션/헤더 문제(추가 시도 가치 있음)")
-    log.info("=== 네이버 탐침 2차 종료 ===")
+    # A. REST (SSE)
+    try:
+        r = c.post("https://flight-api.naver.com/flight/international/searchFlights",
+                   json=payload,
+                   headers={**headers, "Accept": "text/event-stream"})
+        _log_res("A.primp REST", r)
+        body = getattr(r, "text", "") or ""
+        lines = [ln for ln in body.splitlines() if ln.startswith("data:")]
+        if lines:
+            log.info("NVPROBE A.primp REST data 줄 %d개 · 마지막(700자): %s",
+                     len(lines), lines[-1][:700])
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE A.primp REST 실패: %s", str(e)[:200])
+
+    # B. GraphQL
+    try:
+        r = c.post("https://airline-api.naver.com/graphql", json={
+            "operationName": "getInternationalList",
+            "variables": {"adult": adults, "child": 0, "infant": 0, "where": "pc",
+                          "isDirect": True, "fareType": "Y", "trip": "OW",
+                          "itinerary": [{"departureAirport": "ICN",
+                                         "arrivalAirport": "KIX",
+                                         "departureDate": _ymd(dep)}]},
+            "query": "query getInternationalList { internationalList { totalResCnt } }",
+        }, headers={**headers, "Accept": "application/json"})
+        _log_res("B.primp GQL", r)
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE B.primp GQL  실패: %s", str(e)[:200])
+
+    # C. 페이지 HTML에서 실제 API 주소 추출 — 자료가 낡았을 가능성 대비
+    if html:
+        hosts = sorted(set(re.findall(r"https://([a-z0-9.-]*api[a-z0-9.-]*\.naver\.com)",
+                                      html, re.I)))
+        paths = sorted(set(re.findall(r"[\"'](/(?:api|graphql)[a-zA-Z0-9/_-]{0,60})[\"']",
+                                      html)))[:15]
+        log.info("NVPROBE C.발견호스트  %s", hosts or "없음")
+        log.info("NVPROBE C.발견경로    %s", paths or "없음")
+    else:
+        log.info("NVPROBE C.추출        페이지 HTML 없음 → 건너뜀")
+
+    log.info("판별: A나 B가 200/201이면 primp로 뚫린 것 → 네이버 수집 모듈 착수 · "
+             "여전히 503이면 C의 발견 목록에서 새 엔드포인트 확인 · "
+             "둘 다 없으면 네이버 포기하고 스카이스캐너 비용 검토")
+    log.info("=== 네이버 탐침 3차 종료 ===")
