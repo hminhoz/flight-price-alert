@@ -1,18 +1,20 @@
-"""네이버 항공권 API 탐침 — v2 준비용 일회성 진단 코드.
+"""네이버 항공권 API 탐침 2차 — 차단 원인 판별용.
 
-왜 탐침부터인가:
-  개발 환경에서 네이버 서버에 접속할 수 없어 실제 응답 구조를 확인할 수 없다.
-  공개 자료에 두 가지 상충하는 구조가 있어(구형 GraphQL / 신형 SSE REST) 어느
-  쪽이 현재 동작하는지 확정해야 수집 모듈을 제대로 짤 수 있다.
-  → GitHub Actions(열린 인터넷)에서 후보를 두드려 응답을 로그로 남긴다.
+1차 결과(2026-07-25): 후보 4종이 모두 HTTP 503 nginx 기본 페이지(592바이트 동일).
+엔드포인트 오류(404)도 인증 오류(401/403)도 아닌 획일적 거절 → API 앞단 차단.
 
-확인이 끝나 app/naver.py 를 만들고 나면 이 파일은 삭제할 것.
+두 가설이 남았다:
+  H1. IP 차단 — GitHub Actions 러너가 미국 애저 IP라 네이버가 통째로 막는다.
+      → 일반 페이지(www.naver.com)도 503이면 이 쪽. 해결 불가에 가깝다.
+  H2. 세션/헤더 부족 — 쿠키 없이 API를 직접 POST해서 거절당한다.
+      → 일반 페이지는 200인데 API만 503이면 이 쪽. 세션 확보로 뚫릴 수 있다.
 
-후보:
-  A. REST + SSE  POST https://flight-api.naver.com/flight/international/searchFlights
-  B. REST + SSE  POST https://flight-api.naver.com/flight/domestic/searchFlights
-  C. GraphQL     POST https://airline-api.naver.com/graphql (getInternationalList)
-  D. GraphQL     POST https://airline-api.naver.com/graphql (getDomesticList)
+그래서 순서대로 확인한다:
+  1) www.naver.com GET      — IP 차단 여부 (대조군)
+  2) flight.naver.com 페이지 GET — 항공권 서비스 접근 + 쿠키 확보
+  3) 같은 세션으로 API POST  — 쿠키를 달면 달라지는지
+
+판별이 끝나면 이 파일은 삭제할 것.
 """
 from __future__ import annotations
 
@@ -33,133 +35,79 @@ def _ymd(d: dt.date) -> str:
     return d.strftime("%Y%m%d")
 
 
-def _rest_payload(origin: str, dest: str, dep: dt.date, ret: dt.date,
-                  adults: int) -> dict:
-    return {
-        "adultCount": adults,
-        "childCount": 0,
-        "infantCount": 0,
-        "device": "pc",
-        "isNonstop": True,
-        "itineraries": [
-            {"departureLocationCode": origin, "departureLocationType": "airport",
-             "arrivalLocationCode": dest, "arrivalLocationType": "airport",
-             "departureDate": _ymd(dep)},
-            {"departureLocationCode": dest, "departureLocationType": "airport",
-             "arrivalLocationCode": origin, "arrivalLocationType": "airport",
-             "departureDate": _ymd(ret)},
-        ],
-        "openReturnDays": 0,
-        "seatClass": "Y",
-        "tripType": "RT",
-        "flightFilter": {
-            "filter": {
-                "airlines": [], "departureAirports": [[origin], []],
-                "arrivalAirports": [[], [origin]], "departureTime": [],
-                "fareTypes": [], "flightDurationSeconds": [],
-                "hasCardBenefit": True, "isIndividual": False,
-                "isLowCarbonEmission": False, "isSameAirlines": False,
-                "isSameDepArrAirport": True, "isTravelClub": False,
-                "minFare": {}, "viaCount": [], "selectedItineraries": [],
-            },
-            "limit": 200, "skip": 0, "sort": {"adultMinFare": 1},
-        },
-        "initialRequest": True,
-    }
-
-
-_GQL_INTL = (
-    "query getInternationalList($trip: String!, "
-    "$itinerary: [InternationalList_itinerary]!, $adult: Int = 1, "
-    "$fareType: String!, $where: String = \"pc\", $isDirect: Boolean = false) {"
-    " internationalList(input: {trip: $trip, itinerary: $itinerary, "
-    "person: {adult: $adult, child: 0, infant: 0}, fareType: $fareType, "
-    "where: $where, isDirect: $isDirect}) { totalResCnt resCnt } }"
-)
-
-
-def _probe(name: str, url: str, payload: dict, referer: str,
-           sse: bool = False) -> None:
-    """후보 하나를 호출하고 결과를 로그로 남긴다. 예외는 삼킨다."""
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": _UA,
-        "Referer": referer,
-        "Origin": "https://flight.naver.com",
-        "Accept-Language": "ko-KR,ko;q=0.9",
-    }
-    if sse:
-        headers["Accept"] = "text/event-stream"
-    try:
-        r = requests.post(url, json=payload, headers=headers, timeout=_TIMEOUT)
-    except Exception as e:  # noqa: BLE001
-        log.info("NVPROBE %-14s 요청 실패: %s", name, str(e)[:200])
-        return
-
+def _log_result(name: str, r, body_head: int = 300) -> None:
     body = r.text or ""
-    ctype = r.headers.get("Content-Type", "?")
-    log.info("NVPROBE %-14s HTTP %s · %s · %d bytes",
-             name, r.status_code, ctype, len(body))
-
-    # 응답이 JSON이면 최상위 키를, 아니면 앞부분 원문을 남긴다
-    try:
-        data = json.loads(body)
-        log.info("NVPROBE %-14s JSON 최상위 키: %s", name,
-                 list(data)[:12] if isinstance(data, dict) else type(data).__name__)
-        log.info("NVPROBE %-14s 본문 앞부분: %s", name, body[:700])
-    except ValueError:
-        # SSE는 "data: {...}" 줄이 이어진다. 마지막 data 줄이 가장 완전한 스냅샷.
-        lines = [ln for ln in body.splitlines() if ln.startswith("data:")]
-        log.info("NVPROBE %-14s 비JSON · data 줄 %d개", name, len(lines))
-        log.info("NVPROBE %-14s 앞부분: %s", name, body[:500])
-        if lines:
-            log.info("NVPROBE %-14s 마지막 data 줄(앞 700자): %s",
-                     name, lines[-1][:700])
+    log.info("NVPROBE %-16s HTTP %s · %s · %d bytes",
+             name, r.status_code, r.headers.get("Content-Type", "?"), len(body))
+    head = " ".join(body[:body_head].split())
+    log.info("NVPROBE %-16s 본문: %s", name, head)
 
 
 def run(adults: int = 2, today: dt.date | None = None) -> None:
-    """후보 4종을 순서대로 두드린다. 총 4요청, 1분 이내."""
     today = today or dt.date.today()
     dep = today + dt.timedelta(days=30)
     ret = dep + dt.timedelta(days=3)
-    log.info("=== 네이버 API 탐침 시작 (%s~%s, 성인 %d명) ===", dep, ret, adults)
+    log.info("=== 네이버 탐침 2차: 차단 원인 판별 (%s~%s) ===", dep, ret)
 
-    # 구글로 불가 확정된 노선(오사카)과 국내선(김포-제주)이 실제 목표
-    _probe("A:REST국제", "https://flight-api.naver.com/flight/international/searchFlights",
-           _rest_payload("ICN", "KIX", dep, ret, adults),
-           f"https://flight.naver.com/flights/international/ICN-KIX-{_ymd(dep)}/"
-           f"KIX-ICN-{_ymd(ret)}?adult={adults}&isDirect=true&fareType=Y",
-           sse=True)
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": _UA,
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    })
 
-    _probe("B:REST국내", "https://flight-api.naver.com/flight/domestic/searchFlights",
-           _rest_payload("GMP", "CJU", dep, ret, adults),
-           f"https://flight.naver.com/flights/domestic/GMP-CJU-{_ymd(dep)}/"
-           f"CJU-GMP-{_ymd(ret)}?adult={adults}",
-           sse=True)
+    # 1) 대조군 — 네이버 메인. 여기가 503이면 IP 차단(H1) 확정.
+    try:
+        r = s.get("https://www.naver.com", timeout=_TIMEOUT)
+        _log_result("1.대조군메인", r, 200)
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE 1.대조군메인     요청 실패: %s", str(e)[:200])
 
-    _probe("C:GQL국제", "https://airline-api.naver.com/graphql", {
-        "operationName": "getInternationalList",
-        "variables": {
-            "adult": adults, "child": 0, "infant": 0, "where": "pc",
-            "isDirect": True, "fareType": "Y", "trip": "OW",
-            "itinerary": [{"departureAirport": "ICN", "arrivalAirport": "KIX",
-                           "departureDate": _ymd(dep)}],
-        },
-        "query": _GQL_INTL,
-    }, f"https://m-flight.naver.com/flights/international/ICN-KIX-{_ymd(dep)}"
-       f"?adult={adults}&isDirect=true&fareType=Y")
+    # 2) 항공권 페이지 — 서비스 접근 확인 + 쿠키 확보
+    page = (f"https://flight.naver.com/flights/international/"
+            f"ICN-KIX-{_ymd(dep)}/KIX-ICN-{_ymd(ret)}?adult={adults}"
+            f"&isDirect=true&fareType=Y")
+    try:
+        r = s.get(page, timeout=_TIMEOUT)
+        _log_result("2.항공권페이지", r, 200)
+        log.info("NVPROBE 2.항공권페이지     확보 쿠키: %s",
+                 list(s.cookies.get_dict())[:10] or "없음")
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE 2.항공권페이지   요청 실패: %s", str(e)[:200])
 
-    _probe("D:GQL국내", "https://airline-api.naver.com/graphql", {
-        "operationName": "getDomesticList",
-        "variables": {
-            "adult": adults, "child": 0, "infant": 0, "where": "pc",
-            "trip": "OW", "fareType": "Y",
-            "itinerary": [{"departureAirport": "GMP", "arrivalAirport": "CJU",
-                           "departureDate": _ymd(dep)}],
-        },
-        "query": _GQL_INTL.replace("International", "Domestic")
-                          .replace("internationalList", "domesticList"),
-    }, f"https://m-flight.naver.com/flights/domestic/GMP-CJU-{_ymd(dep)}"
-       f"?adult={adults}&fareType=Y")
+    # 3) 같은 세션으로 API POST — 쿠키가 붙으면 달라지는지
+    payload = {
+        "adultCount": adults, "childCount": 0, "infantCount": 0,
+        "device": "pc", "isNonstop": True,
+        "itineraries": [
+            {"departureLocationCode": "ICN", "departureLocationType": "airport",
+             "arrivalLocationCode": "KIX", "arrivalLocationType": "airport",
+             "departureDate": _ymd(dep)},
+            {"departureLocationCode": "KIX", "departureLocationType": "airport",
+             "arrivalLocationCode": "ICN", "arrivalLocationType": "airport",
+             "departureDate": _ymd(ret)},
+        ],
+        "openReturnDays": 0, "seatClass": "Y", "tripType": "RT",
+        "flightFilter": {"filter": {}, "limit": 200, "skip": 0,
+                         "sort": {"adultMinFare": 1}},
+        "initialRequest": True,
+    }
+    try:
+        r = s.post("https://flight-api.naver.com/flight/international/searchFlights",
+                   json=payload, timeout=_TIMEOUT,
+                   headers={"Accept": "text/event-stream",
+                            "Content-Type": "application/json",
+                            "Referer": page,
+                            "Origin": "https://flight.naver.com"})
+        _log_result("3.세션API", r, 400)
+        if r.status_code < 400:
+            lines = [ln for ln in (r.text or "").splitlines() if ln.startswith("data:")]
+            log.info("NVPROBE 3.세션API        data 줄 %d개", len(lines))
+            if lines:
+                log.info("NVPROBE 3.세션API        마지막 data(700자): %s", lines[-1][:700])
+    except Exception as e:  # noqa: BLE001
+        log.info("NVPROBE 3.세션API        요청 실패: %s", str(e)[:200])
 
-    log.info("=== 네이버 API 탐침 종료 ===")
+    log.info("판별: 1번이 503이면 IP 차단(해결 어려움) · "
+             "1·2번 200인데 3번만 503이면 세션/헤더 문제(추가 시도 가치 있음)")
+    log.info("=== 네이버 탐침 2차 종료 ===")
