@@ -25,6 +25,7 @@ class LegResult:
     dep_time: str           # "06:30" (24h)
     arr_time: str
     date: str               # YYYY-MM-DD
+    carrier: str = ""       # 항공사 IATA 코드 (7C, OZ, KE...). 알림 링크 필터용
 
 
 _AMPM = re.compile(r"(\d{1,2}):(\d{2})\s*(AM|PM)?", re.IGNORECASE)
@@ -336,8 +337,11 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?") -> LegR
             airlines = getattr(item, "airlines", None) or []
             a0 = airlines[0] if airlines else None
             name = getattr(a0, "name", None) or (str(a0) if a0 is not None else "?")
+            # item.type 이 IATA 코드다 (경유편은 'multi'). 링크 필터에 쓴다.
+            code = getattr(item, "type", "") or ""
             cand = LegResult(
                 price=price, airline=str(name),
+                carrier="" if code == "multi" else str(code),
                 dep_time=t.strftime("%H:%M"),
                 arr_time=(parse_time(arr).strftime("%H:%M") if parse_time(arr) else "?"),
                 date=date,

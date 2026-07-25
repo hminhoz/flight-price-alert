@@ -47,13 +47,14 @@ class State:
         return f"{route_key}|{direction}|{date}"
 
     def record_leg(self, key: str, *, price: int | None, airline: str = "",
-                   dep_time: str = "", arr_time: str = "", now: dt.datetime | None = None) -> None:
+                   dep_time: str = "", arr_time: str = "", carrier: str = "",
+                   now: dt.datetime | None = None) -> None:
         """price=None 이면 '조건 만족 편 없음'으로 기록."""
         now = now or dt.datetime.now(dt.timezone.utc)
         today = now.date().isoformat()
         entry = self.legs.get(key, {"history": {}})
         entry.update({
-            "price": price, "airline": airline,
+            "price": price, "airline": airline, "carrier": carrier,
             "dep_time": dep_time, "arr_time": arr_time,
             "checked_at": now.isoformat(timespec="seconds"),
         })

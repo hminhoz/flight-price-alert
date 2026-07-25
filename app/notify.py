@@ -24,6 +24,13 @@ def _won(n: int) -> str:
     return f"₩{n:,}"
 
 
+def _per(total: int, adults: int) -> str:
+    """1인당 금액을 앞세우고 총액을 괄호에 (사용자 요청, v1.23)."""
+    if adults <= 1:
+        return _won(total)
+    return f"{_won(round(total / adults))}/인 (총 {_won(total)})"
+
+
 def format_alerts(cfg: Settings, alerts: list[Alert],
                   all_combos: list | None = None) -> list[str]:
     """노선별로 묶어 메시지 생성. 노선당 1개 메시지, 최저 top N 요약.
@@ -60,26 +67,31 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                          f"성인 {cfg.adults}명")
             legs_txt = (f"가는 편 {c.out_leg.get('dep_time','?')} {c.out_leg.get('airline','')} / "
                         f"오는 편 {c.ret_leg.get('dep_time','?')} {c.ret_leg.get('airline','')}")
+            n = cfg.adults
             if a.rt_price:
                 gap = (a.rt_price - c.price) / max(c.price, 1) * 100
                 if gap >= 0:
-                    lines.append(f"· <b>편도 2장 {_won(c.price)}</b> ← {gap:.0f}% 저렴")
-                    lines.append(f"· 왕복 티켓 {_won(a.rt_price)}")
+                    lines.append(f"· <b>편도 2장 {_per(c.price, n)}</b> ← {gap:.0f}% 저렴")
+                    lines.append(f"· 왕복 티켓 {_per(a.rt_price, n)}")
                 else:
-                    lines.append(f"· 편도 2장 {_won(c.price)}")
-                    lines.append(f"· <b>왕복 티켓 {_won(a.rt_price)}</b> ← {-gap:.0f}% 저렴")
+                    lines.append(f"· 편도 2장 {_per(c.price, n)}")
+                    lines.append(f"· <b>왕복 티켓 {_per(a.rt_price, n)}</b> ← {-gap:.0f}% 저렴")
                 lines.append(f"{legs_txt} (편도 2장 기준)")
             else:
-                lines.append(f"· <b>편도 2장 {_won(c.price)}</b>")
+                lines.append(f"· <b>편도 2장 {_per(c.price, n)}</b>")
                 lines.append(legs_txt)
             if a.kind == "record" and a.prev_min:
                 drop = (a.prev_min - c.price) / a.prev_min * 100
-                lines.append(f"이전 최저 {_won(a.prev_min)} 대비 <b>-{drop:.1f}%</b>")
+                lines.append(f"이전 최저 {_per(a.prev_min, cfg.adults)} 대비 "
+                             f"<b>-{drop:.1f}%</b>")
             else:
-                lines.append(f"기준가 {_won(a.baseline)}")
-            g = google_flights_url(route, c.dep, c.ret)
-            n = naver_url(route, c.dep, c.ret, cfg.adults)
-            lines.append(f'<a href="{g}">Google Flights</a> · <a href="{n}">네이버항공권</a>')
+                lines.append(f"기준가 {_per(a.baseline, cfg.adults)}")
+            codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+            g = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
+            nv = naver_url(route, c.dep, c.ret, cfg.adults)
+            tag = "해당 항공사만" if any(x for x in codes if x) else "검색결과"
+            lines.append(f'<a href="{g}">Google Flights ({tag})</a> · '
+                         f'<a href="{nv}">네이버항공권</a>')
         if len(items) > len(top):
             lines.append(f"\n…외 {len(items) - len(top)}건 더 조건 충족")
 
@@ -94,9 +106,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         )[: cfg.similar_top_n]
         if similar:
             lines.append(f"\n📅 <b>비슷한 가격대 다른 날짜</b> "
-                         f"(+{cfg.similar_margin_pct:.0f}% 이내 · 편도합산 기준)")
+                         f"(+{cfg.similar_margin_pct:.0f}% 이내 · 편도 2장 기준)")
             for c in similar:
-                lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 {_won(c.price)}")
+                lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 "
+                             f"{_won(round(c.price / max(cfg.adults, 1)))}/인")
 
         messages.append("\n".join(lines))
     return messages

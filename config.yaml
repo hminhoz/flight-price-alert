@@ -43,11 +43,15 @@ routes:
   # 몇 번 실행 후 노선별 통계에서 가격확보가 너무 적으면 다시 주석 처리할 것.
   - { origin: ICN, destination: KIX, label: "인천-오사카" }
   - { origin: ICN, destination: FUK, label: "인천-후쿠오카" }
-  # ---- 여전히 휴면 (2026-07-25~26 진단) ----
-  # - { origin: ICN, destination: NRT, label: "인천-나리타" }
+  # 나리타도 오사카·후쿠오카와 같은 파서 문제였을 가능성이 커서 함께 켠다
+  - { origin: ICN, destination: NRT, label: "인천-나리타" }
+  # 제주: 구글에 한국 국내선 데이터가 없다고 판정했으나(v1.10) 그 판정도
+  # 파서 실패에 근거했을 수 있어 한 번 확인한다. 통계 보고 아니면 다시 끈다.
+  - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
+  # ---- 여전히 휴면 ----
   # - { origin: ICN, destination: HND, label: "인천-하네다" }   # 경유편만 반환
   # - { origin: ICN, destination: CJU, label: "인천-제주", domestic: true }
-  # - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
+  #   → 김포-제주가 되면 이것도 켠다
 
 schedule:
   shards: 6                   # 실행마다 다음 샤드 순환(커서 방식). 6회 실행 = 전 조합 1바퀴

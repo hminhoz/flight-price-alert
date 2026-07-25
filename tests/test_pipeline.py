@@ -105,6 +105,7 @@ def main():
 
     test_tolerant_parser()
     test_preview_alerts()
+    test_per_person_and_link()
 
     print("\n=== 전체 통과 ===")
 
@@ -125,6 +126,34 @@ def test_preview_alerts():
     msg = format_alerts(cfg, pv, combos)[0]
     assert "편도 2장" in msg
     print(f"OK 미리보기: 콤보 {len(combos)}개 → 노선별 최저 {len(pv)}건")
+
+
+def test_per_person_and_link():
+    """금액은 1인당 우선 표기, 링크는 항공사 코드로 좁혀지는지 (v1.23)."""
+    from app.links import google_flights_url
+    cfg = load()
+    route = cfg.routes[0]
+    combo = engine.Combo(
+        route=route, dep=dt.date(2026, 9, 10), nights=3, price=800_000,
+        out_leg={"price": 300_000, "airline": "Jeju Air", "dep_time": "07:30",
+                 "carrier": "7C"},
+        ret_leg={"price": 500_000, "airline": "Jeju Air", "dep_time": "19:40",
+                 "carrier": "7C"})
+    a = engine.Alert(kind="baseline", combo=combo, baseline=850_000, prev_min=None)
+    msg = format_alerts(cfg, [a])[0]
+    assert "400,000/인" in msg, msg          # 800,000 / 성인 2명
+    assert "총 ₩800,000" in msg, msg          # 총액도 함께
+    assert "해당 항공사만" in msg, msg
+
+    # 항공사 코드가 들어가면 링크가 달라져야 한다
+    with_code = google_flights_url(route, combo.dep, combo.ret, cfg.adults, ["7C"])
+    without = google_flights_url(route, combo.dep, combo.ret, cfg.adults, [])
+    assert with_code != without and "tfs=" in with_code
+    # 코드를 모르면 필터 없는 링크 + 다른 라벨
+    combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
+    msg2 = format_alerts(cfg, [a])[0]
+    assert "검색결과" in msg2 and "해당 항공사만" not in msg2
+    print("OK 1인당 표기 + 항공사 필터 링크")
 
 
 def test_tolerant_parser():
