@@ -18,21 +18,30 @@
   }
  },
  "GMP-HND|2026-10": {
-  "alltime_min": 2456567,
-  "alltime_min_at": "2026-07-25T13:11:39+00:00",
-  "alltime_min_prev": null,
-  "baseline": 2456567,
+  "alltime_min": 2020625,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": 2456567,
+  "baseline": 2020625,
   "daily_min": {
-   "2026-07-25": 2456567
+   "2026-07-25": 2020625
   }
  },
  "ICN-CTS|2026-08": {
-  "alltime_min": 1958529,
-  "alltime_min_at": "2026-07-25T13:40:15+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1958529,
+  "alltime_min": 1815357,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": 1958529,
+  "baseline": 1815357,
   "daily_min": {
-   "2026-07-25": 1958529
+   "2026-07-25": 1815357
+  }
+ },
+ "ICN-CTS|2026-09": {
+  "alltime_min": 1768557,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1768557,
+  "daily_min": {
+   "2026-07-25": 1768557
   }
  },
  "ICN-NGO|2026-08": {
@@ -54,21 +63,21 @@
   }
  },
  "ICN-NGO|2026-10": {
-  "alltime_min": 1306170,
-  "alltime_min_at": "2026-07-25T13:11:39+00:00",
-  "alltime_min_prev": 1533150,
-  "baseline": 1306170,
+  "alltime_min": 1138560,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": 1306170,
+  "baseline": 1138560,
   "daily_min": {
-   "2026-07-25": 1306170
+   "2026-07-25": 1138560
   }
  },
  "ICN-OKA|2026-08": {
-  "alltime_min": 1139380,
-  "alltime_min_at": "2026-07-25T13:40:15+00:00",
-  "alltime_min_prev": 1336533,
-  "baseline": 1139380,
+  "alltime_min": 1085743,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": 1139380,
+  "baseline": 1085743,
   "daily_min": {
-   "2026-07-25": 1139380
+   "2026-07-25": 1085743
   }
  },
  "ICN-OKA|2026-09": {
@@ -81,12 +90,12 @@
   }
  },
  "ICN-OKA|2026-10": {
-  "alltime_min": 1479565,
-  "alltime_min_at": "2026-07-25T13:11:39+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1479565,
+  "alltime_min": 1452965,
+  "alltime_min_at": "2026-07-25T14:10:56+00:00",
+  "alltime_min_prev": 1479565,
+  "baseline": 1452965,
   "daily_min": {
-   "2026-07-25": 1479565
+   "2026-07-25": 1452965
   }
  }
 }
