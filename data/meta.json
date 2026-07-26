@@ -3,11 +3,6 @@
  "last_obs_report": "2026-07-25",
  "recent_runs": [
   {
-   "at": "2026-07-24T21:55:57+00:00",
-   "attempted": 118,
-   "failed": 21
-  },
-  {
    "at": "2026-07-25T06:43:56+00:00",
    "attempted": 123,
    "failed": 16
@@ -51,8 +46,13 @@
    "at": "2026-07-25T20:24:43+00:00",
    "attempted": 205,
    "failed": 0
+  },
+  {
+   "at": "2026-07-26T00:25:03+00:00",
+   "attempted": 203,
+   "failed": 0
   }
  ],
- "shard_cursor": 0,
+ "shard_cursor": 1,
  "startup_sent": true
 }
