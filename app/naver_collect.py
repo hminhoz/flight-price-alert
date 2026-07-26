@@ -60,6 +60,8 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     log.info("네이버 수집 시작 (화면 %s, 예산 %d분)", disp or "없음", budget_sec // 60)
     started = time.time()
     done = skipped = 0
+    # 방향별 성적. 한쪽만 실패하면(오는 편 92건 중 1건 같은) 즉시 보이도록.
+    seen_stat: dict = {}
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(
@@ -102,6 +104,11 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             best = NV.pick_best(rows, domestic=True,
                                 out_window=windows.get((route_key, direction)))
             done += 1
+            stat = seen_stat.setdefault(direction, [0, 0, 0])
+            stat[0] += 1                 # 조회
+            stat[1] += len(rows)         # 읽은 행
+            if best:
+                stat[2] += 1             # 조건 통과
             if not best:
                 continue
             out[f"{route_key}|{direction}|{day.isoformat()}"] = {
@@ -114,6 +121,9 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
         skipped = total - visited
         browser.close()
 
+    for d_, (q, rws, ok_) in sorted(seen_stat.items()):
+        log.info("  방향 %s: 조회 %d · 읽은 행 평균 %.0f · 조건 통과 %d",
+                 d_, q, rws / max(q, 1), ok_)
     log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 남은 %d건은 다음 실행이 이어받음 "
              "(%.0f분, 다음 시작 %d)",
              done, total, len(out), skipped, (time.time() - started) / 60,
@@ -128,26 +138,35 @@ def _read_rows(page) -> list:
     목록이 '출발시각 빠른 순'이라 저녁 편은 뒤쪽에 있는데 잘려나간 것.
     → 넉넉히 읽고 중복을 제거한다 (v1.72).
     """
+    # 목록이 스크롤해야 더 그려진다. 오는 편(18시 이후)은 한참 아래에 있어
+    # 첫 화면만 읽으면 92건 중 1건밖에 안 잡혔다 (v1.76).
     js = (
         'async () => {'
         '  const NL = String.fromCharCode(10);'
         '  const sleep = ms => new Promise(r => setTimeout(r, ms));'
+        '  const pick = () => Array.from('
+        '      document.querySelectorAll("[class*=domestic_inner]"))'
+        '    .filter(e => (e.innerText || "").indexOf("원") !== -1);'
         '  for (let a = 0; a < 14; a++) {'
-        '    const els = Array.from(document.querySelectorAll("[class*=domestic_inner]"))'
-        '      .filter(e => (e.innerText || "").indexOf("원") !== -1);'
-        '    if (els.length) {'
-        '      const seen = new Set(); const out = [];'
-        '      for (const e of els) {'
-        '        const s = (e.innerText || "").split(NL).map(x => x.trim())'
-        '                   .filter(Boolean).join(" | ").slice(0, 400);'
-        '        if (s && !seen.has(s)) { seen.add(s); out.push(s); }'
-        '        if (out.length >= 250) break;'
-        '      }'
-        '      return out;'
-        '    }'
+        '    if (pick().length) break;'
         '    await sleep(1500);'
         '  }'
-        '  return [];'
+        '  let prev = 0;'
+        '  for (let s = 0; s < 25; s++) {'
+        '    window.scrollTo(0, document.body.scrollHeight);'
+        '    await sleep(700);'
+        '    const now = pick().length;'
+        '    if (now === prev && s > 3) break;'
+        '    prev = now;'
+        '  }'
+        '  const seen = new Set(); const out = [];'
+        '  for (const e of pick()) {'
+        '    const s2 = (e.innerText || "").split(NL).map(x => x.trim())'
+        '               .filter(Boolean).join(" | ").slice(0, 400);'
+        '    if (s2 && !seen.has(s2)) { seen.add(s2); out.push(s2); }'
+        '    if (out.length >= 400) break;'
+        '  }'
+        '  return out;'
         '}'
     )
     return page.evaluate(js) or []
