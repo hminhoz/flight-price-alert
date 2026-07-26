@@ -11,6 +11,8 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import random
+import threading
+from collections import Counter
 import re
 import time
 from dataclasses import dataclass
@@ -26,6 +28,7 @@ class LegResult:
     arr_time: str
     date: str               # YYYY-MM-DD
     carrier: str = ""       # 항공사 IATA 코드 (7C, OZ, KE...). 알림 링크 필터용
+    off_window: bool = False  # 선호 시간대에 편이 없어 양보 시간대에서 잡은 편
 
 
 _AMPM = re.compile(r"(\d{1,2}):(\d{2})\s*(AM|PM)?", re.IGNORECASE)
@@ -83,6 +86,7 @@ def search_leg(
     *,
     adults: int,
     window: tuple[dt.time, dt.time],
+    preferred_window: tuple[dt.time, dt.time] | None = None,
     currency: str = "KRW",
     direct_only: bool = True,
     retries: int = 3,
@@ -122,6 +126,15 @@ def search_leg(
                                         max_stops=stops, korea_market=True)
             best = _pick_best(results, window, direct_only, date, origin, dest)
             if best is not None:
+                # 넓힌 창을 쓰는 노선(가고시마·삿포로)은 그 창 안에서 최저가를
+                # 고른다. 그 노선들은 애초에 선호 시간대 편이 7~11%뿐이라
+                # 오전 우선 규칙을 씌우면 오버라이드를 준 이유와 모순된다.
+                # 다만 선호 시간 밖이면 반드시 표시해 사용자가 판단하게 한다.
+                if preferred_window is not None:
+                    pt = parse_time_str(best.dep_time)
+                    if pt is not None and not (
+                            preferred_window[0] <= pt <= preferred_window[1]):
+                        best.off_window = True
                 return best
             if not used_fallback:
                 return None  # 필터 쿼리가 정상 응답 + 조건 맞는 편 없음 → 신뢰
@@ -332,7 +345,35 @@ class NoFlightData(RuntimeError):
     """검색은 됐으나 해당 날짜/노선에 파싱 가능한 가격 데이터가 없음."""
 
 
-def _pick_best(results, window, direct_only, date, origin="?", dest="?") -> LegResult | None:
+# 실제 운항편이 몇 시에 몰려 있는지 집계한다 (v1.32).
+# 시간창 override의 정당성을 감으로가 아니라 데이터로 판단하기 위한 것.
+# 시간창에 걸려 탈락한 편까지 포함해 '직항 전체'의 출발 시각을 센다.
+_time_hist: dict[tuple[str, str], "Counter"] = {}
+_hist_lock = threading.Lock()
+
+
+def time_histogram() -> dict:
+    """{(origin, dest): {시(0~23): 편수}}. 실행 단위로 누적된다."""
+    with _hist_lock:
+        return {k: dict(v) for k, v in _time_hist.items()}
+
+
+def _note_departure(origin: str, dest: str, hour: int) -> None:
+    with _hist_lock:
+        _time_hist.setdefault((origin, dest), Counter())[hour] += 1
+
+
+def parse_time_str(s: str | None) -> dt.time | None:
+    """'16:20' → time(16, 20). 저장된 dep_time을 되읽을 때 쓴다."""
+    try:
+        h, m = str(s).split(":")
+        return dt.time(int(h), int(m))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _pick_best(results, window, direct_only, date, origin="?", dest="?",
+               count_hist: bool = True) -> LegResult | None:
     lo, hi = window
     best: LegResult | None = None
     n_items = n_direct = n_price = n_time = 0
@@ -351,6 +392,8 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?") -> LegR
             dep = getattr(getattr(first, "departure", None), "time", None)
             arr = getattr(getattr(first, "arrival", None), "time", None)
             t = parse_time(dep)
+            if t is not None and count_hist:
+                _note_departure(origin, dest, t.hour)
             if t is None or not (lo <= t <= hi):
                 n_time += 1
                 continue

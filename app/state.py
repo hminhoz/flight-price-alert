@@ -48,6 +48,7 @@ class State:
 
     def record_leg(self, key: str, *, price: int | None, airline: str = "",
                    dep_time: str = "", arr_time: str = "", carrier: str = "",
+                   off_window: bool = False,
                    now: dt.datetime | None = None) -> None:
         """price=None 이면 '조건 만족 편 없음'으로 기록."""
         now = now or dt.datetime.now(dt.timezone.utc)
@@ -55,6 +56,7 @@ class State:
         entry = self.legs.get(key, {"history": {}})
         entry.update({
             "price": price, "airline": airline, "carrier": carrier,
+            "off_window": off_window,
             "dep_time": dep_time, "arr_time": arr_time,
             "checked_at": now.isoformat(timespec="seconds"),
         })

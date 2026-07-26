@@ -132,6 +132,17 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             lines.append(f"{c.out_leg.get('dep_time','?')} 출발 · "
                          f"{c.ret_leg.get('dep_time','?')} 귀국 · {air}")
 
+            # 선호 시간대에 편이 없어 양보한 경우엔 반드시 알린다 (v1.33).
+            # 이걸 숨기면 "왜 오후 출발이 왔지?" 하고 신뢰를 잃는다.
+            off = []
+            if c.out_leg.get("off_window"):
+                off.append("가는 편")
+            if c.ret_leg.get("off_window"):
+                off.append("오는 편")
+            if off:
+                lines.append(f"⚠️ {' · '.join(off)}이 선호 시간대 밖입니다 "
+                             f"(이 노선은 선호 시간대 운항이 거의 없어요)")
+
             # 재알림일 때만 표시. 첫 알림은 대부분 첫 알림이라 배지가 의미 없다.
             if a.prev_sent:
                 gap = a.prev_sent - c.price
@@ -160,8 +171,14 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             lines.append("📅 <b>근처 날짜도 비슷한 값</b> — 편도 2장 기준이라 "
                          "왕복은 더 쌀 수 있어요")
             for c in near:
-                lines.append(f"· {_d(c.dep)}~{_d(c.ret)} {c.nights}박 "
-                             f"{round(c.price / n):,}원/인")
+                # 날짜 자체를 링크로. 목록만 보고는 실제로 갈 수가 없어서
+                # 바로 눌러 확인할 수 있게 한다 (사용자 요청, v1.31).
+                codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+                url = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
+                dd = (c.dep - today).days
+                when = f" · D-{dd}" if dd > 0 else ""
+                lines.append(f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> '
+                             f'{c.nights}박{when} · {round(c.price / n):,}원/인')
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 

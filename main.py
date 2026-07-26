@@ -61,10 +61,14 @@ def main() -> int:
              shard, len(legs), done_n, total_n, " (완주)" if cycle_done else "")
     for r in cfg.routes:
         if cfg.has_window_override(r.key):
-            o, rt = cfg.window_for(r.key, "out"), cfg.window_for(r.key, "ret")
-            log.info("  시간창 override %s: 가는 편 %s~%s / 오는 편 %s~%s", r.key,
-                     o[0].strftime("%H:%M"), o[1].strftime("%H:%M"),
-                     rt[0].strftime("%H:%M"), rt[1].strftime("%H:%M"))
+            for d, ko in (("out", "가는 편"), ("ret", "오는 편")):
+                fb = cfg.fallback_window_for(r.key, d)
+                if fb:
+                    pref = cfg.window_for(r.key, d)
+                    log.info("  넓힌 시간창 %s %s: %s~%s (선호 %s~%s 밖이면 표시)",
+                             r.key, ko, fb[0].strftime("%H:%M"),
+                             fb[1].strftime("%H:%M"),
+                             pref[0].strftime("%H:%M"), pref[1].strftime("%H:%M"))
 
     # ---- 검색 ----
     from collections import defaultdict
@@ -75,11 +79,14 @@ def main() -> int:
     def work(leg):
         """네트워크 작업만 담당. 상태 기록은 메인 스레드에서 한다."""
         polite_delay(cfg.request_delay_sec)
-        window = cfg.window_for(leg.route.key, leg.direction)
+        preferred = cfg.window_for(leg.route.key, leg.direction)
+        widened = cfg.fallback_window_for(leg.route.key, leg.direction)
         try:
             return leg, search_leg(
                 leg.origin, leg.dest, leg.date.isoformat(),
-                adults=cfg.adults, window=window, currency=cfg.currency,
+                adults=cfg.adults, window=widened or preferred,
+                preferred_window=preferred if widened else None,
+                currency=cfg.currency,
                 direct_only=cfg.direct_only, retries=cfg.retry,
             ), None
         except Exception as e:  # noqa: BLE001 - 분류는 아래에서
@@ -91,7 +98,7 @@ def main() -> int:
             if res:
                 state.record_leg(leg.key, price=res.price, airline=res.airline,
                                  dep_time=res.dep_time, arr_time=res.arr_time,
-                                 carrier=res.carrier)
+                                 carrier=res.carrier, off_window=res.off_window)
                 stats[leg.route.key][0] += 1
             else:
                 state.record_leg(leg.key, price=None)
@@ -131,6 +138,31 @@ def main() -> int:
                  rk, got, miss, ng, nd)
     for rk, msg in sorted(last_errors.items()):
         log.info("  ⤷ %s 마지막 에러: %s", rk, msg)
+
+    # 시간창 점검용: 실제 직항편이 몇 시에 몰려 있고, 지금 창이 몇 %를 담는지.
+    # override를 감이 아니라 데이터로 정하기 위한 근거 (v1.32).
+    from app.search import time_histogram
+    hist = time_histogram()
+    if hist:
+        log.info("시간 분포 (직항 출발 시각 · 현재 시간창이 담는 비율)")
+        for (o, d), hours in sorted(hist.items()):
+            route = next((r for r in cfg.routes
+                          if (r.origin, r.destination) == (o, d)), None)
+            direction = "out"
+            if route is None:
+                route = next((r for r in cfg.routes
+                              if (r.destination, r.origin) == (o, d)), None)
+                direction = "ret"
+            if route is None:
+                continue
+            lo, hi = cfg.window_for(route.key, direction)
+            total = sum(hours.values())
+            inside = sum(c for h, c in hours.items() if lo.hour <= h <= hi.hour)
+            bar = " ".join(f"{h:02d}시:{hours[h]}" for h in sorted(hours))
+            log.info("  %s-%s(%s) 창 %02d~%02d시 · %d/%d편(%.0f%%) · %s",
+                     o, d, "가는편" if direction == "out" else "오는편",
+                     lo.hour, hi.hour, inside, total,
+                     inside / total * 100 if total else 0, bar)
 
     # ---- 판정 & 알림 ----
     combos = engine.build_combos(cfg, state, today)
@@ -178,8 +210,10 @@ def main() -> int:
             )
             if a.rt_price:
                 ok += 1
-                gap = (c.price - a.rt_price) / c.price * 100
-                log.info("RTVERIFY %s %s %d박: 편도합산 %d → 왕복실가 %d (%.0f%% 낮음)",
+                # 부호 주의: 왕복이 비싸면 +, 싸면 -. 예전엔 반대로 계산해놓고
+                # "낮음"이라고 찍어 -59%가 '싸다'로 읽혔다 (v1.31 수정).
+                gap = (a.rt_price - c.price) / max(c.price, 1) * 100
+                log.info("RTVERIFY %s %s %d박: 편도2장 %d / 왕복티켓 %d (왕복이 %+.0f%%)",
                          c.route.key, c.dep, c.nights, c.price, a.rt_price, gap)
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)

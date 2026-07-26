@@ -72,9 +72,18 @@ class Settings:
     raw: dict = field(default_factory=dict, repr=False)
 
     def window_for(self, route_key: str, direction: str) -> tuple[dt.time, dt.time]:
-        """해당 노선·방향에 적용할 출발 시각 범위. override 없으면 전역값."""
-        default = self.outbound_window if direction == "out" else self.return_window
-        return self.route_windows.get(route_key, {}).get(direction, default)
+        """**선호** 시간창. 노선과 무관하게 항상 전역값이다.
+
+        v1.33 이전에는 여기서 노선별 override를 돌려줘, 넓힌 창 안에서 최저가를
+        고르는 바람에 오전 편이 있는 날에도 더 싼 오후 편을 집어왔다.
+        사용자 의도는 '선호 시간대에 아무것도 없을 때만 양보'였다.
+        """
+        return self.outbound_window if direction == "out" else self.return_window
+
+    def fallback_window_for(self, route_key: str,
+                            direction: str) -> tuple[dt.time, dt.time] | None:
+        """선호 시간창에 편이 없을 때만 쓰는 **양보** 시간창. 없으면 None."""
+        return self.route_windows.get(route_key, {}).get(direction)
 
     def has_window_override(self, route_key: str) -> bool:
         return bool(self.route_windows.get(route_key))
