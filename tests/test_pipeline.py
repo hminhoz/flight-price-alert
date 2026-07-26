@@ -118,6 +118,7 @@ def main():
     test_board_ids_compact()
     test_exclude_airlines()
     test_poll_commands()
+    test_month_filter()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -737,14 +738,50 @@ def test_poll_commands():
     try:
         cmds, nxt = N.poll_commands(0)
         assert nxt == 14, nxt                       # 마지막 update_id + 1
-        assert cmds == [("999", "digest"), ("999", "help")], cmds
+        assert cmds == [("999", "digest", ""), ("999", "help", "")], cmds
         # 남의 방(555)에서 온 명령은 무시 — 아무나 조회를 돌리게 두면 안 된다
-        assert all(c == "999" for c, _ in cmds)
+        assert all(c == "999" for c, _, _ in cmds)
+
     finally:
         N.requests.get = old_get
         os.environ.clear()
         os.environ.update(old_env)
-    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진")
+
+    # 월 인자 해석
+    assert N.parse_month("8월", "") == 8
+    assert N.parse_month("digest", "8") == 8
+    assert N.parse_month("digest", "8월") == 8
+    assert N.parse_month("digest", "") is None
+    assert N.parse_month("13", "") is None      # 없는 달은 무시
+    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진 · 월 인자")
+
+
+def test_month_filter():
+    """월 요약은 그 달 출발만, 한 통에 (v1.53)."""
+    from app.notify import format_board, format_digest, TELEGRAM_LIMIT
+    cfg = load()
+    r = cfg.routes[0]
+
+    def mk(month, day, price):
+        return engine.Combo(
+            route=r, dep=dt.date(2026, month, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    combos = [mk(8, 12, 500_000), mk(9, 12, 400_000), mk(10, 12, 300_000)]
+    b8 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8)
+    assert "8월 출발" in b8 and "8/12" in b8, b8
+    assert "9/12" not in b8 and "10/12" not in b8, b8
+    assert len(b8) < TELEGRAM_LIMIT
+
+    # 해당 월 조합이 없으면 그렇게 알려준다
+    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)
+    assert "12월 출발 조합이 아직 없습니다" in b12, b12
+    d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
+    assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
+    print("OK 월 요약: 해당 월만 · 한 통 · 없으면 안내")
 
 
 def test_tolerant_parser():
@@ -1493,14 +1530,50 @@ def test_poll_commands():
     try:
         cmds, nxt = N.poll_commands(0)
         assert nxt == 14, nxt                       # 마지막 update_id + 1
-        assert cmds == [("999", "digest"), ("999", "help")], cmds
+        assert cmds == [("999", "digest", ""), ("999", "help", "")], cmds
         # 남의 방(555)에서 온 명령은 무시 — 아무나 조회를 돌리게 두면 안 된다
-        assert all(c == "999" for c, _ in cmds)
+        assert all(c == "999" for c, _, _ in cmds)
+
     finally:
         N.requests.get = old_get
         os.environ.clear()
         os.environ.update(old_env)
-    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진")
+
+    # 월 인자 해석
+    assert N.parse_month("8월", "") == 8
+    assert N.parse_month("digest", "8") == 8
+    assert N.parse_month("digest", "8월") == 8
+    assert N.parse_month("digest", "") is None
+    assert N.parse_month("13", "") is None      # 없는 달은 무시
+    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진 · 월 인자")
+
+
+def test_month_filter():
+    """월 요약은 그 달 출발만, 한 통에 (v1.53)."""
+    from app.notify import format_board, format_digest, TELEGRAM_LIMIT
+    cfg = load()
+    r = cfg.routes[0]
+
+    def mk(month, day, price):
+        return engine.Combo(
+            route=r, dep=dt.date(2026, month, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    combos = [mk(8, 12, 500_000), mk(9, 12, 400_000), mk(10, 12, 300_000)]
+    b8 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8)
+    assert "8월 출발" in b8 and "8/12" in b8, b8
+    assert "9/12" not in b8 and "10/12" not in b8, b8
+    assert len(b8) < TELEGRAM_LIMIT
+
+    # 해당 월 조합이 없으면 그렇게 알려준다
+    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)
+    assert "12월 출발 조합이 아직 없습니다" in b12, b12
+    d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
+    assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
+    print("OK 월 요약: 해당 월만 · 한 통 · 없으면 안내")
 
 
 def test_tolerant_parser():

@@ -69,19 +69,29 @@ def main() -> int:
     if max_legs:
         legs = legs[: int(max_legs)]
     # ---- 텔레그램 명령 확인 (지난 실행 이후 밀린 것) ----
-    wants_digest = False
+    wants_digest = False       # /digest → 자세히(여러 통, 날짜마다 링크)
+    wants_brief = False        # /8월 → 가볍게(한 통, 요약)
+    digest_month = None
     if not dry:
         try:
             cmds, new_offset = notify.poll_commands(
                 int(state.meta.get("tg_offset", 0)))
             state.meta["tg_offset"] = new_offset
-            for _chat, cmd in cmds:
+            for _chat, cmd, arg in cmds:
+                m = notify.parse_month(cmd, arg)
                 if cmd in ("digest", "시세", "now", "board"):
                     wants_digest = True
+                    digest_month = m or digest_month
+                elif m:
+                    # 월만 던진 건 훑어보려는 것 → 가벼운 한 통으로
+                    wants_brief = True
+                    digest_month = m
                 elif cmd in ("help", "start", "도움말"):
                     notify.send(
                         "🤖 <b>쓸 수 있는 명령</b>\n"
-                        "/digest — 지금 최저가를 도시별로 자세히 (날짜마다 링크)\n"
+                        "/8 또는 /8월 — 그 달 출발만 가볍게 한 통\n"
+                        "/digest — 도시별로 자세히 (날짜마다 링크, 여러 통)\n"
+                        "/digest 8 — 8월만 자세히\n"
                         "/help — 이 안내\n\n"
                         "명령은 <b>다음 실행 때</b> 처리됩니다 (최대 1시간). "
                         "바로 보고 싶으면 고정해둔 📌 메시지를 확인하세요 — "
@@ -266,10 +276,18 @@ def main() -> int:
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
 
     # ---- 다이제스트: 수동 모드이거나 텔레그램 /digest 요청이 있을 때 ----
+    if wants_brief and not digest:
+        stamp = (dt.datetime.now(dt.timezone.utc)
+                 + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
+        notify.send(notify.format_board(cfg, combos, stamp, today, digest_month))
+        log.info("텔레그램 월 요약 처리 완료 (%s월)", digest_month)
+
     if wants_digest and not digest:
-        for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):
+        sub = ("요청하신 현재 시세입니다" if not digest_month
+               else f"{digest_month}월 출발만 추렸습니다")
+        for _m in notify.format_digest(cfg, combos, sub, today, digest_month):
             notify.send(_m)
-        log.info("텔레그램 /digest 요청 처리 완료")
+        log.info("텔레그램 요청 처리 완료 (월=%s)", digest_month or "전체")
 
     if digest:
         for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):

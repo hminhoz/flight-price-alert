@@ -257,7 +257,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 
 
 def format_board(cfg: Settings, combos: list, stamp: str,
-                 today: "dt.date | None" = None) -> str:
+                 today: "dt.date | None" = None,
+                 month: int | None = None) -> str:
     """고정판용 압축 요약 — 반드시 한 통(4096자)에 들어가야 한다.
 
     수정(editMessageText)으로 갱신하는 구조라 여러 통으로 나눌 수 없다.
@@ -271,11 +272,18 @@ def format_board(cfg: Settings, combos: list, stamp: str,
                       + dt.timedelta(hours=9)).date()
     n = max(cfg.adults, 1)
 
+    if month:
+        combos = [c for c in (combos or []) if c.dep.month == month]
     by_city: dict = {}
     for c in combos or []:
         by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
+    title = ("📌 <b>항공권 최저가</b>"
+             + (f" · <b>{month}월 출발</b>" if month else "")
+             + f" · {stamp} 기준")
     if not by_city:
-        return f"📌 <b>항공권 최저가</b> · {stamp} 기준\n\n아직 비교할 조합이 없습니다."
+        miss = (f"{month}월 출발 조합이 아직 없습니다." if month
+                else "아직 비교할 조합이 없습니다.")
+        return f"{title}\n\n{miss}"
 
     # 도시별 후보 정리 (같은 출발일·같은 가격이면 박 수가 긴 쪽만)
     ranked: list[list] = []
@@ -288,7 +296,7 @@ def format_board(cfg: Settings, combos: list, stamp: str,
         ranked.append(sorted(pick.values(), key=lambda c: (c.price, c.dep)))
 
     def build(per_city: int) -> str:
-        lines = [f"📌 <b>항공권 최저가</b> · {stamp} 기준"]
+        lines = [title]
         for picked in ranked:
             sel = picked[:per_city]
             top = sel[0]
@@ -309,6 +317,9 @@ def format_board(cfg: Settings, combos: list, stamp: str,
                     f'{_airlines(c)} · {round(c.price / n):,}원')
         lines.append("")
         lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
+        # 위 시각이 갱신됐다면 그 실행에서 명령도 확인된 것이다.
+        # 기능이 있는 줄 모르면 안 쓰게 되므로 여기에 안내를 남긴다.
+        lines.append("💬 <b>/help</b> 를 보내면 쓸 수 있는 명령을 알려드려요")
         return "\n".join(lines)
 
     for per_city in range(cfg.board_top_n, 0, -1):
@@ -326,7 +337,8 @@ _SAFE_LEN = 3600      # 여유를 두고 자른다 (링크 URL이 하나에 180�
 
 
 def format_digest(cfg: Settings, combos: list, subtitle: str = "",
-                  today: "dt.date | None" = None) -> list[str]:
+                  today: "dt.date | None" = None,
+                  month: int | None = None) -> list[str]:
     """도시별 '지금 최저가' 한 줄 요약 (v1.45).
 
     왜 필요한가: 한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않는다. 조용한
@@ -339,15 +351,19 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
                       + dt.timedelta(hours=9)).date()
     n = max(cfg.adults, 1)
 
+    if month:
+        combos = [c for c in (combos or []) if c.dep.month == month]
     by_city: dict = {}
     for c in combos or []:
         by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
 
-    head = ["🔄 <b>지금 최저가</b>"]
+    head = [f"🔄 <b>지금 최저가</b>" + (f" · {month}월 출발" if month else "")]
     if subtitle:
         head.append(subtitle)
     if not by_city:
-        return ["\n".join(head + ["", "아직 비교할 조합이 없습니다."])]
+        miss = (f"{month}월 출발 조합이 아직 없습니다." if month
+                else "아직 비교할 조합이 없습니다.")
+        return ["\n".join(head + ["", miss])]
 
     # 도시를 제목으로 올리고 날짜를 밑에 붙인다. 도시별 1개만 보여주면 "어느
     # 도시가 싼지"는 알아도 "언제 가야 싼지"를 모른다. 반대로 도시명을 매 줄
@@ -441,7 +457,7 @@ def poll_commands(offset: int) -> tuple[list, int]:
     허용된 chat_id에서 온 것만 받는다. 아무나 봇을 부려서 조회를 돌리게
     두면 안 되기 때문.
 
-    Returns: ([(chat_id, 명령어)], 다음 offset)
+    Returns: ([(chat_id, 명령어, 인자)], 다음 offset)
     """
     token, targets = _targets()
     if not token or not targets:
@@ -468,9 +484,21 @@ def poll_commands(offset: int) -> tuple[list, int]:
         text = (msg.get("text") or "").strip()
         if not text.startswith("/") or chat_id not in allowed:
             continue
-        cmd = text.split()[0].lstrip("/").split("@")[0].lower()
-        cmds.append((chat_id, cmd))
+        parts = text.split()
+        cmd = parts[0].lstrip("/").split("@")[0].lower()
+        arg = parts[1] if len(parts) > 1 else ""
+        cmds.append((chat_id, cmd, arg))
     return cmds, nxt
+
+
+def parse_month(cmd: str, arg: str = "") -> int | None:
+    """'/8월', '/8', '/digest 8', '/digest 8월' 에서 월을 뽑는다."""
+    import re as _re
+    for s in (arg, cmd):
+        m = _re.fullmatch(r"(\d{1,2})\s*월?", (s or "").strip())
+        if m and 1 <= int(m.group(1)) <= 12:
+            return int(m.group(1))
+    return None
 
 
 def upsert_board(text: str, ids: dict) -> dict:
