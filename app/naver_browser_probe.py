@@ -130,7 +130,18 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                         "AppleWebKit/537.36 (KHTML, like Gecko) "
                         "Chrome/139.0.0.0 Safari/537.36"))
 
+        bodies: dict = {}
+
         def on_response(res):
+            # 4차에서 검색 API를 특정했다:
+            #   flight-api.naver.com/flight/{domestic|international}/searchFlights
+            #   → 201, text/event-stream (SSE)
+            # 화면 글자를 정규식으로 긁지 말고 **응답 본문을 직접** 받는다.
+            if "searchFlights" in res.url and res.url not in bodies:
+                try:
+                    bodies[res.url] = res.text()
+                except Exception as e:  # noqa: BLE001
+                    bodies[res.url] = f"__본문 못 읽음: {str(e)[:100]}"
             # 1차 탐침에서 URL에 api/graphql이 든 것만 기록했더니 설정 파일과
             # 에러 수집기만 잡혔다. 걸러내지 말고 naver 요청을 다 본다.
             u = res.url
@@ -208,6 +219,29 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 row["body_head"] = " ".join(text[:250].split())
             except Exception as e:  # noqa: BLE001
                 row["error"] = str(e)[:200]
+            # 이 건에서 받은 검색 응답을 붙인다 (구조 파악용으로 앞부분만)
+            for u, b in list(bodies.items()):
+                if u in row.get("_seen", []):
+                    continue
+                row.setdefault("api_body", {})[u.split("?")[0]] = {
+                    "len": len(b),
+                    "head": b[:1800],
+                    "data_lines": sum(1 for x in b.splitlines()
+                                      if x.startswith("data:")),
+                }
+            bodies.clear()
+
+            # 결과 행 하나의 구조도 남긴다 (응답을 못 읽을 때 대비)
+            try:
+                row["row_html"] = page.evaluate("""() => {
+                    const el = document.querySelector(
+                      '[class*=domestic_item], [class*=international_item], '
+                      + '[class*=result_item], [class*=item_wrap]');
+                    return el ? el.outerHTML.slice(0, 1500) : '';
+                }""")
+            except Exception:  # noqa: BLE001
+                row["row_html"] = ""
+
             result["cases"].append(row)
             log.info("NVB %s → 가격 %s개, 최저 %s (구글 %s)",
                      row["label"], row.get("found"), row.get("min_price"),

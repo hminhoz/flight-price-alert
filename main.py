@@ -324,11 +324,10 @@ def main() -> int:
                     f"{r.get('clicked','')} · 본문{r.get('body_len','?')}자"
                     f" · {'/'.join(r.get('markers', []))}")
                 lines.append(f"· {r['label']} 값 못 읽음 — {why}")
-        for r in res.get("cases", [])[:1]:
-            if r.get("clickables"):
-                lines.append("")
-                lines.append("페이지 버튼 목록(앞 12개):")
-                lines += [f"· {x}" for x in r["clickables"][:12]]
+        for r in res.get("cases", [])[:2]:
+            for u, b in (r.get("api_body") or {}).items():
+                lines.append(f"· 응답 {u.split('/')[-1]} {b['len']:,}자 "
+                             f"· data줄 {b['data_lines']}")
         if res.get("api_calls"):
             lines.append("")
             lines.append("발견한 API: " + ", ".join(
