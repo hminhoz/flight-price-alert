@@ -56,6 +56,7 @@ def main() -> int:
     dry = _mode == "1"
     preview = _mode == "preview"
     digest = _mode == "digest"
+    naver_probe = _mode == "naver"
     # 깃허브 입력에서도 월을 받는다. 텔레그램 /digest 8 과 같은 동작.
     #   "digest 8" → 8월만 자세히 · "8" 또는 "8월" → 8월만 가볍게 한 통
     manual_month = notify.parse_month(_mode, _arg)
@@ -117,7 +118,7 @@ def main() -> int:
     # 보기 전용 모드(digest / 월 요약)는 **검색을 건너뛴다** (v1.56).
     # 이미 저장된 데이터를 다르게 그려줄 뿐이라 새로 뒤질 이유가 없다.
     # 예전엔 663건을 8분간 검색하고 그 결과를 저장도 안 한 채 버렸다.
-    if brief or digest:
+    if brief or digest or naver_probe:
         legs = []
         log.info("보기 전용 모드 → 검색 건너뜀 (저장된 데이터로 즉시 응답)")
 
@@ -288,6 +289,46 @@ def main() -> int:
                          c.route.key, c.dep, c.nights, c.price, a.rt_price, gap)
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
+
+    # ---- 네이버 브라우저 탐침 (DRY_RUN=naver) ----
+    # 구글 가격이 이미 있는 날짜쌍으로 시험해야 "뚫리나"와 "다른 게 있나"를
+    # 한 번에 알 수 있다. 결과는 data/naver_probe.json 에 남긴다.
+    if naver_probe:
+        from pathlib import Path as _P
+        from app import naver_browser_probe as nvb
+        best: dict = {}
+        for c in combos:
+            k = c.route.key
+            if k not in best or c.price < best[k].price:
+                best[k] = c
+        cases = []
+        for c in sorted(best.values(), key=lambda x: x.price)[:6]:
+            cases.append({
+                "origin": c.route.origin, "dest": c.route.destination,
+                "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
+                "domestic": bool(getattr(c.route, "domestic", False)),
+                "google_price": c.price, "label": f"{c.route.label} {c.dep}",
+            })
+        log.info("네이버 탐침 %d건 시작", len(cases))
+        res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"))
+        lines = ["🧪 <b>네이버 탐침 결과</b>", res.get("note", "")]
+        for r in res.get("cases", []):
+            g = r.get("google_price")
+            nv = r.get("min_price")
+            if nv and g:
+                gap = (nv - g) / g * 100
+                lines.append(f"· {r['label']} 구글 {g:,} / 네이버 {nv:,} ({gap:+.0f}%)")
+            else:
+                lines.append(f"· {r['label']} 네이버 값 못 읽음"
+                             + (f" ({r['error'][:40]})" if r.get("error") else ""))
+        if res.get("api_calls"):
+            lines.append("")
+            lines.append("발견한 API: " + ", ".join(
+                f"{a['url'].split('//')[-1][:48]}({a['status']})"
+                for a in res["api_calls"][:4]))
+        notify.send("\n".join(lines))
+        log.info("네이버 탐침 종료 · data/naver_probe.json 기록")
+        return 0
 
     # ---- 깃허브 입력이 월만 준 경우: 가벼운 한 통 ----
     if brief:
