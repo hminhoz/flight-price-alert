@@ -265,7 +265,16 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 # 9차 실패 원인: JS 안의 역슬래시가 여러 겹 이스케이프를
                 # 거치며 깨져 정규식이 역슬래시 문자를 찾고 있었다.
                 # → 아래 JS에는 역슬래시를 하나도 쓰지 않는다.
-                row["rows"] = page.evaluate('async () => {  const NL = String.fromCharCode(10);  const sels = ["[class^=domestic_item]", "[class*=combination_item]",                "[class*=international_item]"];  const sleep = ms => new Promise(r => setTimeout(r, ms));  const hasPrice = t => t.indexOf("원") !== -1 && /[0-9],[0-9][0-9][0-9]/.test(t);  const upToPrice = e => {    let n = e;    for (let i = 0; i < 6 && n; i++) {      if (hasPrice(n.innerText || "")) return n;      n = n.parentElement;    }    return null;  };  const clean = e => (e.innerText || "").split(NL)      .map(x => x.trim()).filter(Boolean).join(" | ").slice(0, 460);  for (let a = 0; a < 8; a++) {    for (const s of sels) {      const els = Array.from(document.querySelectorAll(s))        .filter(e => (e.innerText || "").length > 30);      if (!els.length) continue;      const seen = new Set(); const out = [];      for (const e of els) {        const p = upToPrice(e);        if (!p || seen.has(p)) continue;        seen.add(p); out.push(clean(p));        if (out.length >= 5) break;      }      const chain = [];      let n = els[0];      for (let i = 0; i < 5 && n; i++) {        const tx = (n.innerText || "").split(NL).map(x => x.trim())                    .filter(Boolean).join(" | ");        chain.push(String(n.className || "").slice(0, 34) + " >> "                   + (hasPrice(tx) ? "[가격O] " : "[가격X] ") + tx.slice(0, 150));        n = n.parentElement;      }      if (out.length) return {sel: s, n: els.length, texts: out, chain: chain};      if (a === 7) return {sel: s, n: els.length, texts: [], chain: chain};    }    await sleep(1200);  }  return {sel: "", n: 0, texts: [], chain: []};}')
+                # 결과가 붙을 때까지 대기
+                for _ in range(40):
+                    page.wait_for_timeout(1500)
+                    if _PRICE.search(page.inner_text("body")):
+                        break
+
+                # 10차에서 가격을 담은 층을 확정했다:
+                #   국내선 domestic_inner · 국제선 combination_inner
+                # 그 층을 직접 겨냥해 최대 80행을 긁는다.
+                row["rows"] = page.evaluate('async () => {  const NL = String.fromCharCode(10);  const sels = ["[class*=combination_inner]", "[class*=domestic_inner]"];  const sleep = ms => new Promise(r => setTimeout(r, ms));  const clean = e => (e.innerText || "").split(NL)      .map(x => x.trim()).filter(Boolean).join(" | ").slice(0, 460);  for (let a = 0; a < 8; a++) {    for (const s of sels) {      const els = Array.from(document.querySelectorAll(s))        .filter(e => (e.innerText || "").indexOf("원") !== -1);      if (els.length) {        return {sel: s, n: els.length,                texts: els.slice(0, 80).map(clean)};      }    }    await sleep(1200);  }  return {sel: "", n: 0, texts: []};}')
                 text = page.inner_text("body")
                 row["body_len"] = len(text)
                 for marker in ("검색 결과", "항공편이 없", "다시 검색",

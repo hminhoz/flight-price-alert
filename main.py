@@ -311,33 +311,36 @@ def main() -> int:
             })
         log.info("네이버 탐침 %d건 시작", len(cases))
         res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"))
-        lines = ["🧪 <b>네이버 탐침 결과</b>", res.get("note", ""),
-                 f"화면: {res.get('display','?')}"]
-        for r in res.get("cases", []):
-            g = r.get("google_price")
-            nv = r.get("min_price")
-            if nv and g:
-                gap = (nv - g) / g * 100
-                lines.append(f"· {r['label']} 구글 {g:,} / 네이버 {nv:,} ({gap:+.0f}%)")
-            else:
-                why = r.get("error", "")[:40] or (
-                    f"{r.get('clicked','')} · 본문{r.get('body_len','?')}자"
-                    f" · {'/'.join(r.get('markers', []))}")
-                lines.append(f"· {r['label']} 값 못 읽음 — {why}")
-        for r in res.get("cases", [])[:2]:
-            rt = r.get("rows") or {}
-            lines.append(f"· {r['label']} 결과행 {rt.get('n',0)}개 {rt.get('sel','')}")
-            for x in rt.get("texts", [])[:2]:
-                lines.append(f"   {x[:180]}")
-            lines.append(f"· {r['label']} 가로챈 응답 {r.get('captured_len',0):,}자"
-                         + (f" · 키 {r['json_keys'][:8]}" if r.get("json_keys") else "")
-                         + (f" · SSE {r['sse_data_lines']}줄"
-                            if r.get("sse_data_lines") else ""))
-        if res.get("api_calls"):
+        # 수집한 행을 파서에 태워 **구글과 같은 조건으로** 비교한다.
+        from app import naver as NV
+        lines = ["🧪 <b>네이버 검증</b>", res.get("note", "")]
+        for r, c in zip(res.get("cases", []), cases):
+            rows = (r.get("rows") or {}).get("texts") or []
+            dom = c["domestic"]
+            route_key = f"{c['origin']}-{c['dest']}"
+            best = NV.pick_best(
+                rows, domestic=dom,
+                out_window=cfg.window_for(route_key, "out"),
+                ret_window=None if dom else cfg.window_for(route_key, "ret"),
+                direct_only=cfg.direct_only)
+            g_per = round(c["google_price"] / max(cfg.adults, 1))
+            n_raw = len(rows)
+            drop = sum(1 for x in rows if NV.has_spend_condition(x))
             lines.append("")
-            lines.append("발견한 API: " + ", ".join(
-                f"{a['url'].split('//')[-1][:48]}({a['status']})"
-                for a in res["api_calls"][:4]))
+            lines.append(f"<b>{r['label']}</b> · 행 {n_raw}개(실적조건 {drop}개 제외)")
+            if not best:
+                lines.append(f"조건 맞는 값 없음 · 구글 {g_per:,}원/인")
+                continue
+            if dom:
+                nv_per = best["price"] * 2      # 편도 → 왕복 환산
+                lines.append(f"네이버 {nv_per:,}원/인 (편도 {best['price']:,}×2, "
+                             f"{best['seat']}) / 구글 {g_per:,}원/인")
+            else:
+                nv_per = best["price"]
+                lines.append(f"네이버 {nv_per:,}원/인 / 구글 {g_per:,}원/인")
+            gap = (nv_per - g_per) / max(g_per, 1) * 100
+            lines.append(f"→ 네이버가 {abs(gap):.0f}% {'싸다' if gap < 0 else '비싸다'}"
+                         f" · {best['airline']}")
         notify.send("\n".join(lines))
         log.info("네이버 탐침 종료 · data/naver_probe.json 기록")
         return 0

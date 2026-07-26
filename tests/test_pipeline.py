@@ -121,6 +121,7 @@ def main():
     test_poll_commands()
     test_month_filter()
     test_run_mode_parsing()
+    test_naver_parser()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -830,6 +831,61 @@ def test_run_mode_parsing():
     assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
     assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
     print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
+
+
+def test_naver_parser():
+    """네이버 결과행 파서 — 탐침으로 확보한 실물 문자열 기준 (v1.67).
+
+    실적 조건이 붙은 가격은 버린다: 카드 이용실적을 채워야 살 수 있는 값이라
+    대부분 실제로는 그 가격에 못 산다. 알림에 띄우면 "가서 보니 더 비싸다"가 된다.
+    """
+    import datetime as _dt
+    from app import naver as NV
+
+    # ── 국내선 (실물) ──
+    dom = "파라타항공 | 06:00GMP | 07:15CJU | 01시간 15분 | 특가석편도 51,200원~"
+    r = NV.parse_domestic(dom)
+    assert r and r["airline"] == "파라타항공", r
+    assert r["from"] == "GMP" and r["to"] == "CJU"
+    assert r["dep"] == _dt.time(6, 0) and r["arr"] == _dt.time(7, 15)
+    assert r["seat"] == "특가석" and r["price"] == 51_200
+
+    # ── 국제선 (실물) ──
+    intl = ("제주항공 | 07:10ICN | 09:05KIX | 직항, 01시간 55분 | 09:00KIX | "
+            "11:00ICN | 직항, 02시간 00분 | 성인 | 왕복 | 192,300 | 원~")
+    r = NV.parse_intl(intl)
+    assert r and r["airline"] == "제주항공", r
+    assert r["out_from"] == "ICN" and r["out_dep"] == _dt.time(7, 10)
+    assert r["ret_from"] == "KIX" and r["ret_dep"] == _dt.time(9, 0)
+    assert r["direct"] is True and r["price"] == 192_300
+
+    # ── 실적 조건은 버린다 (실물 문구) ──
+    cond = ("제주항공 | 07:10ICN | 09:05KIX | 직항, 01시간 55분 | 09:00KIX | "
+            "11:00ICN | 직항, 02시간 00분 | 성인/하나카드(이용실적 충족시) | "
+            "왕복 | 192,300 | 원~ | 로그인 후 특가확인")
+    assert NV.has_spend_condition(cond)
+    assert NV.parse_intl(cond) is None, "실적 조건부 가격이 통과됐다"
+    # 카드로 결제만 하면 되는 건 통과
+    ok = cond.replace("(이용실적 충족시)", "")
+    assert NV.parse_intl(ok) is not None, "단순 카드 결제까지 막혔다"
+
+    # ── 시간창·직항 필터 ──
+    rows = [
+        intl,                                             # 07:10 출발 / 09:00 귀국
+        intl.replace("07:10ICN", "15:20ICN").replace("192,300", "150,000"),
+        cond.replace("192,300", "100,000"),               # 더 싸도 실적 조건이면 제외
+    ]
+    best = NV.pick_best(rows, domestic=False,
+                        out_window=(_dt.time(6, 0), _dt.time(13, 0)),
+                        ret_window=(_dt.time(8, 0), _dt.time(23, 59)))
+    assert best and best["price"] == 192_300, best   # 15:20편·조건부는 탈락
+
+    # 국내선 시간창
+    rows_d = [dom, dom.replace("06:00GMP", "15:00GMP").replace("51,200", "40,000")]
+    bd = NV.pick_best(rows_d, domestic=True,
+                      out_window=(_dt.time(6, 0), _dt.time(13, 0)))
+    assert bd and bd["price"] == 51_200, bd
+    print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
 
 
 def test_tolerant_parser():
@@ -1668,6 +1724,61 @@ def test_run_mode_parsing():
     assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
     assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
     print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
+
+
+def test_naver_parser():
+    """네이버 결과행 파서 — 탐침으로 확보한 실물 문자열 기준 (v1.67).
+
+    실적 조건이 붙은 가격은 버린다: 카드 이용실적을 채워야 살 수 있는 값이라
+    대부분 실제로는 그 가격에 못 산다. 알림에 띄우면 "가서 보니 더 비싸다"가 된다.
+    """
+    import datetime as _dt
+    from app import naver as NV
+
+    # ── 국내선 (실물) ──
+    dom = "파라타항공 | 06:00GMP | 07:15CJU | 01시간 15분 | 특가석편도 51,200원~"
+    r = NV.parse_domestic(dom)
+    assert r and r["airline"] == "파라타항공", r
+    assert r["from"] == "GMP" and r["to"] == "CJU"
+    assert r["dep"] == _dt.time(6, 0) and r["arr"] == _dt.time(7, 15)
+    assert r["seat"] == "특가석" and r["price"] == 51_200
+
+    # ── 국제선 (실물) ──
+    intl = ("제주항공 | 07:10ICN | 09:05KIX | 직항, 01시간 55분 | 09:00KIX | "
+            "11:00ICN | 직항, 02시간 00분 | 성인 | 왕복 | 192,300 | 원~")
+    r = NV.parse_intl(intl)
+    assert r and r["airline"] == "제주항공", r
+    assert r["out_from"] == "ICN" and r["out_dep"] == _dt.time(7, 10)
+    assert r["ret_from"] == "KIX" and r["ret_dep"] == _dt.time(9, 0)
+    assert r["direct"] is True and r["price"] == 192_300
+
+    # ── 실적 조건은 버린다 (실물 문구) ──
+    cond = ("제주항공 | 07:10ICN | 09:05KIX | 직항, 01시간 55분 | 09:00KIX | "
+            "11:00ICN | 직항, 02시간 00분 | 성인/하나카드(이용실적 충족시) | "
+            "왕복 | 192,300 | 원~ | 로그인 후 특가확인")
+    assert NV.has_spend_condition(cond)
+    assert NV.parse_intl(cond) is None, "실적 조건부 가격이 통과됐다"
+    # 카드로 결제만 하면 되는 건 통과
+    ok = cond.replace("(이용실적 충족시)", "")
+    assert NV.parse_intl(ok) is not None, "단순 카드 결제까지 막혔다"
+
+    # ── 시간창·직항 필터 ──
+    rows = [
+        intl,                                             # 07:10 출발 / 09:00 귀국
+        intl.replace("07:10ICN", "15:20ICN").replace("192,300", "150,000"),
+        cond.replace("192,300", "100,000"),               # 더 싸도 실적 조건이면 제외
+    ]
+    best = NV.pick_best(rows, domestic=False,
+                        out_window=(_dt.time(6, 0), _dt.time(13, 0)),
+                        ret_window=(_dt.time(8, 0), _dt.time(23, 59)))
+    assert best and best["price"] == 192_300, best   # 15:20편·조건부는 탈락
+
+    # 국내선 시간창
+    rows_d = [dom, dom.replace("06:00GMP", "15:00GMP").replace("51,200", "40,000")]
+    bd = NV.pick_best(rows_d, domestic=True,
+                      out_window=(_dt.time(6, 0), _dt.time(13, 0)))
+    assert bd and bd["price"] == 51_200, bd
+    print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
 
 
 def test_tolerant_parser():
