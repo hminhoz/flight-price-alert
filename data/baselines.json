@@ -1,11 +1,11 @@
 {
  "GMP-CJU|2026-08": {
-  "alltime_min": 268400,
-  "alltime_min_at": "2026-07-26T02:16:39+00:00",
-  "alltime_min_prev": 310400,
-  "baseline": 268400,
+  "alltime_min": 264400,
+  "alltime_min_at": "2026-07-26T06:01:24+00:00",
+  "alltime_min_prev": 268400,
+  "baseline": 264400,
   "daily_min": {
-   "2026-07-26": 268400
+   "2026-07-26": 264400
   }
  },
  "GMP-CJU|2026-09": {
@@ -416,12 +416,12 @@
   }
  },
  "X:NGO-ICN|2026-08": {
-  "alltime_min": 669575,
-  "alltime_min_at": "2026-07-26T03:25:22+00:00",
-  "alltime_min_prev": null,
-  "baseline": 669575,
+  "alltime_min": 653842,
+  "alltime_min_at": "2026-07-26T06:01:24+00:00",
+  "alltime_min_prev": 669575,
+  "baseline": 653842,
   "daily_min": {
-   "2026-07-26": 669575
+   "2026-07-26": 653842
   }
  },
  "X:NGO-ICN|2026-09": {
