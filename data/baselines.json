@@ -66,21 +66,48 @@
   }
  },
  "GMP-KIX|2026-09": {
-  "alltime_min": 728546,
-  "alltime_min_at": "2026-07-26T02:44:37+00:00",
-  "alltime_min_prev": null,
-  "baseline": 728546,
+  "alltime_min": 672704,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": 728546,
+  "baseline": 672704,
   "daily_min": {
-   "2026-07-26": 728546
+   "2026-07-26": 672704
   }
  },
  "GMP-KIX|2026-10": {
-  "alltime_min": 1116248,
-  "alltime_min_at": "2026-07-26T02:44:37+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1116248,
+  "alltime_min": 943820,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": 1116248,
+  "baseline": 943820,
   "daily_min": {
-   "2026-07-26": 1116248
+   "2026-07-26": 943820
+  }
+ },
+ "GMP-NGO|2026-08": {
+  "alltime_min": 564278,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 564278,
+  "daily_min": {
+   "2026-07-26": 564278
+  }
+ },
+ "GMP-NGO|2026-09": {
+  "alltime_min": 639580,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 639580,
+  "daily_min": {
+   "2026-07-26": 639580
+  }
+ },
+ "GMP-NGO|2026-10": {
+  "alltime_min": 796916,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 796916,
+  "daily_min": {
+   "2026-07-26": 796916
   }
  },
  "ICN-CTS|2026-08": {
@@ -278,6 +305,168 @@
   "daily_min": {
    "2026-07-25": 1452965,
    "2026-07-26": 1246654
+  }
+ },
+ "X:HND-ICN|2026-08": {
+  "alltime_min": 1153642,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1153642,
+  "daily_min": {
+   "2026-07-26": 1153642
+  }
+ },
+ "X:HND-ICN|2026-09": {
+  "alltime_min": 1160238,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1160238,
+  "daily_min": {
+   "2026-07-26": 1160238
+  }
+ },
+ "X:HND-ICN|2026-10": {
+  "alltime_min": 1284337,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1284337,
+  "daily_min": {
+   "2026-07-26": 1284337
+  }
+ },
+ "X:KIX-GMP|2026-08": {
+  "alltime_min": 604267,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 604267,
+  "daily_min": {
+   "2026-07-26": 604267
+  }
+ },
+ "X:KIX-GMP|2026-09": {
+  "alltime_min": 651104,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 651104,
+  "daily_min": {
+   "2026-07-26": 651104
+  }
+ },
+ "X:KIX-GMP|2026-10": {
+  "alltime_min": 904820,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 904820,
+  "daily_min": {
+   "2026-07-26": 904820
+  }
+ },
+ "X:KIX-ICN|2026-08": {
+  "alltime_min": 494741,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 494741,
+  "daily_min": {
+   "2026-07-26": 494741
+  }
+ },
+ "X:KIX-ICN|2026-09": {
+  "alltime_min": 453686,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 453686,
+  "daily_min": {
+   "2026-07-26": 453686
+  }
+ },
+ "X:KIX-ICN|2026-10": {
+  "alltime_min": 688045,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 688045,
+  "daily_min": {
+   "2026-07-26": 688045
+  }
+ },
+ "X:NGO-GMP|2026-08": {
+  "alltime_min": 592078,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 592078,
+  "daily_min": {
+   "2026-07-26": 592078
+  }
+ },
+ "X:NGO-GMP|2026-09": {
+  "alltime_min": 683380,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 683380,
+  "daily_min": {
+   "2026-07-26": 683380
+  }
+ },
+ "X:NGO-GMP|2026-10": {
+  "alltime_min": 912958,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 912958,
+  "daily_min": {
+   "2026-07-26": 912958
+  }
+ },
+ "X:NGO-ICN|2026-08": {
+  "alltime_min": 669575,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 669575,
+  "daily_min": {
+   "2026-07-26": 669575
+  }
+ },
+ "X:NGO-ICN|2026-09": {
+  "alltime_min": 675970,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 675970,
+  "daily_min": {
+   "2026-07-26": 675970
+  }
+ },
+ "X:NGO-ICN|2026-10": {
+  "alltime_min": 915633,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 915633,
+  "daily_min": {
+   "2026-07-26": 915633
+  }
+ },
+ "X:NRT-GMP|2026-08": {
+  "alltime_min": 1163759,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1163759,
+  "daily_min": {
+   "2026-07-26": 1163759
+  }
+ },
+ "X:NRT-GMP|2026-09": {
+  "alltime_min": 1233759,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1233759,
+  "daily_min": {
+   "2026-07-26": 1233759
+  }
+ },
+ "X:NRT-GMP|2026-10": {
+  "alltime_min": 1335430,
+  "alltime_min_at": "2026-07-26T03:25:22+00:00",
+  "alltime_min_prev": null,
+  "baseline": 1335430,
+  "daily_min": {
+   "2026-07-26": 1335430
   }
  }
 }
