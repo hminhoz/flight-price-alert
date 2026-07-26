@@ -106,32 +106,29 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                    "google_price": c.get("google_price")}
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=45000)
-                page.wait_for_timeout(3000)
+                page.wait_for_timeout(5000)
 
-                # 1차 탐침 결과: 페이지는 열리는데 검색 API 호출이 0건이었다.
-                # URL 진입만으로는 검색이 시작되지 않고 버튼을 눌러야 한다.
-                clicked = ""
-                for sel in ("button:has-text('항공권 검색')",
-                            "a:has-text('항공권 검색')",
-                            "button:has-text('검색')",
-                            "[class*=searchBox] button",
-                            "[class*=search] button[type=submit]"):
-                    try:
-                        el = page.locator(sel).first
-                        if el.count() and el.is_visible():
-                            el.click(timeout=5000)
-                            clicked = sel
-                            break
-                    except Exception:  # noqa: BLE001
-                        continue
-                row["clicked"] = clicked or "버튼 못 찾음"
-
-                # 검색은 10~30초 걸린다. 가격이 보일 때까지 최대 60초.
+                # 2차에서 button:has-text('검색')이 헤더 통합검색을 눌러
+                # 페이지가 오류 화면(본문 513자)으로 바뀌었다.
+                # → 선택자를 더 추측하지 말고 **실제 요소 목록을 뽑는다.**
+                row["clickables"] = page.evaluate("""() => {
+                    const out = [];
+                    document.querySelectorAll('button, a[role=button], [class*=search] a')
+                      .forEach(el => {
+                        const t = (el.innerText || '').trim().replace(/\\s+/g, ' ');
+                        if (!t || t.length > 24) return;
+                        const r = el.getBoundingClientRect();
+                        if (r.width < 20 || r.height < 12) return;
+                        out.push(t + ' | ' + (el.className || '').toString().slice(0, 42));
+                      });
+                    return out.slice(0, 40);
+                }""")
+                # 결과가 저절로 붙는지 먼저 본다 (클릭 없이 최대 60초)
                 for _ in range(40):
                     page.wait_for_timeout(1500)
-                    text = page.inner_text("body")
-                    if _PRICE.search(text):
+                    if _PRICE.search(page.inner_text("body")):
                         break
+                row["clicked"] = "누르지 않음(요소 조사 모드)"
                 text = page.inner_text("body")
                 row["body_len"] = len(text)
                 for marker in ("검색 결과", "항공편이 없", "다시 검색",

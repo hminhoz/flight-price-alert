@@ -302,7 +302,7 @@ def main() -> int:
             if k not in best or c.price < best[k].price:
                 best[k] = c
         cases = []
-        for c in sorted(best.values(), key=lambda x: x.price)[:6]:
+        for c in sorted(best.values(), key=lambda x: x.price)[:2]:
             cases.append({
                 "origin": c.route.origin, "dest": c.route.destination,
                 "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
@@ -322,6 +322,11 @@ def main() -> int:
                 why = r.get("error", "")[:40] or (
                     f"{r.get('clicked','')} · {'/'.join(r.get('markers', []))}")
                 lines.append(f"· {r['label']} 값 못 읽음 — {why}")
+        for r in res.get("cases", [])[:1]:
+            if r.get("clickables"):
+                lines.append("")
+                lines.append("페이지 버튼 목록(앞 12개):")
+                lines += [f"· {x}" for x in r["clickables"][:12]]
         if res.get("api_calls"):
             lines.append("")
             lines.append("발견한 API: " + ", ".join(
