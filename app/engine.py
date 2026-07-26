@@ -190,6 +190,14 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
     """
     fresh = cfg.leg_freshness_days
     combos: list[Combo] = []
+    excluded = set(cfg.exclude_airlines or ())
+
+    def blocked(leg: dict) -> bool:
+        """설정 변경 직후에도 즉시 반영되도록, 저장된 다리도 여기서 거른다.
+        (수집 단계에서 이미 빼지만 기존 데이터가 최대 leg_freshness_days 남는다)"""
+        if not excluded:
+            return False
+        return (leg.get("carrier", "") or "").strip().upper() in excluded
 
     # (도시, 출발일) -> [(route, leg)] / (도시, 귀국일) -> [(route, leg)]
     outs: dict[tuple, list] = {}
@@ -202,11 +210,11 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
             if not is_excluded_departure(cfg, d):
                 o = state.fresh_leg_price(
                     State.leg_key(route.key, "out", d.isoformat()), fresh)
-                if o:
+                if o and not blocked(o):
                     outs.setdefault((city, d), []).append((route, o))
             r = state.fresh_leg_price(
                 State.leg_key(route.key, "ret", d.isoformat()), fresh)
-            if r:
+            if r and not blocked(r):
                 rets.setdefault((city, d), []).append((route, r))
             d += dt.timedelta(days=1)
 

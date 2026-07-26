@@ -15,6 +15,11 @@ search:
     earliest: "18:00"
     latest: "23:59"
   direct_only: true
+  exclude_airlines: [MM, PEACH]   # 아예 후보에서 뺄 항공사. MM = 피치항공.
+                              # 2글자는 IATA 코드로, 3글자 이상은 항공사명
+                              # 부분일치로 본다. 코드가 안 잡히는 응답까지
+                              # 걸러내려고 이름도 같이 넣어둔다.
+                              # 되살리려면 목록에서 지우면 된다.
   cross_airports: true        # 서울 출발/도착 공항 교차 조합 허용 (v1.41)
                               # 예: 김포→나고야 가고, 나고야→인천 오기.
                               # 실측에서 1인 최대 184,600원 절감. 추가 검색 0건
@@ -50,10 +55,11 @@ routes:
   # 김포발 일본 취항지는 도쿄·오사카·나고야 셋뿐 (한국공항공사 기준).
   # 인천만 넣고 김포 짝을 빠뜨렸던 두 노선을 채운다.
   - { origin: GMP, destination: KIX, label: "김포-오사카" }
-  - { origin: GMP, destination: NGO, label: "김포-나고야",
-      # NGO→GMP 는 18시 이후 출발이 하나도 없다 (실측 8시×35 14시×3 15시×32).
-      # 선호창 0/70 → 삿포로와 같은 기준으로 14시까지 양보한다.
-      return_departure: { earliest: "14:00" } }
+  # 김포-나고야는 **피치 단독 취항**이라 exclude_airlines에 MM이 있는 한
+  # 검색해도 결과가 0이다(실측 113개 다리 → 0개). 매 바퀴 113건을 버리게 되므로
+  # 꺼둔다. 피치를 다시 허용하면 아래 주석을 풀 것.
+  # - { origin: GMP, destination: NGO, label: "김포-나고야",
+  #     return_departure: { earliest: "14:00" } }
   - { origin: ICN, destination: OKA, label: "인천-오키나와" }
   - { origin: ICN, destination: KOJ, label: "인천-가고시마",
       # ICN→KOJ 출발편은 12:47·15:45 등 오후 편중 (실측: 가는 편 0/39)

@@ -79,6 +79,25 @@ def parse_price(raw) -> int | None:
 _diag_logged: set[tuple[str, str]] = set()
 
 
+_EXCLUDED: set = set()
+
+
+def set_excluded_airlines(codes) -> None:
+    """후보에서 뺄 항공사 코드. main이 설정에서 읽어 한 번 세팅한다."""
+    _EXCLUDED.clear()
+    _EXCLUDED.update(str(c).strip().upper() for c in (codes or []))
+
+
+def is_excluded(code: str, name: str = "") -> bool:
+    if not _EXCLUDED:
+        return False
+    if (code or "").strip().upper() in _EXCLUDED:
+        return True
+    # 코드를 못 얻은 경우를 위한 이름 보조 (피치 등)
+    n = (name or "").strip().upper()
+    return any(x in n for x in _EXCLUDED if len(x) > 2)
+
+
 def search_leg(
     origin: str,
     dest: str,
@@ -389,6 +408,10 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
                 n_price += 1
                 continue
             first = legs[0]
+            if is_excluded(getattr(item, "type", "") or "",
+                           str(getattr((getattr(item, "airlines", None) or [None])[0],
+                                       "name", "") or "")):
+                continue
             dep = getattr(getattr(first, "departure", None), "time", None)
             arr = getattr(getattr(first, "arrival", None), "time", None)
             t = parse_time(dep)
@@ -402,6 +425,8 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
             name = getattr(a0, "name", None) or (str(a0) if a0 is not None else "?")
             # item.type 이 IATA 코드다 (경유편은 'multi'). 링크 필터에 쓴다.
             code = getattr(item, "type", "") or ""
+            if is_excluded(code, str(name)):
+                continue          # 제외 항공사는 후보에서 뺀다
             cand = LegResult(
                 price=price, airline=str(name),
                 carrier="" if code == "multi" else str(code),

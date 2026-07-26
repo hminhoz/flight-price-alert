@@ -116,6 +116,7 @@ def main():
     test_digest()
     test_live_board()
     test_board_ids_compact()
+    test_exclude_airlines()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -399,8 +400,14 @@ def test_cross_airport_combos():
     같은 공항끼리만 묶으면 그 가는 편이 버려지기 때문. 추가 검색은 0건이다.
     """
     cfg = load()
-    gmp = [r for r in cfg.routes if r.key == "GMP-NGO"][0]
-    icn = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+    # 특정 노선을 박아두면 노선 구성이 바뀔 때 테스트가 깨진다.
+    # 같은 도시에 서울발 노선이 둘 이상인 곳을 찾아 쓴다.
+    groups: dict = {}
+    for r in cfg.routes:
+        groups.setdefault(engine._seoul_group(cfg, r), []).append(r)
+    pair = next((v for v in groups.values() if len(v) >= 2), None)
+    assert pair, "교차 가능한 도시가 없다 (노선 구성 확인 필요)"
+    gmp, icn = pair[0], pair[1]
 
     st = State.__new__(State)
     st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
@@ -408,21 +415,24 @@ def test_cross_airport_combos():
     dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
     now = dt.datetime.now(dt.timezone.utc)
     # 김포 출발은 싸고, 김포로 돌아오는 편은 없음 → 인천 귀국만 가능
-    st.record_leg(State.leg_key("GMP-NGO", "out", dep.isoformat()),
-                  price=200_000, airline="Peach", dep_time="11:20", carrier="MM", now=now)
-    st.record_leg(State.leg_key("ICN-NGO", "out", dep.isoformat()),
-                  price=400_000, airline="Jin Air", dep_time="07:30", carrier="LJ", now=now)
-    st.record_leg(State.leg_key("ICN-NGO", "ret", ret.isoformat()),
-                  price=300_000, airline="Jeju Air", dep_time="19:00", carrier="7C", now=now)
+    st.record_leg(State.leg_key(gmp.key, "out", dep.isoformat()),
+                  price=200_000, airline="Jin Air", dep_time="11:20",
+                  carrier="LJ", now=now)
+    st.record_leg(State.leg_key(icn.key, "out", dep.isoformat()),
+                  price=400_000, airline="Jin Air", dep_time="07:30",
+                  carrier="LJ", now=now)
+    st.record_leg(State.leg_key(icn.key, "ret", ret.isoformat()),
+                  price=300_000, airline="Jeju Air", dep_time="19:00",
+                  carrier="7C", now=now)
 
     combos = engine.build_combos(cfg, st, today)
     pairs = {(c.route.key, c.back.key): c for c in combos
              if c.dep == dep and c.nights == 3}
-    assert ("GMP-NGO", "ICN-NGO") in pairs, "교차 조합이 안 만들어졌다"
-    assert ("ICN-NGO", "ICN-NGO") in pairs, "같은 공항 조합도 있어야 한다"
+    assert (gmp.key, icn.key) in pairs, "교차 조합이 안 만들어졌다"
+    assert (icn.key, icn.key) in pairs, "같은 공항 조합도 있어야 한다"
 
-    cross = pairs[("GMP-NGO", "ICN-NGO")]
-    same = pairs[("ICN-NGO", "ICN-NGO")]
+    cross = pairs[(gmp.key, icn.key)]
+    same = pairs[(icn.key, icn.key)]
     assert cross.is_cross and not same.is_cross
     assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
     assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
@@ -430,8 +440,9 @@ def test_cross_airport_combos():
     # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
     a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
     msg = format_alerts(cfg, [a], combos)[0]
-    assert "김포 출발" in msg and "인천 귀국" in msg, msg
-    assert "나고야" in msg.splitlines()[0], msg.splitlines()[0]  # 제목은 도시명
+    from app.notify import _ko
+    assert f"{_ko(gmp.origin)} 출발" in msg and f"{_ko(icn.origin)} 귀국" in msg, msg
+    assert engine.city_label(cfg, gmp) in msg.splitlines()[0], msg.splitlines()[0]
     print("OK 교차 조합: 생성·키 분리·공항 명시")
 
 
@@ -656,6 +667,47 @@ def test_board_ids_compact():
         os.environ.clear()
         os.environ.update(old_env)
     print("OK 고정판 상태: 해시만 저장 · 동일 내용은 호출 생략")
+
+
+def test_exclude_airlines():
+    """제외 항공사는 수집·조합 양쪽에서 빠져야 한다 (v1.50).
+
+    수집에서만 막으면 이미 저장된 다리가 leg_freshness_days 동안 남아
+    설정을 바꿔도 며칠간 계속 노출된다. 그래서 조합 단계에서도 거른다.
+    """
+    from app import search as S
+    cfg = load()
+    assert "MM" in cfg.exclude_airlines, cfg.exclude_airlines
+
+    S.set_excluded_airlines(cfg.exclude_airlines)
+    try:
+        assert S.is_excluded("MM", "Peach Aviation")
+        assert S.is_excluded("", "Peach")          # 코드 없어도 이름으로
+        assert not S.is_excluded("7C", "Jeju Air")
+        assert not S.is_excluded("TW", "Trinity Airways")
+    finally:
+        S.set_excluded_airlines([])
+
+    # 저장된 다리도 조합에서 빠진다
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    route = cfg.routes[0]
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=100_000, airline="Peach", dep_time="07:30",
+                  carrier="MM", now=now)
+    st.record_leg(State.leg_key(route.key, "ret", ret.isoformat()),
+                  price=100_000, airline="Jeju Air", dep_time="19:00",
+                  carrier="7C", now=now)
+    assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)) == [], "제외 항공사가 조합에 남았다"
+
+    # 제외 항공사가 아니면 정상 생성
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=100_000, airline="Jin Air", dep_time="07:30",
+                  carrier="LJ", now=now)
+    assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)), "정상 조합까지 막혔다"
+    print("OK 제외 항공사: 수집·조합 양쪽에서 차단, 코드·이름 모두 인식")
 
 
 def test_tolerant_parser():
@@ -1068,8 +1120,14 @@ def test_cross_airport_combos():
     같은 공항끼리만 묶으면 그 가는 편이 버려지기 때문. 추가 검색은 0건이다.
     """
     cfg = load()
-    gmp = [r for r in cfg.routes if r.key == "GMP-NGO"][0]
-    icn = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+    # 특정 노선을 박아두면 노선 구성이 바뀔 때 테스트가 깨진다.
+    # 같은 도시에 서울발 노선이 둘 이상인 곳을 찾아 쓴다.
+    groups: dict = {}
+    for r in cfg.routes:
+        groups.setdefault(engine._seoul_group(cfg, r), []).append(r)
+    pair = next((v for v in groups.values() if len(v) >= 2), None)
+    assert pair, "교차 가능한 도시가 없다 (노선 구성 확인 필요)"
+    gmp, icn = pair[0], pair[1]
 
     st = State.__new__(State)
     st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
@@ -1077,21 +1135,24 @@ def test_cross_airport_combos():
     dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
     now = dt.datetime.now(dt.timezone.utc)
     # 김포 출발은 싸고, 김포로 돌아오는 편은 없음 → 인천 귀국만 가능
-    st.record_leg(State.leg_key("GMP-NGO", "out", dep.isoformat()),
-                  price=200_000, airline="Peach", dep_time="11:20", carrier="MM", now=now)
-    st.record_leg(State.leg_key("ICN-NGO", "out", dep.isoformat()),
-                  price=400_000, airline="Jin Air", dep_time="07:30", carrier="LJ", now=now)
-    st.record_leg(State.leg_key("ICN-NGO", "ret", ret.isoformat()),
-                  price=300_000, airline="Jeju Air", dep_time="19:00", carrier="7C", now=now)
+    st.record_leg(State.leg_key(gmp.key, "out", dep.isoformat()),
+                  price=200_000, airline="Jin Air", dep_time="11:20",
+                  carrier="LJ", now=now)
+    st.record_leg(State.leg_key(icn.key, "out", dep.isoformat()),
+                  price=400_000, airline="Jin Air", dep_time="07:30",
+                  carrier="LJ", now=now)
+    st.record_leg(State.leg_key(icn.key, "ret", ret.isoformat()),
+                  price=300_000, airline="Jeju Air", dep_time="19:00",
+                  carrier="7C", now=now)
 
     combos = engine.build_combos(cfg, st, today)
     pairs = {(c.route.key, c.back.key): c for c in combos
              if c.dep == dep and c.nights == 3}
-    assert ("GMP-NGO", "ICN-NGO") in pairs, "교차 조합이 안 만들어졌다"
-    assert ("ICN-NGO", "ICN-NGO") in pairs, "같은 공항 조합도 있어야 한다"
+    assert (gmp.key, icn.key) in pairs, "교차 조합이 안 만들어졌다"
+    assert (icn.key, icn.key) in pairs, "같은 공항 조합도 있어야 한다"
 
-    cross = pairs[("GMP-NGO", "ICN-NGO")]
-    same = pairs[("ICN-NGO", "ICN-NGO")]
+    cross = pairs[(gmp.key, icn.key)]
+    same = pairs[(icn.key, icn.key)]
     assert cross.is_cross and not same.is_cross
     assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
     assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
@@ -1099,8 +1160,9 @@ def test_cross_airport_combos():
     # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
     a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
     msg = format_alerts(cfg, [a], combos)[0]
-    assert "김포 출발" in msg and "인천 귀국" in msg, msg
-    assert "나고야" in msg.splitlines()[0], msg.splitlines()[0]  # 제목은 도시명
+    from app.notify import _ko
+    assert f"{_ko(gmp.origin)} 출발" in msg and f"{_ko(icn.origin)} 귀국" in msg, msg
+    assert engine.city_label(cfg, gmp) in msg.splitlines()[0], msg.splitlines()[0]
     print("OK 교차 조합: 생성·키 분리·공항 명시")
 
 
@@ -1325,6 +1387,47 @@ def test_board_ids_compact():
         os.environ.clear()
         os.environ.update(old_env)
     print("OK 고정판 상태: 해시만 저장 · 동일 내용은 호출 생략")
+
+
+def test_exclude_airlines():
+    """제외 항공사는 수집·조합 양쪽에서 빠져야 한다 (v1.50).
+
+    수집에서만 막으면 이미 저장된 다리가 leg_freshness_days 동안 남아
+    설정을 바꿔도 며칠간 계속 노출된다. 그래서 조합 단계에서도 거른다.
+    """
+    from app import search as S
+    cfg = load()
+    assert "MM" in cfg.exclude_airlines, cfg.exclude_airlines
+
+    S.set_excluded_airlines(cfg.exclude_airlines)
+    try:
+        assert S.is_excluded("MM", "Peach Aviation")
+        assert S.is_excluded("", "Peach")          # 코드 없어도 이름으로
+        assert not S.is_excluded("7C", "Jeju Air")
+        assert not S.is_excluded("TW", "Trinity Airways")
+    finally:
+        S.set_excluded_airlines([])
+
+    # 저장된 다리도 조합에서 빠진다
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    route = cfg.routes[0]
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=100_000, airline="Peach", dep_time="07:30",
+                  carrier="MM", now=now)
+    st.record_leg(State.leg_key(route.key, "ret", ret.isoformat()),
+                  price=100_000, airline="Jeju Air", dep_time="19:00",
+                  carrier="7C", now=now)
+    assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)) == [], "제외 항공사가 조합에 남았다"
+
+    # 제외 항공사가 아니면 정상 생성
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=100_000, airline="Jin Air", dep_time="07:30",
+                  carrier="LJ", now=now)
+    assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)), "정상 조합까지 막혔다"
+    print("OK 제외 항공사: 수집·조합 양쪽에서 차단, 코드·이름 모두 인식")
 
 
 def test_tolerant_parser():

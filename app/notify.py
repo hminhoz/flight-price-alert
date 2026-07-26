@@ -305,8 +305,8 @@ def format_board(cfg: Settings, combos: list, stamp: str,
             for c in sel[1:]:
                 lines.append(
                     f'   {_d(c.dep)}~{_d(c.ret)} {c.nights}박 '
-                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} · '
-                    f'{round(c.price / n):,}원')
+                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} '
+                    f'{_airlines(c)} · {round(c.price / n):,}원')
         lines.append("")
         lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
         return "\n".join(lines)

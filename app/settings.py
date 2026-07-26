@@ -58,6 +58,7 @@ class Settings:
     failure_alert_threshold: float
     failure_alert_streak: int
     failure_alert_cooldown_hours: int
+    exclude_airlines: tuple = ()
     cross_airports: bool = True
     city_groups: dict = field(default_factory=dict, repr=False)
     concurrency: int = 3
@@ -171,6 +172,8 @@ def load(path: Path | None = None) -> Settings:
         exclude_weekdays=["월화수목금토일".index(str(w)[0]) for w in (s.get("exclude_weekdays") or [])],
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
+        exclude_airlines=tuple(
+            str(x).strip().upper() for x in (s.get("exclude_airlines") or [])),
         cross_airports=bool(s.get("cross_airports", True)),
         city_groups={k: list(v) for k, v in (s.get("city_groups") or {}).items()},
         concurrency=max(1, int(sch.get("concurrency", 3))),

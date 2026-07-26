@@ -68,6 +68,11 @@ def main() -> int:
     max_legs = os.environ.get("MAX_LEGS")
     if max_legs:
         legs = legs[: int(max_legs)]
+    from app.search import set_excluded_airlines
+    set_excluded_airlines(cfg.exclude_airlines)
+    if cfg.exclude_airlines:
+        log.info("제외 항공사: %s", ", ".join(cfg.exclude_airlines))
+
     done_n, total_n, cycle_done = engine.note_shard(cfg, state, shard)
     log.info("shard=%d 검색 대상 %d개 leg · 이번 바퀴 진행 %d/%d%s",
              shard, len(legs), done_n, total_n, " (완주)" if cycle_done else "")
