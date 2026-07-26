@@ -251,12 +251,12 @@
   }
  },
  "ICN-NRT|2026-08": {
-  "alltime_min": 592642,
-  "alltime_min_at": "2026-07-26T02:44:37+00:00",
-  "alltime_min_prev": 595438,
-  "baseline": 592642,
+  "alltime_min": 580638,
+  "alltime_min_at": "2026-07-26T04:46:07+00:00",
+  "alltime_min_prev": 592642,
+  "baseline": 580638,
   "daily_min": {
-   "2026-07-26": 592642
+   "2026-07-26": 580638
   }
  },
  "ICN-NRT|2026-09": {
