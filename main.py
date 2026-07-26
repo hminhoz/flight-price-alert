@@ -268,6 +268,7 @@ def main() -> int:
                 if got:
                     state.naver_legs.update(got)
                 state.meta["naver_cursor"] = nxt
+                state.meta["naver_total"] = total
                 state.meta["naver_last_run"] = today.isoformat()
                 pct = (100 * (1 if nxt == 0 else nxt / max(total, 1)))
                 log.info("네이버 반영 %d건 (누적 %d) · 진행 %d/%d (%.0f%%)",
@@ -276,6 +277,36 @@ def main() -> int:
                 log.info("네이버 수집 오류: %s", str(e)[:200])
 
     if naver_run:
+        # 수동 수집은 아무 메시지도 안 보내 "됐는지 안 됐는지" 알 수 없었다.
+        # 무엇을 얼마나 모았고 구글 대비 어떤지 요약해 보낸다 (v1.73).
+        import collections as _c
+        nvl = state.naver_legs
+        by_dir = _c.Counter(k.split("|")[1] for k in nvl)
+        win = lose = 0
+        gaps = []
+        for k, v in nvl.items():
+            g = state.legs.get(k)
+            if not (g and g.get("price") and v.get("price")):
+                continue
+            if v["price"] < g["price"]:
+                win += 1
+                gaps.append(g["price"] - v["price"])
+            else:
+                lose += 1
+        cur = int(state.meta.get("naver_cursor", 0))
+        tot = int(state.meta.get("naver_total", 0)) or 145
+        msg = ["🧪 <b>네이버 수집 완료</b>",
+               f"가는 편 {by_dir.get('out', 0)}건 · 오는 편 {by_dir.get('ret', 0)}건 "
+               f"(누적 {len(nvl)}건)"]
+        if cur:
+            msg.append(f"진행 {cur}/{tot} — 다시 실행하면 이어받아요")
+        else:
+            msg.append(f"한 바퀴 완주 ({tot}건 확인)")
+        if win + lose:
+            avg = round(sum(gaps) / len(gaps) / max(cfg.adults, 1)) if gaps else 0
+            msg.append(f"구글 대비 승 {win} · 패 {lose}"
+                       + (f" · 이겼을 때 평균 {avg:,}원/인 절감" if avg else ""))
+        notify.send("\n".join(msg))
         state.save()
         log.info("네이버 수동 수집 종료 · 저장 완료")
         return 0
