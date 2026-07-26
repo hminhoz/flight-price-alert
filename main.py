@@ -325,9 +325,10 @@ def main() -> int:
                     f" · {'/'.join(r.get('markers', []))}")
                 lines.append(f"· {r['label']} 값 못 읽음 — {why}")
         for r in res.get("cases", [])[:2]:
-            for u, b in (r.get("api_body") or {}).items():
-                lines.append(f"· 응답 {u.split('/')[-1]} {b['len']:,}자 "
-                             f"· data줄 {b['data_lines']}")
+            lines.append(f"· {r['label']} 가로챈 응답 {r.get('captured_len',0):,}자"
+                         + (f" · 키 {r['json_keys'][:8]}" if r.get("json_keys") else "")
+                         + (f" · SSE {r['sse_data_lines']}줄"
+                            if r.get("sse_data_lines") else ""))
         if res.get("api_calls"):
             lines.append("")
             lines.append("발견한 API: " + ", ".join(

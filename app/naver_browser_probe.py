@@ -92,6 +92,33 @@ if (_q) navigator.permissions.query = (p) => (
   p && p.name === 'notifications'
     ? Promise.resolve({state: Notification.permission})
     : _q(p));
+
+// 검색 응답 가로채기 (v1.62).
+// searchFlights 는 text/event-stream 이라 Playwright의 res.text()로는
+// 못 읽는다(스트리밍이라 버려짐). 대신 페이지의 fetch를 감싸 응답을 복제해
+// 통째로 모아둔다. clone()은 원본 스트림을 방해하지 않는다.
+window.__nv = '';
+const _of = window.fetch;
+window.fetch = async function (...args) {
+  const res = await _of.apply(this, args);
+  try {
+    const u = (args[0] && args[0].url) || String(args[0] || '');
+    if (u.indexOf('searchFlights') !== -1) {
+      res.clone().text().then(t => { window.__nv += t; }).catch(() => {});
+    }
+  } catch (e) {}
+  return res;
+};
+const _OES = window.EventSource;
+if (_OES) {
+  window.EventSource = function (u, c) {
+    const es = new _OES(u, c);
+    if (String(u).indexOf('searchFlights') !== -1) {
+      es.addEventListener('message', ev => { window.__nv += ev.data + '\\n'; });
+    }
+    return es;
+  };
+}
 """
 
 
@@ -219,25 +246,41 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 row["body_head"] = " ".join(text[:250].split())
             except Exception as e:  # noqa: BLE001
                 row["error"] = str(e)[:200]
-            # 이 건에서 받은 검색 응답을 붙인다 (구조 파악용으로 앞부분만)
-            for u, b in list(bodies.items()):
-                if u in row.get("_seen", []):
-                    continue
-                row.setdefault("api_body", {})[u.split("?")[0]] = {
-                    "len": len(b),
-                    "head": b[:1800],
-                    "data_lines": sum(1 for x in b.splitlines()
-                                      if x.startswith("data:")),
-                }
+            # 페이지가 모아둔 응답 본문을 꺼낸다
+            try:
+                cap = page.evaluate("() => window.__nv || ''")
+            except Exception:  # noqa: BLE001
+                cap = ""
+            row["captured_len"] = len(cap)
+            if cap:
+                row["captured_head"] = cap[:2000]
+                # JSON 최상위 키를 뽑아본다 (구조 파악의 핵심)
+                try:
+                    obj = json.loads(cap)
+                    row["json_keys"] = list(obj)[:20]
+                except ValueError:
+                    lines_ = [x for x in cap.splitlines() if x.startswith("data:")]
+                    row["sse_data_lines"] = len(lines_)
+                    if lines_:
+                        try:
+                            obj = json.loads(lines_[-1][5:].strip())
+                            row["json_keys"] = list(obj)[:20]
+                        except ValueError:
+                            pass
             bodies.clear()
 
             # 결과 행 하나의 구조도 남긴다 (응답을 못 읽을 때 대비)
             try:
                 row["row_html"] = page.evaluate("""() => {
-                    const el = document.querySelector(
-                      '[class*=domestic_item], [class*=international_item], '
-                      + '[class*=result_item], [class*=item_wrap]');
-                    return el ? el.outerHTML.slice(0, 1500) : '';
+                    const sels = ['[class^=domestic_item]', '[class^=international_item]',
+                                  '[class*=_item__]', '[class*=item_wrap]',
+                                  '[role=row]'];
+                    for (const s of sels) {
+                      const el = document.querySelector(s);
+                      if (el && el.innerText && el.innerText.length > 30)
+                        return s + ' ||| ' + el.outerHTML.slice(0, 1400);
+                    }
+                    return '';
                 }""")
             except Exception:  # noqa: BLE001
                 row["row_html"] = ""
