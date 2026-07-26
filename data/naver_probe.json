@@ -1,0 +1,72 @@
+{
+ "ok": false,
+ "cases": [
+  {
+   "label": "김포-제주 2026-09-02",
+   "url": "https://flight.naver.com/flights/domestic/GMP-CJU-20260902/CJU-GMP-20260905?adult=2&isDirect=true&fareType=Y",
+   "google_price": 260400,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 김포 GMP 김포국제공항 제주 CJU 제주국제공항 09.02.수 09.05.토 성인 2명 할인/일반/특가석 검색 가는 편 선택 출발시각 빠른 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-62517 통"
+  },
+  {
+   "label": "인천-오사카 2026-09-17",
+   "url": "https://flight.naver.com/flights/international/ICN-KIX-20260917/KIX-ICN-20260921?adult=2&isDirect=true&fareType=Y",
+   "google_price": 446389,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 인천 ICN 인천국제공항 오사카 KIX 간사이국제공항 09.17.목 09.21.월 성인 2명 일반석 직항만 검색 왕복 동시 선택 카드혜택 가격 낮은 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-625"
+  },
+  {
+   "label": "인천-후쿠오카 2026-09-17",
+   "url": "https://flight.naver.com/flights/international/ICN-FUK-20260917/FUK-ICN-20260921?adult=2&isDirect=true&fareType=Y",
+   "google_price": 511754,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 인천 ICN 인천국제공항 후쿠오카 FUK 후쿠오카공항 09.17.목 09.21.월 성인 2명 일반석 직항만 검색 왕복 동시 선택 카드혜택 가격 낮은 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-625"
+  },
+  {
+   "label": "김포-오사카 2026-09-02",
+   "url": "https://flight.naver.com/flights/international/GMP-KIX-20260902/KIX-GMP-20260906?adult=2&isDirect=true&fareType=Y",
+   "google_price": 566324,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 김포 GMP 김포국제공항 오사카 KIX 간사이국제공항 09.02.수 09.06.일 성인 2명 일반석 직항만 검색 왕복 동시 선택 카드혜택 가격 낮은 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-625"
+  },
+  {
+   "label": "인천-나리타 2026-08-26",
+   "url": "https://flight.naver.com/flights/international/ICN-NRT-20260826/NRT-ICN-20260829?adult=2&isDirect=true&fareType=Y",
+   "google_price": 580638,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 인천 ICN 인천국제공항 도쿄 NRT 나리타국제공항 08.26.수 08.29.토 성인 2명 일반석 직항만 검색 왕복 동시 선택 카드혜택 가격 낮은 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-6251"
+  },
+  {
+   "label": "인천-나고야 2026-08-12",
+   "url": "https://flight.naver.com/flights/international/ICN-NGO-20260812/NGO-ICN-20260815?adult=2&isDirect=true&fareType=Y",
+   "google_price": 676883,
+   "found": 0,
+   "min_price": null,
+   "sample": [],
+   "body_head": "Naver 사용자 링크 로그인 서비스 더보기 여행상품 여행정보 0 로그인 후 등급확인 마이페이지 여행핫딜 항공 호텔 패키지 For U 25 왕복 편도 다구간 인천 ICN 인천국제공항 나고야 NGO 주부국제공항 08.12.수 08.15.토 성인 2명 일반석 직항만 검색 왕복 동시 선택 카드혜택 가격 낮은 순 트래블클럽 로그인 후 등급확인 하세요 개인정보처리방침 이용약관 사업자정보 공개 고객센터 로그인 전체서비스 사업자등록번호 220-81-6251"
+  }
+ ],
+ "api_calls": [
+  {
+   "url": "https://flight.naver.com/api/runtime-config",
+   "status": 200,
+   "type": "application/javascript; charset=utf-8"
+  },
+  {
+   "url": "https://flight.naver.com/sentry/api/5/envelope/",
+   "status": 200,
+   "type": "application/json"
+  }
+ ],
+ "note": "0/6 건에서 가격 확보"
+}
