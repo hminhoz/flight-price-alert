@@ -210,7 +210,10 @@ def main() -> int:
     def verify_roundtrips(alerts_):
         if not (alerts_ and cfg.verify_roundtrip) or dry_skip_network():
             return
-        targets = engine.display_selection(cfg, alerts_)[: cfg.verify_max_queries]
+        # 교차 조합(김포 출발/인천 귀국 등)은 왕복 상품 자체가 없다.
+        # 가는 편 노선으로 왕복을 조회하면 실제 여정과 다른 가격이 붙는다 (v1.42).
+        targets = [a for a in engine.display_selection(cfg, alerts_)
+                   if not a.combo.is_cross][: cfg.verify_max_queries]
         ok = 0
         for a in targets:
             c = a.combo
@@ -274,7 +277,8 @@ def main() -> int:
             if cur is None or c.price < cur.price:
                 cheapest_per_route[c.route.key] = c
         ok = 0
-        for c in sorted(cheapest_per_route.values(), key=lambda x: x.route.key):
+        for c in [x for x in sorted(cheapest_per_route.values(),
+                                    key=lambda x: x.route.key) if not x.is_cross]:
             rt = search_roundtrip(
                 c.route.origin, c.route.destination,
                 c.dep.isoformat(), c.ret.isoformat(),

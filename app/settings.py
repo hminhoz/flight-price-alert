@@ -58,12 +58,15 @@ class Settings:
     failure_alert_threshold: float
     failure_alert_streak: int
     failure_alert_cooldown_hours: int
+    cross_airports: bool = True
+    city_groups: dict = field(default_factory=dict, repr=False)
     concurrency: int = 3
     leg_freshness_days: int = 3  # 콤보 계산 시 다리(leg) 가격의 최대 허용 나이
 
     # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
     route_windows: dict = field(default_factory=dict, repr=False)
     cycle_report: str = "daily"     # 한 바퀴 완료 보고: daily | every | off
+    min_below_baseline_pct: float = 2.0
     min_redrop_pct: float = 2.0     # 재알림 최소 하락폭 (%)
     bundle_min_gap_pct: float = 3.0 # 묶음 항목 간 최소 가격 차이 (%)
     verify_roundtrip: bool = True   # 알림 직전 왕복 실가 조회 (v1.12)
@@ -146,10 +149,13 @@ def load(path: Path | None = None) -> Settings:
         exclude_weekdays=["월화수목금토일".index(str(w)[0]) for w in (s.get("exclude_weekdays") or [])],
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
+        cross_airports=bool(s.get("cross_airports", True)),
+        city_groups={k: list(v) for k, v in (s.get("city_groups") or {}).items()},
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,
         cycle_report=str(al.get("cycle_report", "daily")).lower(),
+        min_below_baseline_pct=float(al.get("min_below_baseline_pct", 2)),
         min_redrop_pct=float(al.get("min_redrop_pct", 2)),
         bundle_min_gap_pct=float(al.get("bundle_min_gap_pct", 3)),
         verify_roundtrip=bool(al.get("verify_roundtrip", True)),

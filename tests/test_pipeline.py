@@ -110,6 +110,8 @@ def main():
     test_preview_alerts()
     test_per_person_and_link()
     test_price_ordering()
+    test_cross_airport_combos()
+    test_weak_alert_suppressed()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -188,7 +190,7 @@ def test_price_ordering():
               mk(r2, 12, 400_000, None)]        # 표시 400,000
     msgs = format_alerts(cfg, alerts)
     assert len(msgs) == 2, msgs
-    assert r2.label in msgs[0], "더 싼 노선의 메시지가 먼저 와야 한다"
+    assert engine.city_label(cfg, r2) in msgs[0], "더 싼 도시의 메시지가 먼저 와야 한다"
 
     body = msgs[1]
     i_cheap = body.index("250,000원")   # 500,000 / 2명
@@ -372,6 +374,92 @@ def test_time_hist_persisted():
     assert st.time_hist["_runs"] == 2, st.time_hist
     assert "_updated" in st.time_hist
     print("OK 시간 분포 저장: 실행 간 누적 · 노선별 분리")
+
+
+def test_cross_airport_combos():
+    """인천/김포 교차 조합이 만들어지고, 어느 공항인지 반드시 표시되는지 (v1.41).
+
+    실측 근거: `김포→나고야 / 나고야→인천`이 같은 공항 왕복보다 1인 최대
+    184,600원 쌌다. 김포발 피치가 싼데 나고야→김포는 18시 이후 편이 없어
+    같은 공항끼리만 묶으면 그 가는 편이 버려지기 때문. 추가 검색은 0건이다.
+    """
+    cfg = load()
+    gmp = [r for r in cfg.routes if r.key == "GMP-NGO"][0]
+    icn = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    today = dt.date(2026, 8, 1)
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    # 김포 출발은 싸고, 김포로 돌아오는 편은 없음 → 인천 귀국만 가능
+    st.record_leg(State.leg_key("GMP-NGO", "out", dep.isoformat()),
+                  price=200_000, airline="Peach", dep_time="11:20", carrier="MM", now=now)
+    st.record_leg(State.leg_key("ICN-NGO", "out", dep.isoformat()),
+                  price=400_000, airline="Jin Air", dep_time="07:30", carrier="LJ", now=now)
+    st.record_leg(State.leg_key("ICN-NGO", "ret", ret.isoformat()),
+                  price=300_000, airline="Jeju Air", dep_time="19:00", carrier="7C", now=now)
+
+    combos = engine.build_combos(cfg, st, today)
+    pairs = {(c.route.key, c.back.key): c for c in combos
+             if c.dep == dep and c.nights == 3}
+    assert ("GMP-NGO", "ICN-NGO") in pairs, "교차 조합이 안 만들어졌다"
+    assert ("ICN-NGO", "ICN-NGO") in pairs, "같은 공항 조합도 있어야 한다"
+
+    cross = pairs[("GMP-NGO", "ICN-NGO")]
+    same = pairs[("ICN-NGO", "ICN-NGO")]
+    assert cross.is_cross and not same.is_cross
+    assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
+    assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
+
+    # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
+    a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
+    msg = format_alerts(cfg, [a], combos)[0]
+    assert "김포 출발" in msg and "인천 귀국" in msg, msg
+    assert "나고야" in msg.splitlines()[0], msg.splitlines()[0]  # 제목은 도시명
+    print("OK 교차 조합: 생성·키 분리·공항 명시")
+
+
+def test_weak_alert_suppressed():
+    """기준가와 사실상 같은 가격은 알리지 않는다 (v1.42).
+
+    실측에서 알림 90건 중 55건이 기준가 대비 1% 미만이었다. 특가가 아닌데
+    알림이 가면 진짜 특가가 묻힌다. 역대 최저 갱신은 이 조건과 무관하게 알린다.
+    """
+    cfg = load()
+    assert cfg.min_below_baseline_pct > 0, "임계가 0이면 이 보호가 무력하다"
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    st.meta["first_run"] = "2026-07-01"          # 관측 기간 종료 상태
+    today = dt.date(2026, 8, 1)
+    route = cfg.routes[0]
+
+    def combo(price):
+        return engine.Combo(route=route, dep=dt.date(2026, 9, 10), nights=3,
+                            price=price,
+                            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+
+    unit = combo(1_000_000).unit
+    # 기준가는 최근 daily_min의 중앙값이므로, 여러 날치를 채워야 현실적이다.
+    # 하루치만 두면 새 최저가가 곧바로 기준가가 돼 비교 자체가 성립하지 않는다.
+    hist = {(today - dt.timedelta(days=i)).isoformat(): 1_000_000
+            for i in range(1, 8)}
+
+    def reset():
+        st.baselines[unit] = {"daily_min": dict(hist), "baseline": 1_000_000,
+                              "alltime_min": 900_000,
+                              "alltime_min_at": "2026-07-01T00:00:00"}
+        st.alerts_sent = {}
+
+    reset()   # 기준가와 같은 값 → 알림 없음
+    assert engine.process(cfg, st, [combo(1_000_000)], today) == []
+    reset()   # 1% 낮음 → 임계(2%) 미달이라 알림 없음
+    assert engine.process(cfg, st, [combo(990_000)], today) == []
+    reset()   # 5% 낮음 → 알림
+    al = engine.process(cfg, st, [combo(950_000)], today)
+    assert len(al) == 1, al
+    print("OK 약한 알림 차단: 기준가 대비 임계 미만은 발송하지 않음")
 
 
 def test_tolerant_parser():
@@ -579,7 +667,7 @@ def test_price_ordering():
               mk(r2, 12, 400_000, None)]        # 표시 400,000
     msgs = format_alerts(cfg, alerts)
     assert len(msgs) == 2, msgs
-    assert r2.label in msgs[0], "더 싼 노선의 메시지가 먼저 와야 한다"
+    assert engine.city_label(cfg, r2) in msgs[0], "더 싼 도시의 메시지가 먼저 와야 한다"
 
     body = msgs[1]
     i_cheap = body.index("250,000원")   # 500,000 / 2명
@@ -763,6 +851,92 @@ def test_time_hist_persisted():
     assert st.time_hist["_runs"] == 2, st.time_hist
     assert "_updated" in st.time_hist
     print("OK 시간 분포 저장: 실행 간 누적 · 노선별 분리")
+
+
+def test_cross_airport_combos():
+    """인천/김포 교차 조합이 만들어지고, 어느 공항인지 반드시 표시되는지 (v1.41).
+
+    실측 근거: `김포→나고야 / 나고야→인천`이 같은 공항 왕복보다 1인 최대
+    184,600원 쌌다. 김포발 피치가 싼데 나고야→김포는 18시 이후 편이 없어
+    같은 공항끼리만 묶으면 그 가는 편이 버려지기 때문. 추가 검색은 0건이다.
+    """
+    cfg = load()
+    gmp = [r for r in cfg.routes if r.key == "GMP-NGO"][0]
+    icn = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    today = dt.date(2026, 8, 1)
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    # 김포 출발은 싸고, 김포로 돌아오는 편은 없음 → 인천 귀국만 가능
+    st.record_leg(State.leg_key("GMP-NGO", "out", dep.isoformat()),
+                  price=200_000, airline="Peach", dep_time="11:20", carrier="MM", now=now)
+    st.record_leg(State.leg_key("ICN-NGO", "out", dep.isoformat()),
+                  price=400_000, airline="Jin Air", dep_time="07:30", carrier="LJ", now=now)
+    st.record_leg(State.leg_key("ICN-NGO", "ret", ret.isoformat()),
+                  price=300_000, airline="Jeju Air", dep_time="19:00", carrier="7C", now=now)
+
+    combos = engine.build_combos(cfg, st, today)
+    pairs = {(c.route.key, c.back.key): c for c in combos
+             if c.dep == dep and c.nights == 3}
+    assert ("GMP-NGO", "ICN-NGO") in pairs, "교차 조합이 안 만들어졌다"
+    assert ("ICN-NGO", "ICN-NGO") in pairs, "같은 공항 조합도 있어야 한다"
+
+    cross = pairs[("GMP-NGO", "ICN-NGO")]
+    same = pairs[("ICN-NGO", "ICN-NGO")]
+    assert cross.is_cross and not same.is_cross
+    assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
+    assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
+
+    # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
+    a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
+    msg = format_alerts(cfg, [a], combos)[0]
+    assert "김포 출발" in msg and "인천 귀국" in msg, msg
+    assert "나고야" in msg.splitlines()[0], msg.splitlines()[0]  # 제목은 도시명
+    print("OK 교차 조합: 생성·키 분리·공항 명시")
+
+
+def test_weak_alert_suppressed():
+    """기준가와 사실상 같은 가격은 알리지 않는다 (v1.42).
+
+    실측에서 알림 90건 중 55건이 기준가 대비 1% 미만이었다. 특가가 아닌데
+    알림이 가면 진짜 특가가 묻힌다. 역대 최저 갱신은 이 조건과 무관하게 알린다.
+    """
+    cfg = load()
+    assert cfg.min_below_baseline_pct > 0, "임계가 0이면 이 보호가 무력하다"
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    st.meta["first_run"] = "2026-07-01"          # 관측 기간 종료 상태
+    today = dt.date(2026, 8, 1)
+    route = cfg.routes[0]
+
+    def combo(price):
+        return engine.Combo(route=route, dep=dt.date(2026, 9, 10), nights=3,
+                            price=price,
+                            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+
+    unit = combo(1_000_000).unit
+    # 기준가는 최근 daily_min의 중앙값이므로, 여러 날치를 채워야 현실적이다.
+    # 하루치만 두면 새 최저가가 곧바로 기준가가 돼 비교 자체가 성립하지 않는다.
+    hist = {(today - dt.timedelta(days=i)).isoformat(): 1_000_000
+            for i in range(1, 8)}
+
+    def reset():
+        st.baselines[unit] = {"daily_min": dict(hist), "baseline": 1_000_000,
+                              "alltime_min": 900_000,
+                              "alltime_min_at": "2026-07-01T00:00:00"}
+        st.alerts_sent = {}
+
+    reset()   # 기준가와 같은 값 → 알림 없음
+    assert engine.process(cfg, st, [combo(1_000_000)], today) == []
+    reset()   # 1% 낮음 → 임계(2%) 미달이라 알림 없음
+    assert engine.process(cfg, st, [combo(990_000)], today) == []
+    reset()   # 5% 낮음 → 알림
+    al = engine.process(cfg, st, [combo(950_000)], today)
+    assert len(al) == 1, al
+    print("OK 약한 알림 차단: 기준가 대비 임계 미만은 발송하지 않음")
 
 
 def test_tolerant_parser():

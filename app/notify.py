@@ -25,14 +25,46 @@ def _won(n: int) -> str:
     return f"₩{n:,}"
 
 
+_AIRPORT_KO = {"ICN": "인천", "GMP": "김포", "HND": "하네다", "NRT": "나리타",
+               "KIX": "간사이", "NGO": "나고야", "CJU": "제주", "CTS": "삿포로",
+               "FUK": "후쿠오카", "OKA": "오키나와", "KOJ": "가고시마"}
+
+
+def _ko(code: str) -> str:
+    return _AIRPORT_KO.get(code, code)
+
+
+def _airport_note(c) -> str:
+    """어느 공항에서 뜨고 어디로 돌아오는지. 공항을 헷갈리면 비행기를 놓친다."""
+    b = c.back
+    if not c.is_cross:
+        return f" · {_ko(c.route.origin)} 왕복"
+    return (f" · ⇄ {_ko(c.route.origin)} 출발 / {_ko(b.origin)} 귀국"
+            f"{'' if b.destination == c.route.destination else f' ({_ko(c.route.destination)} 입 / {_ko(b.destination)} 출)'}")
+
+
 def _leg_time(leg: dict) -> str:
     """출발 시각. 선호 시간대 밖이면 ⚠를 붙여 짧게 표시한다."""
     return f"{leg.get('dep_time', '?')}{'⚠' if leg.get('off_window') else ''}"
 
 
+_AIRLINE_KO = {
+    "Korean Air": "대한항공", "Asiana Airlines": "아시아나", "Jeju Air": "제주항공",
+    "Jin Air": "진에어", "T'way Air": "티웨이", "Tway Air": "티웨이",
+    "Air Busan": "에어부산", "Air Seoul": "에어서울", "Eastar Jet": "이스타",
+    "Peach Aviation": "피치", "Peach": "피치", "ZIPAIR": "집에어",
+    "ANA": "ANA", "All Nippon Airways": "ANA", "전일본공수": "ANA",
+    "JAL": "JAL", "Japan Airlines": "JAL", "Parata Air": "파라타",
+}
+
+
+def _ko_air(name: str) -> str:
+    return _AIRLINE_KO.get((name or "").strip(), name)
+
+
 def _airlines(c) -> str:
-    """가는 편·오는 편 항공사. 같으면 한 번만."""
-    a, b = c.out_leg.get("airline", ""), c.ret_leg.get("airline", "")
+    """가는 편·오는 편 항공사. 같으면 한 번만. 이름은 한글로."""
+    a, b = _ko_air(c.out_leg.get("airline", "")), _ko_air(c.ret_leg.get("airline", ""))
     return a if a == b else f"{a}/{b}"
 
 
@@ -53,12 +85,15 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
     """
     today = today or (dt.datetime.now(dt.timezone.utc)
                       + dt.timedelta(hours=9)).date()
+    # 노선이 아니라 **도시** 단위로 묶는다 (v1.41). 같은 나고야인데 인천발·김포발·
+    # 교차 조합이 따로 메시지로 나가면 어느 게 싼지 비교가 안 된다.
+    from .engine import _seoul_group, city_label
     by_route: dict[str, list[Alert]] = defaultdict(list)
     for a in alerts:
-        by_route[a.combo.route.key].append(a)
+        by_route[_seoul_group(cfg, a.combo.route)].append(a)
     combos_by_route: dict[str, list] = defaultdict(list)
     for c in all_combos or []:
-        combos_by_route[c.route.key].append(c)
+        combos_by_route[_seoul_group(cfg, c.route)].append(c)
 
     def best_price(a) -> int:
         """실제로 화면에 강조되는 금액 = 편도 2장과 왕복 티켓 중 싼 쪽.
@@ -92,10 +127,17 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         top = pruned
         route = top[0].combo.route
         n = cfg.adults
-        record = any(a.kind == "record" for a in top)
+        # 🏆는 '깰 이전 기록이 있을 때'만. 새로 잡힌 조합은 비교 대상이 없어
+        # 역대 최저라고 해봐야 의미가 없다 (v1.42).
+        record = any(a.kind == "record" and a.prev_min for a in top)
         head_price = round(best_price(top[0]) / max(n, 1))
         lines = [f"{'🏆' if record else '✈️'} "
-                 f"<b>{route.label} 1인 {head_price:,}원부터</b>"]
+                 f"<b>{city_label(cfg, route)} 1인 {head_price:,}원부터</b>"]
+        # 이 도시에 서울발 공항이 여러 개면 항목마다 공항을 밝힌다.
+        multi_air = len({(c.route.origin, c.route.destination)
+                         for c in combos_by_route.get(_key, [])
+                         } | {(a.combo.route.origin, a.combo.route.destination)
+                              for a in top}) > 1
 
         # 근처 날짜 후보 (알림 조건은 아니지만 값이 비슷한 조합)
         shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
@@ -118,16 +160,19 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             if kind == 1:  # 근처 날짜 — 한 줄
                 c = obj
                 codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-                url = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
+                url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
+                                         back=c.back if c.is_cross else None)
+                air = _airport_note(c) if (multi_air or c.is_cross) else ""
                 lines.append(
-                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 · '
+                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박{air} · '
                     f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} {_airlines(c)} · '
                     f'{round(c.price / n):,}원/인')
                 continue
 
             a, c = obj, obj.combo
             lines.append("")
-            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박")
+            air = _airport_note(c) if (multi_air or c.is_cross) else ""
+            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박{air}")
 
             one, rt = c.price, a.rt_price
             if rt and rt < one:
@@ -150,11 +195,12 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 cut = (a.prev_min - c.price) / a.prev_min * 100
                 lines.append(f"{m}월 역대 최저 · 직전 최저 {prev_per:,}원보다 "
                              f"{cut:.0f}% 쌉니다")
+            elif a.kind == "record":
+                lines.append(f"🆕 이번에 새로 찾은 조합 · {m}월 현재 최저가")
             else:
                 base_per = round(a.baseline / max(n, 1))
                 cut = (a.baseline - best_price(a)) / max(a.baseline, 1) * 100
-                lines.append(f"{m}월 요즘 최저가({base_per:,}원)"
-                             + (f"보다 {cut:.0f}% 쌉니다" if cut >= 1 else " 수준입니다"))
+                lines.append(f"{m}월 요즘 최저가({base_per:,}원)보다 {cut:.0f}% 쌉니다")
 
             if a.prev_sent:
                 gap = a.prev_sent - c.price
@@ -162,12 +208,16 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                              f"<b>{round(gap / n):,}원 더 내렸어요</b>")
 
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-            g = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
-            nv = naver_url(route, c.dep, c.ret, cfg.adults)
-            out_air = c.out_leg.get("airline", "")
+            g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
+                                   back=c.back if c.is_cross else None)
+            out_air = _ko_air(c.out_leg.get("airline", ""))
             tag = f" ({out_air}만)" if any(x for x in codes if x) and out_air else ""
-            lines.append(f'<a href="{g}">구글에서 보기{tag}</a> · '
-                         f'<a href="{nv}">네이버</a>')
+            link = f'<a href="{g}">구글에서 보기{tag}</a>'
+            if not c.is_cross:
+                # 네이버는 다구간 URL 규격이 없어 교차 조합엔 붙이지 않는다.
+                nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+                link += f' · <a href="{nv}">네이버</a>'
+            lines.append(link)
 
         if near:
             lines.append("")

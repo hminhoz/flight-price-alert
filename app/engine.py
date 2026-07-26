@@ -110,46 +110,122 @@ def current_shard_from_hour(hour_utc: int, shards: int) -> int:
 
 @dataclass
 class Combo:
-    route: Route
+    route: Route                 # 가는 편 노선
     dep: dt.date
     nights: int
     price: int
     out_leg: dict
     ret_leg: dict
+    ret_route: Route | None = None   # 오는 편 노선. None이면 route와 동일(왕복)
+
+    @property
+    def back(self) -> Route:
+        return self.ret_route or self.route
+
+    @property
+    def is_cross(self) -> bool:
+        """오는 편 노선이 가는 편과 다른 교차 조합인가.
+
+        주의: ret_leg는 노선 키 기준으로 저장돼 실제 비행 방향이 반대다.
+        (GMP-NGO의 ret leg = NGO→GMP). 그래서 방향을 비교하지 말고
+        ret_route를 채웠는지로만 판정한다 — 같은 노선이면 None이다.
+        """
+        return self.ret_route is not None
+
+    @property
+    def label(self) -> str:
+        if not self.is_cross:
+            return self.route.label
+        b = self.back
+        # 실제 비행 방향으로 적는다: 가는 편 origin→dest, 오는 편 dest→origin
+        return (f"{self.route.origin}→{self.route.destination} / "
+                f"{b.destination}→{b.origin}")
 
     @property
     def key(self) -> str:
-        return f"{self.route.key}|{self.dep.isoformat()}|{self.nights}n"
+        b = self.back
+        rk = self.route.key if not self.is_cross else f"{self.route.key}>{b.key}"
+        return f"{rk}|{self.dep.isoformat()}|{self.nights}n"
 
     @property
     def unit(self) -> str:
-        return f"{self.route.key}|{self.dep.strftime('%Y-%m')}"
+        """기준가 단위. 교차 조합은 도시 단위로 묶어 같은 잣대로 비교한다."""
+        if not self.is_cross:
+            return f"{self.route.key}|{self.dep.strftime('%Y-%m')}"
+        return (f"X:{self.route.destination}-{self.back.origin}"
+                f"|{self.dep.strftime('%Y-%m')}")
 
     @property
     def ret(self) -> dt.date:
         return self.dep + dt.timedelta(days=self.nights)
 
 
+def _seoul_group(cfg: Settings, route: Route) -> str:
+    """목적지 도시 키. config의 city_groups로 하네다·나리타 같은 복수 공항을 묶는다."""
+    for city, airports in (cfg.city_groups or {}).items():
+        if route.destination in airports:
+            return city
+    return route.destination
+
+
+def city_label(cfg: Settings, route: Route) -> str:
+    """메시지 제목용 도시 이름. '인천-나고야' → '나고야'."""
+    for city, airports in (cfg.city_groups or {}).items():
+        if route.destination in airports:
+            return city
+    lb = route.label or route.destination
+    return lb.split("-")[-1] if "-" in lb else lb
+
+
 def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
+    """왕복 조합 + (허용 시) 출발/도착 공항 교차 조합.
+
+    교차 조합이 왜 필요한가 (v1.41):
+      서울 사람에게 인천·김포는 바꿔 쓸 수 있는 공항이다. 실측(2026-07-26)에서
+      `김포→나고야 / 나고야→인천` 조합이 같은 공항 왕복보다 1인 최대 184,600원
+      쌌다. 김포발 피치가 저렴한데 나고야→김포는 18시 이후 편이 없어, 같은
+      공항끼리만 묶으면 그 싼 가는 편이 통째로 버려지기 때문이다.
+      교차하면 가격도 싸고 귀국 시각도 선호대로(18시 이후) 맞출 수 있다.
+      **추가 검색은 0건** — 네 방향 다리를 이미 모두 수집하고 있다.
+    """
+    fresh = cfg.leg_freshness_days
     combos: list[Combo] = []
+
+    # (도시, 출발일) -> [(route, leg)] / (도시, 귀국일) -> [(route, leg)]
+    outs: dict[tuple, list] = {}
+    rets: dict[tuple, list] = {}
+
     for route in cfg.routes:
+        city = _seoul_group(cfg, route)
         d = max(cfg.period_start, today)
         while d <= cfg.period_end:
-            if is_excluded_departure(cfg, d):  # 과거 수집분이 남아있어도 콤보 제외
-                d += dt.timedelta(days=1)
-                continue
-            out = state.fresh_leg_price(
-                State.leg_key(route.key, "out", d.isoformat()), cfg.leg_freshness_days)
-            if out:
-                for n in cfg.trip_nights:
-                    r = d + dt.timedelta(days=n)
-                    if r > cfg.period_end:
-                        continue
-                    ret = state.fresh_leg_price(
-                        State.leg_key(route.key, "ret", r.isoformat()), cfg.leg_freshness_days)
-                    if ret:
-                        combos.append(Combo(route, d, n, out["price"] + ret["price"], out, ret))
+            if not is_excluded_departure(cfg, d):
+                o = state.fresh_leg_price(
+                    State.leg_key(route.key, "out", d.isoformat()), fresh)
+                if o:
+                    outs.setdefault((city, d), []).append((route, o))
+            r = state.fresh_leg_price(
+                State.leg_key(route.key, "ret", d.isoformat()), fresh)
+            if r:
+                rets.setdefault((city, d), []).append((route, r))
             d += dt.timedelta(days=1)
+
+    for (city, d), out_list in outs.items():
+        for n in cfg.trip_nights:
+            r_date = d + dt.timedelta(days=n)
+            if r_date > cfg.period_end:
+                continue
+            for out_route, out_leg in out_list:
+                for ret_route, ret_leg in rets.get((city, r_date), []):
+                    same = (ret_route.key == out_route.key)
+                    if not same and not cfg.cross_airports:
+                        continue
+                    combos.append(Combo(
+                        route=out_route, dep=d, nights=n,
+                        price=out_leg["price"] + ret_leg["price"],
+                        out_leg=out_leg, ret_leg=ret_leg,
+                        ret_route=None if same else ret_route,
+                    ))
     return combos
 
 
@@ -196,7 +272,7 @@ def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
     from collections import defaultdict
     by_route: dict[str, list[Alert]] = defaultdict(list)
     for a in alerts:
-        by_route[a.combo.route.key].append(a)
+        by_route[_seoul_group(cfg, a.combo.route)].append(a)
     picked: list[Alert] = []
     for items in by_route.values():
         items.sort(key=lambda a: a.combo.price)
@@ -251,7 +327,10 @@ def process(cfg: Settings, state: State, combos: list[Combo],
             continue
         is_record = c.price <= b["alltime_min"] and b.get("alltime_min_at") == now_iso \
             and todays_min.get(c.unit) == c.price
-        is_below_baseline = c.price <= b["baseline"]
+        # 기준가와 같기만 해도 알리면 '특가 아닌 알림'이 대부분이 된다 (v1.42).
+        # 새로 생긴 unit은 기준가 = 자기 가격이라 특히 그렇다.
+        is_below_baseline = c.price <= b["baseline"] * (
+            1 - cfg.min_below_baseline_pct / 100)
         if not (is_record or is_below_baseline):
             continue
         # 중복 억제: 직전 알림가보다 min_redrop_pct 이상 더 싸졌을 때만 재알림.
