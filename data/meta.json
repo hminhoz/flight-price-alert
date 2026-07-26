@@ -3,26 +3,19 @@
   "495657895": 112,
   "495657895:h": "546c6949adeb"
  },
- "cycle_shards": [
-  0
- ],
+ "cycle_shards": [],
  "cycle_started_at": "2026-07-26T12:43:13+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-07-26T12:07:53+00:00",
+ "last_cycle_done_at": "2026-07-26T13:12:05+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "naver_cursor": 63,
  "naver_day": "2026-07-26",
  "naver_last_run": "2026-07-26",
- "naver_remain": 88,
- "naver_runs": 4,
+ "naver_remain": 86,
+ "naver_runs": 5,
  "naver_total": 145,
  "recent_runs": [
-  {
-   "at": "2026-07-26T06:01:24+00:00",
-   "attempted": 709,
-   "failed": 0
-  },
   {
    "at": "2026-07-26T06:31:29+00:00",
    "attempted": 663,
@@ -67,9 +60,14 @@
    "at": "2026-07-26T12:43:13+00:00",
    "attempted": 0,
    "failed": 0
+  },
+  {
+   "at": "2026-07-26T13:12:05+00:00",
+   "attempted": 0,
+   "failed": 0
   }
  ],
- "shard_cursor": 0,
+ "shard_cursor": 1,
  "startup_sent": true,
  "tg_offset": 74159565
 }
