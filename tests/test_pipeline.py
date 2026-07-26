@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import datetime as dt
 import sys
+import pathlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -119,6 +120,7 @@ def main():
     test_exclude_airlines()
     test_poll_commands()
     test_month_filter()
+    test_run_mode_parsing()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -782,6 +784,52 @@ def test_month_filter():
     d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
     assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
     print("OK 월 요약: 해당 월만 · 한 통 · 없으면 안내")
+
+
+def test_run_mode_parsing():
+    """깃허브 dry_run 입력과 텔레그램 명령이 같은 규칙으로 해석되는지 (v1.55).
+
+    텔레그램에만 월 지정을 붙이고 깃허브 입력을 안 맞춰서, 같은 기능인데
+    한쪽에서만 되던 상태였다.
+    """
+    from app.notify import parse_month
+
+    def interpret(raw: str):
+        parts = raw.strip().lower().split()
+        mode = parts[0] if parts else ""
+        arg = parts[1] if len(parts) > 1 else ""
+        month = parse_month(mode, arg)
+        return {
+            "dry": mode == "1",
+            "preview": mode == "preview",
+            "digest": mode == "digest",
+            "month": month,
+            "brief": bool(month) and mode != "digest",
+        }
+
+    assert interpret("") == {"dry": False, "preview": False, "digest": False,
+                             "month": None, "brief": False}
+    assert interpret("1")["dry"] is True
+    assert interpret("preview")["preview"] is True
+    assert interpret("digest") == {"dry": False, "preview": False, "digest": True,
+                                   "month": None, "brief": False}
+    assert interpret("digest 8")["digest"] and interpret("digest 8")["month"] == 8
+    assert interpret("digest 8")["brief"] is False
+    assert interpret("8")["brief"] and interpret("8")["month"] == 8
+    assert interpret("8월")["brief"] and interpret("8월")["month"] == 8
+    assert interpret("13")["month"] is None      # 없는 달은 실전으로 떨어진다
+    # 보기 전용 모드는 검색도 저장도 하지 않아야 한다 (v1.56).
+    # main.py에서 이 순서가 지켜지는지 소스로 확인한다 — 순서가 뒤집히면
+    # 조회 한 번에 고정판이 덮어써지거나 수집분이 날아간다.
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    i_skip = src.index("보기 전용 모드 → 검색 건너뜀")
+    i_search = src.index("검색 완료: %d 시도")
+    i_brief = src.index("월 요약 전송")
+    i_board = src.index("고정판 갱신 완료")
+    i_save = src.index("state.save()")
+    assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
+    assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
+    print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
 
 
 def test_tolerant_parser():
@@ -1574,6 +1622,52 @@ def test_month_filter():
     d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
     assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
     print("OK 월 요약: 해당 월만 · 한 통 · 없으면 안내")
+
+
+def test_run_mode_parsing():
+    """깃허브 dry_run 입력과 텔레그램 명령이 같은 규칙으로 해석되는지 (v1.55).
+
+    텔레그램에만 월 지정을 붙이고 깃허브 입력을 안 맞춰서, 같은 기능인데
+    한쪽에서만 되던 상태였다.
+    """
+    from app.notify import parse_month
+
+    def interpret(raw: str):
+        parts = raw.strip().lower().split()
+        mode = parts[0] if parts else ""
+        arg = parts[1] if len(parts) > 1 else ""
+        month = parse_month(mode, arg)
+        return {
+            "dry": mode == "1",
+            "preview": mode == "preview",
+            "digest": mode == "digest",
+            "month": month,
+            "brief": bool(month) and mode != "digest",
+        }
+
+    assert interpret("") == {"dry": False, "preview": False, "digest": False,
+                             "month": None, "brief": False}
+    assert interpret("1")["dry"] is True
+    assert interpret("preview")["preview"] is True
+    assert interpret("digest") == {"dry": False, "preview": False, "digest": True,
+                                   "month": None, "brief": False}
+    assert interpret("digest 8")["digest"] and interpret("digest 8")["month"] == 8
+    assert interpret("digest 8")["brief"] is False
+    assert interpret("8")["brief"] and interpret("8")["month"] == 8
+    assert interpret("8월")["brief"] and interpret("8월")["month"] == 8
+    assert interpret("13")["month"] is None      # 없는 달은 실전으로 떨어진다
+    # 보기 전용 모드는 검색도 저장도 하지 않아야 한다 (v1.56).
+    # main.py에서 이 순서가 지켜지는지 소스로 확인한다 — 순서가 뒤집히면
+    # 조회 한 번에 고정판이 덮어써지거나 수집분이 날아간다.
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    i_skip = src.index("보기 전용 모드 → 검색 건너뜀")
+    i_search = src.index("검색 완료: %d 시도")
+    i_brief = src.index("월 요약 전송")
+    i_board = src.index("고정판 갱신 완료")
+    i_save = src.index("state.save()")
+    assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
+    assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
+    print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
 
 
 def test_tolerant_parser():

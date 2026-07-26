@@ -49,10 +49,17 @@ def main() -> int:
     #   "1"      → 테스트 (전송·저장 없음)
     #   "preview"→ 미리보기 (기준가 무시하고 현재 최저가를 실제로 1회 전송, 저장 없음)
     #   "digest" → 도시별 지금 최저가 한 통만 전송 (저장 없음). 조용한 날 확인용
-    _mode = (os.environ.get("DRY_RUN") or "").strip().lower()
+    _raw = (os.environ.get("DRY_RUN") or "").strip().lower()
+    _parts = _raw.split()
+    _mode = _parts[0] if _parts else ""
+    _arg = _parts[1] if len(_parts) > 1 else ""
     dry = _mode == "1"
     preview = _mode == "preview"
     digest = _mode == "digest"
+    # 깃허브 입력에서도 월을 받는다. 텔레그램 /digest 8 과 같은 동작.
+    #   "digest 8" → 8월만 자세히 · "8" 또는 "8월" → 8월만 가볍게 한 통
+    manual_month = notify.parse_month(_mode, _arg)
+    brief = bool(manual_month) and not digest
 
     state.prune_past_legs(today)
     state.first_run_date(today)
@@ -106,6 +113,13 @@ def main() -> int:
     set_excluded_airlines(cfg.exclude_airlines)
     if cfg.exclude_airlines:
         log.info("제외 항공사: %s", ", ".join(cfg.exclude_airlines))
+
+    # 보기 전용 모드(digest / 월 요약)는 **검색을 건너뛴다** (v1.56).
+    # 이미 저장된 데이터를 다르게 그려줄 뿐이라 새로 뒤질 이유가 없다.
+    # 예전엔 663건을 8분간 검색하고 그 결과를 저장도 안 한 채 버렸다.
+    if brief or digest:
+        legs = []
+        log.info("보기 전용 모드 → 검색 건너뜀 (저장된 데이터로 즉시 응답)")
 
     done_n, total_n, cycle_done = engine.note_shard(cfg, state, shard)
     log.info("shard=%d 검색 대상 %d개 leg · 이번 바퀴 진행 %d/%d%s",
@@ -275,6 +289,14 @@ def main() -> int:
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
 
+    # ---- 깃허브 입력이 월만 준 경우: 가벼운 한 통 ----
+    if brief:
+        stamp = (dt.datetime.now(dt.timezone.utc)
+                 + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
+        notify.send(notify.format_board(cfg, combos, stamp, today, manual_month))
+        log.info("월 요약 전송 (%s월) · 상태 저장하지 않음", manual_month)
+        return 0
+
     # ---- 다이제스트: 수동 모드이거나 텔레그램 /digest 요청이 있을 때 ----
     if wants_brief and not digest:
         stamp = (dt.datetime.now(dt.timezone.utc)
@@ -290,9 +312,12 @@ def main() -> int:
         log.info("텔레그램 요청 처리 완료 (월=%s)", digest_month or "전체")
 
     if digest:
-        for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):
+        sub = (f"{manual_month}월 출발만 추렸습니다" if manual_month
+               else "요청하신 현재 시세입니다")
+        for _m in notify.format_digest(cfg, combos, sub, today, manual_month):
             notify.send(_m)
-        log.info("다이제스트 전송 완료 · 상태 저장하지 않음")
+        log.info("다이제스트 전송 완료 (월=%s) · 상태 저장하지 않음",
+                 manual_month or "전체")
         return 0
 
     # ---- 미리보기 모드: 기준가와 무관하게 지금 최저가를 실제로 보내본다 ----
