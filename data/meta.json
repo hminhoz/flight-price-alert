@@ -1,16 +1,17 @@
 {
- "cycle_shards": [],
- "cycle_started_at": "2026-07-26T03:58:58+00:00",
+ "board_ids": {
+  "495657895": 112,
+  "495657895:text": "📌 <b>항공권 최저가</b> · 07/26 14:23 기준\n\n<b>제주 130,200원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiQSCjIwMjYtMDktMDIoADICN0MyAlJTagUSA0dNUHIFEgNDSlUaJBIKMjAyNi0wOS0wNSgAMgI3QzICUlNqBRIDQ0pVcgUSA0dNUEICAQFIAZgBAQ%3D%3D&hl=ko&curr=KRW&gl=KR\">9/2(수)~9/5(토)</a> 3박 · 김포 왕복\n   06:00/21:20 에어서울/제주항공\n   다른 날 9/16(수) 130,200 · 8/20(목) 134,200\n\n<b>오사카 212,604원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiQSCjIwMjYtMDktMTgoADICTU0yAlJTagUSA0lDTnIFEgNLSVgaJBIKMjAyNi0wOS0yMigAMgJNTTICUlNqBRIDS0lYcgUSA0lDTkICAQFIAZgBAQ%3D%3D&hl=ko&curr=KRW&gl=KR\">9/18(금)~9/22(화)</a> 4박 · 인천 왕복\n   07:15/19:40 에어서울/피치\n   다른 날 9/19(토) 215,604 · 9/2(수) 216,043\n\n<b>후쿠오카 255,877원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiQSCjIwMjYtMDktMTcoADICN0MyAlJTagUSA0lDTnIFEgNGVUsaJBIKMjAyNi0wOS0yMSgAMgI3QzICUlNqBRIDRlVLcgUSA0lDTkICAQFIAZgBAQ%3D%3D&hl=ko&curr=KRW&gl=KR\">9/17(목)~9/21(월)</a> 4박 · 인천 왕복\n   07:20/19:50 에어서울/제주항공\n   다른 날 8/20(목) 265,134 · 9/18(금) 271,301\n\n<b>나고야 282,139원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiASCjIwMjYtMDgtMjkoADICTU1qBRIDR01QcgUSA05HTxogEgoyMDI2LTA5LTAyKAAyAk1NagUSA05HT3IFEgNHTVBCAgEBSAGYAQE%3D&hl=ko&curr=KRW&gl=KR\">8/29(토)~9/2(수)</a> 4박 · 김포 왕복\n   11:20/15:00⚠ 피치\n   다른 날 8/22(토) 282,518 · 8/29(토) 296,039\n\n<b>도쿄 290,319원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiQSCjIwMjYtMDgtMjYoADICN0MyAlJTagUSA0lDTnIFEgNOUlQaJBIKMjAyNi0wOC0yOSgAMgI3QzICUlNqBRIDTlJUcgUSA0lDTkICAQFIAZgBAQ%3D%3D&hl=ko&curr=KRW&gl=KR\">8/26(수)~8/29(토)</a> 3박 · 인천 왕복\n   09:20/18:30 에어서울/제주항공\n   다른 날 8/27(목) 302,668 · 8/21(금) 303,568\n\n<b>삿포로 409,492원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiASCjIwMjYtMDktMTgoADICN0NqBRIDSUNOcgUSA0NUUxogEgoyMDI2LTA5LTIyKAAyAjdDagUSA0NUU3IFEgNJQ05CAgEBSAGYAQE%3D&hl=ko&curr=KRW&gl=KR\">9/18(금)~9/22(화)</a> 4박 · 인천 왕복\n   07:10/16:00⚠ 제주항공\n   다른 날 9/19(토) 429,492 · 9/19(토) 433,068\n\n<b>가고시마 415,739원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiASCjIwMjYtMDktMzAoADICS0VqBRIDSUNOcgUSA0tPShogEgoyMDI2LTEwLTA0KAAyAktFagUSA0tPSnIFEgNJQ05CAgEBSAGYAQE%3D&hl=ko&curr=KRW&gl=KR\">9/30(수)~10/4(일)</a> 4박 · 인천 왕복\n   16:35⚠/19:05 대한항공\n   다른 날 9/26(토) 427,739 · 8/29(토) 451,498\n\n<b>오키나와 525,572원</b>/인 · <a href=\"https://www.google.com/travel/flights?tfs=GiQSCjIwMjYtMDgtMjEoADICT1oyAlRXagUSA0lDTnIFEgNPS0EaJBIKMjAyNi0wOC0yNCgAMgJPWjICVFdqBRIDT0tBcgUSA0lDTkICAQFIAZgBAQ%3D%3D&hl=ko&curr=KRW&gl=KR\">8/21(금)~8/24(월)</a> 3박 · 인천 왕복\n   11:00/18:15 티웨이/아시아나\n   다른 날 9/18(금) 525,572 · 8/28(금) 530,872\n\n성인 2명 · 편도 2장 합산 · ⚠는 선호 시간대 밖"
+ },
+ "cycle_shards": [
+  0
+ ],
+ "cycle_started_at": "2026-07-26T05:14:26+00:00",
  "first_run": "2026-07-24",
  "last_cycle_done_at": "2026-07-26T04:38:08+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "recent_runs": [
-  {
-   "at": "2026-07-25T13:40:15+00:00",
-   "attempted": 208,
-   "failed": 0
-  },
   {
    "at": "2026-07-25T14:10:56+00:00",
    "attempted": 109,
@@ -55,8 +56,13 @@
    "at": "2026-07-26T04:46:07+00:00",
    "attempted": 709,
    "failed": 0
+  },
+  {
+   "at": "2026-07-26T05:23:00+00:00",
+   "attempted": 732,
+   "failed": 0
   }
  ],
- "shard_cursor": 1,
+ "shard_cursor": 0,
  "startup_sent": true
 }
