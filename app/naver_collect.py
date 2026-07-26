@@ -40,7 +40,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
                 순번 커서를 쓰던 방식은 가는 편(앞쪽 53건)만 반복하고
                 오는 편(뒤쪽 92건)은 예산이 모자라 영영 못 채웠다.
 
-    Returns: (수집분, 남은 미수집 수, 전체 작업 수)
+    Returns: (수집분, 남은 미수집 수, 전체 작업 수, 방향별 통계)
     """
     out: dict = {}
     known = known or {}
@@ -49,7 +49,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             for day in dates_by_pair.get((o, d, direction), [])]
     total = len(jobs)
     if not total:
-        return out, 0, 0
+        return out, 0, 0, {}
     # 못 모은 것 먼저, 그다음 오래된 것 순
     jobs.sort(key=lambda j: known.get(
         f"{j[3]}|{j[2]}|{j[4].isoformat()}", {}).get("at", ""))
@@ -59,7 +59,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
         from . import naver_browser_probe as probe_mod
     if not probe_mod._ensure_playwright():
         log.info("네이버 수집: playwright 준비 실패 → 건너뜀")
-        return out, missing, total
+        return out, missing, total, {}
 
     from playwright.sync_api import sync_playwright
 
@@ -131,10 +131,13 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     for d_, (q, rws, ok_) in sorted(seen_stat.items()):
         log.info("  방향 %s: 조회 %d · 읽은 행 평균 %.0f · 조건 통과 %d",
                  d_, q, rws / max(q, 1), ok_)
-    still = max(0, missing - len(out))
+    # 미수집 수는 '이번에 새로 채운 것'만 빼야 한다. out에는 이미 있던 걸
+    # 다시 모은 것도 섞여 있어 예전 계산은 실제보다 적게 나왔다 (v1.78).
+    newly = sum(1 for k in out if k not in known)
+    still = max(0, missing - newly)
     log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 미수집 %d건 남음 (%.0f분)",
              done, total, len(out), still, (time.time() - started) / 60)
-    return out, still, total
+    return out, still, total, seen_stat
 
 
 def _read_rows(page) -> list:

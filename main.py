@@ -271,13 +271,14 @@ def main() -> int:
                         day += dt.timedelta(days=1)
                     dates_by[(o, d, "out")] = outs
                     dates_by[(d, o, "ret")] = rets
-                got, remain, total = NVC.collect(
+                got, remain, total, dstat = NVC.collect(
                     pairs, dates_by, cfg.adults, windows,
                     budget_sec=cfg.naver_budget_min * 60,
                     known=state.naver_legs)
                 if got:
                     state.naver_legs.update(got)
                 state.meta["naver_remain"] = remain
+                state.meta["naver_dstat"] = {k: list(v) for k, v in dstat.items()}
                 state.meta["naver_total"] = total
                 if state.meta.get("naver_day") != today.isoformat():
                     state.meta["naver_day"] = today.isoformat()
@@ -316,6 +317,13 @@ def main() -> int:
             msg.append(f"{tot}건 중 {rem}건 미수집 — 다음 실행이 이어받아요")
         else:
             msg.append(f"전체 {tot}건 수집 완료")
+        # 방향별 성적을 메시지에 싣는다. 로그에만 두면 어느 쪽이 왜 실패하는지
+        # 확인할 방법이 없다 (오는 편이 91건 내내 0이던 것을 못 잡았다, v1.78).
+        ds = state.meta.get("naver_dstat") or {}
+        for d_, v in sorted(ds.items()):
+            q, rws, ok_ = (list(v) + [0, 0, 0])[:3]
+            msg.append(f"{'가는 편' if d_ == 'out' else '오는 편'}: 시도 {q} · "
+                       f"읽은 행 평균 {rws / max(q, 1):.0f} · 조건 통과 {ok_}")
         if win + lose:
             avg = round(sum(gaps) / len(gaps) / max(cfg.adults, 1)) if gaps else 0
             msg.append(f"구글 대비 승 {win} · 패 {lose}"
