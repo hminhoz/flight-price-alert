@@ -44,8 +44,14 @@ def _airport_note(c) -> str:
 
 
 def _leg_time(leg: dict) -> str:
-    """출발 시각. 선호 시간대 밖이면 ⚠를 붙여 짧게 표시한다."""
-    return f"{leg.get('dep_time', '?')}{'⚠' if leg.get('off_window') else ''}"
+    """출발 시각. 선호 시간대 밖이면 ⚠, 네이버 값이면 (네이버).
+
+    출처를 항목 끝에 한 번만 적으면 어느 편이 네이버인지 알 수 없다.
+    공항을 헷갈리면 비행기를 놓치듯, 사이트를 헷갈리면 그 가격이 없다 (v1.71).
+    """
+    mark = "⚠" if leg.get("off_window") else ""
+    src = "(네이버)" if leg.get("source") == "naver" else ""
+    return f"{leg.get('dep_time', '?')}{mark}{src}"
 
 
 # 항공사명은 **IATA 코드 기준**으로 매핑한다. 이름은 사명 변경에 흔들린다 —
@@ -72,6 +78,39 @@ def _ko_air(name: str, code: str = "") -> str:
     return (_AIRLINE_BY_CODE.get((code or "").strip().upper())
             or _AIRLINE_BY_NAME.get((name or "").strip())
             or name)
+
+
+def _src(c) -> str:
+    """네이버에서 온 값이면 표시. 어디서 사야 하는지 알아야 한다."""
+    s = {c.out_leg.get("source"), c.ret_leg.get("source")}
+    return " · 네이버" if "naver" in s else ""
+
+
+def _alt_line(c, adults: int) -> str:
+    """구글·네이버가 겹칠 때 진 쪽도 알려준다.
+
+    네이버 특가석은 환불·변경 제약이 있어 더 비싸도 구글 쪽을 고르고 싶을 수
+    있다. 5% 넘게 차이날 때만 (그 아래는 소음).
+    """
+    parts = []
+    for leg, ko in ((c.out_leg, "가는 편"), (c.ret_leg, "오는 편")):
+        alt = leg.get("alt_price")
+        cur = leg.get("price")
+        if not alt or not cur:
+            continue
+        gap = (alt - cur) / cur * 100
+        if gap < 5:
+            continue
+        seat = leg.get("seat") or ""
+        parts.append(f"{ko} {_ko_src(leg.get('source'))}{(' ' + seat) if seat else ''} "
+                     f"{round(cur / adults):,} vs "
+                     f"{_ko_src(leg.get('alt_source'))} {round(alt / adults):,}")
+    # 근처 날짜 목록이 '·'로 시작하므로 마커를 달리 한다 (혼동 방지)
+    return "" if not parts else "↳ " + " / ".join(parts) + " (1인)"
+
+
+def _ko_src(s: str | None) -> str:
+    return {"naver": "네이버", "google": "구글"}.get(s or "", "구글")
 
 
 def _airlines(c) -> str:
@@ -209,11 +248,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             else:
                 lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · {n}명 {one:,}원")
 
-            lines.append(f"{_leg_time(c.out_leg)} 출발 · "
-                         f"{_leg_time(c.ret_leg)} 귀국 · {_airlines(c)}")
-
-            # 왜 싼지는 항목마다 붙인다. 한 메시지에 여러 달이 섞일 수 있어
-            # 제목에 특정 월을 박아두면 두 번째 항목부터 틀린 말이 된다 (v1.38).
+            # 왜 싼지를 먼저, 그다음 어떤 편인지, 마지막에 대안 비교.
             m = c.dep.month
             if a.kind == "record" and a.prev_min:
                 prev_per = round(a.prev_min / max(n, 1))
@@ -232,22 +267,35 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 lines.append(f"🔻 지난 알림 {round(a.prev_sent / n):,}원/인에서 "
                              f"<b>{round(gap / n):,}원 더 내렸어요</b>")
 
+            lines.append(f"{_leg_time(c.out_leg)} 출발 · "
+                         f"{_leg_time(c.ret_leg)} 귀국 · {_airlines(c)}")
+            alt = _alt_line(c, n)
+            if alt:
+                lines.append(alt)
+
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
                                    back=c.back if c.is_cross else None)
             out_air = _ko_air(c.out_leg.get("airline", ""),
                               c.out_leg.get("carrier", ""))
             tag = f" ({out_air}만)" if any(x for x in codes if x) and out_air else ""
-            link = f'<a href="{g}">구글에서 보기{tag}</a>'
-            if not c.is_cross:
-                # 네이버는 다구간 URL 규격이 없어 교차 조합엔 붙이지 않는다.
+            # 네이버 값으로 알림이 나갔는데 구글 링크를 앞세우면, 눌러도 그
+            # 가격이 없다. **가격 출처를 먼저** 보여준다 (v1.71).
+            from_naver = "naver" in {c.out_leg.get("source"),
+                                     c.ret_leg.get("source")}
+            g_link = f'<a href="{g}">구글에서 보기{tag}</a>'
+            if c.is_cross:
+                lines.append(g_link)   # 교차 조합은 네이버 다구간 URL이 없다
+            else:
                 nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-                link += f' · <a href="{nv}">네이버</a>'
-            lines.append(link)
+                n_link = f'<a href="{nv}">네이버에서 보기</a>'
+                lines.append(f"{n_link} · {g_link}" if from_naver
+                             else f"{g_link} · {n_link}")
 
         if near:
             lines.append("")
-            lines.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜예요")
+            lines.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜예요 "
+                         "(↳ 는 같은 편의 다른 사이트 가격)")
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 

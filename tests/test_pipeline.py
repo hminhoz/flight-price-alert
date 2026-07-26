@@ -122,6 +122,7 @@ def main():
     test_month_filter()
     test_run_mode_parsing()
     test_naver_parser()
+    test_naver_leg_merge()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -827,7 +828,8 @@ def test_run_mode_parsing():
     i_search = src.index("검색 완료: %d 시도")
     i_brief = src.index("월 요약 전송")
     i_board = src.index("고정판 갱신 완료")
-    i_save = src.index("state.save()")
+    # naver-run 모드가 자체 저장을 하므로 '마지막' 저장 지점을 본다
+    i_save = src.rindex("state.save()")
     assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
     assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
     print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
@@ -886,6 +888,48 @@ def test_naver_parser():
                       out_window=(_dt.time(6, 0), _dt.time(13, 0)))
     assert bd and bd["price"] == 51_200, bd
     print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
+
+
+def test_naver_leg_merge():
+    """네이버 다리는 더 쌀 때만 쓰이고, 구글 값을 덮어쓰지 않는다 (v1.69)."""
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    today = dt.date(2026, 8, 1)
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    ok = engine.is_excluded_departure(cfg, dep)
+    assert not ok, "테스트 날짜가 제외 요일이면 전제가 깨진다"
+
+    st.record_leg(State.leg_key("GMP-CJU", "out", dep.isoformat()),
+                  price=300_000, airline="구글편", dep_time="07:00",
+                  carrier="7C", now=now)
+    st.record_leg(State.leg_key("GMP-CJU", "ret", ret.isoformat()),
+                  price=300_000, airline="구글편", dep_time="19:00",
+                  carrier="7C", now=now)
+
+    # 네이버가 더 비싸면 무시
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 400_000, "airline": "네이버편",
+                      "dep_time": "07:30", "source": "naver"}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", c.out_leg
+
+    # 네이버가 더 싸면 채택하고 출처를 남긴다
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 200_000, "airline": "네이버편",
+                      "dep_time": "07:30", "source": "naver"}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "네이버편" and c.out_leg["source"] == "naver"
+    assert c.price == 200_000 + 300_000, c.price
+    # 원본 구글 데이터는 그대로 남아 있어야 한다
+    g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
+    assert g["price"] == 300_000 and "source" not in g, g
+    print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
 
 
 def test_tolerant_parser():
@@ -1720,7 +1764,8 @@ def test_run_mode_parsing():
     i_search = src.index("검색 완료: %d 시도")
     i_brief = src.index("월 요약 전송")
     i_board = src.index("고정판 갱신 완료")
-    i_save = src.index("state.save()")
+    # naver-run 모드가 자체 저장을 하므로 '마지막' 저장 지점을 본다
+    i_save = src.rindex("state.save()")
     assert i_skip < i_search, "검색 건너뛰기가 검색보다 뒤에 있다"
     assert i_brief < i_board < i_save, "월 요약이 고정판·저장보다 뒤에 있다"
     print("OK 실행 모드 해석: 깃허브·텔레그램 동일 규칙 · 보기 전용은 검색·저장 없음")
@@ -1779,6 +1824,48 @@ def test_naver_parser():
                       out_window=(_dt.time(6, 0), _dt.time(13, 0)))
     assert bd and bd["price"] == 51_200, bd
     print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
+
+
+def test_naver_leg_merge():
+    """네이버 다리는 더 쌀 때만 쓰이고, 구글 값을 덮어쓰지 않는다 (v1.69)."""
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    today = dt.date(2026, 8, 1)
+    dep, ret = dt.date(2026, 9, 10), dt.date(2026, 9, 13)
+    now = dt.datetime.now(dt.timezone.utc)
+    ok = engine.is_excluded_departure(cfg, dep)
+    assert not ok, "테스트 날짜가 제외 요일이면 전제가 깨진다"
+
+    st.record_leg(State.leg_key("GMP-CJU", "out", dep.isoformat()),
+                  price=300_000, airline="구글편", dep_time="07:00",
+                  carrier="7C", now=now)
+    st.record_leg(State.leg_key("GMP-CJU", "ret", ret.isoformat()),
+                  price=300_000, airline="구글편", dep_time="19:00",
+                  carrier="7C", now=now)
+
+    # 네이버가 더 비싸면 무시
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 400_000, "airline": "네이버편",
+                      "dep_time": "07:30", "source": "naver"}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", c.out_leg
+
+    # 네이버가 더 싸면 채택하고 출처를 남긴다
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 200_000, "airline": "네이버편",
+                      "dep_time": "07:30", "source": "naver"}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "네이버편" and c.out_leg["source"] == "naver"
+    assert c.price == 200_000 + 300_000, c.price
+    # 원본 구글 데이터는 그대로 남아 있어야 한다
+    g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
+    assert g["price"] == 300_000 and "source" not in g, g
+    print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
 
 
 def test_tolerant_parser():

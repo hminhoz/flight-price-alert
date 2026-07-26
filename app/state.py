@@ -42,6 +42,9 @@ class State:
         self.meta: dict = _load("meta.json")
         # 노선·방향별 직항 출발 시각 분포 (시간창 판단 근거, v1.36)
         self.time_hist: dict = _load("time_hist.json")
+        # 네이버 수집분. 구글 legs와 섞지 않고 따로 둔다 — 출처를 잃지 않고,
+        # 한쪽이 실패해도 다른 쪽이 남는다 (v1.69).
+        self.naver_legs: dict = _load("naver_legs.json")
 
     # ---------- legs ----------
     @staticmethod
@@ -125,3 +128,4 @@ class State:
         _save("alerts_sent.json", self.alerts_sent)
         _save("meta.json", self.meta)
         _save("time_hist.json", self.time_hist)
+        _save("naver_legs.json", self.naver_legs)

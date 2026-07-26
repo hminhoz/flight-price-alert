@@ -58,6 +58,9 @@ class Settings:
     failure_alert_threshold: float
     failure_alert_streak: int
     failure_alert_cooldown_hours: int
+    naver_routes: tuple = ()
+    naver_hour: int = 5
+    naver_budget_min: int = 20
     exclude_airlines: tuple = ()
     cross_airports: bool = True
     city_groups: dict = field(default_factory=dict, repr=False)
@@ -172,6 +175,9 @@ def load(path: Path | None = None) -> Settings:
         exclude_weekdays=["월화수목금토일".index(str(w)[0]) for w in (s.get("exclude_weekdays") or [])],
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
+        naver_routes=tuple(s.get("naver_routes") or []),
+        naver_hour=int(s.get("naver_hour", 5)),
+        naver_budget_min=int(s.get("naver_budget_min", 20)),
         exclude_airlines=tuple(
             str(x).strip().upper() for x in (s.get("exclude_airlines") or [])),
         cross_airports=bool(s.get("cross_airports", True)),

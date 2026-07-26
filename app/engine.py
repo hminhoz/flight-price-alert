@@ -191,6 +191,27 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
     fresh = cfg.leg_freshness_days
     combos: list[Combo] = []
     excluded = set(cfg.exclude_airlines or ())
+    nv = getattr(state, "naver_legs", None) or {}
+
+    def cheaper(key: str, leg: dict | None) -> dict | None:
+        """같은 다리에 구글·네이버가 다 있으면 싼 쪽을 쓰되, **진 쪽 가격도
+        남긴다**. 네이버 특가석은 환불·변경 제약이 있어 더 비싸도 구글 쪽을
+        고르고 싶을 수 있다. 판단 재료를 없애지 않는다 (v1.70).
+        """
+        n = nv.get(key)
+        if not n or not n.get("price"):
+            return leg
+        if not leg or not leg.get("price"):
+            out = dict(n)
+            out.setdefault("source", "naver")
+            return out
+        win, lose = (leg, n) if leg["price"] <= n["price"] else (n, leg)
+        out = dict(win)
+        out.setdefault("source", "naver" if win is n else "google")
+        out["alt_price"] = lose["price"]
+        out["alt_source"] = "naver" if lose is n else "google"
+        out["alt_seat"] = lose.get("seat", "")
+        return out
 
     def blocked(leg: dict) -> bool:
         """설정 변경 직후에도 즉시 반영되도록, 저장된 다리도 여기서 거른다.
@@ -210,10 +231,12 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
             if not is_excluded_departure(cfg, d):
                 o = state.fresh_leg_price(
                     State.leg_key(route.key, "out", d.isoformat()), fresh)
+                o = cheaper(State.leg_key(route.key, "out", d.isoformat()), o)
                 if o and not blocked(o):
                     outs.setdefault((city, d), []).append((route, o))
             r = state.fresh_leg_price(
                 State.leg_key(route.key, "ret", d.isoformat()), fresh)
+            r = cheaper(State.leg_key(route.key, "ret", d.isoformat()), r)
             if r and not blocked(r):
                 rets.setdefault((city, d), []).append((route, r))
             d += dt.timedelta(days=1)

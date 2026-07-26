@@ -57,6 +57,7 @@ def main() -> int:
     preview = _mode == "preview"
     digest = _mode == "digest"
     naver_probe = _mode == "naver"
+    naver_run = _mode in ("naver-run", "naverrun")   # 하루 1회 제한 무시하고 즉시 수집
     # 깃허브 입력에서도 월을 받는다. 텔레그램 /digest 8 과 같은 동작.
     #   "digest 8" → 8월만 자세히 · "8" 또는 "8월" → 8월만 가볍게 한 통
     manual_month = notify.parse_month(_mode, _arg)
@@ -118,7 +119,7 @@ def main() -> int:
     # 보기 전용 모드(digest / 월 요약)는 **검색을 건너뛴다** (v1.56).
     # 이미 저장된 데이터를 다르게 그려줄 뿐이라 새로 뒤질 이유가 없다.
     # 예전엔 663건을 8분간 검색하고 그 결과를 저장도 안 한 채 버렸다.
-    if brief or digest or naver_probe:
+    if brief or digest or naver_probe or naver_run:
         legs = []
         log.info("보기 전용 모드 → 검색 건너뜀 (저장된 데이터로 즉시 응답)")
 
@@ -232,6 +233,52 @@ def main() -> int:
                      o, d, "가는편" if direction == "out" else "오는편",
                      lo.hour, hi.hour, inside, total,
                      inside / total * 100 if total else 0, bar)
+
+    # ---- 네이버 보조 수집 (하루 1회, 예산 안에서) ----
+    # 국내선에서만 이득이 확인돼 제주만 대상. 브라우저를 띄워야 해 무겁다.
+    # 실패해도 구글 파이프라인은 그대로 간다.
+    if cfg.naver_routes and not dry and not (brief or digest or naver_probe):
+        from app import naver_collect as NVC
+        kst_hour = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=9)).hour
+        if naver_run or NVC.due_today(state.meta, today, kst_hour, cfg.naver_hour):
+            try:
+                pairs, dates_by, windows = [], {}, {}
+                for rk in cfg.naver_routes:
+                    route = next((r for r in cfg.routes if r.key == rk), None)
+                    if route is None:
+                        continue
+                    o, d = route.origin, route.destination
+                    pairs.append((o, d, "out", rk))
+                    pairs.append((d, o, "ret", rk))
+                    windows[(rk, "out")] = cfg.window_for(rk, "out")
+                    windows[(rk, "ret")] = cfg.window_for(rk, "ret")
+                    outs, rets = [], []
+                    day = max(cfg.period_start, today)
+                    while day <= cfg.period_end:
+                        if not engine.is_excluded_departure(cfg, day):
+                            outs.append(day)
+                        rets.append(day)
+                        day += dt.timedelta(days=1)
+                    dates_by[(o, d, "out")] = outs
+                    dates_by[(d, o, "ret")] = rets
+                got, nxt, total = NVC.collect(
+                    pairs, dates_by, cfg.adults, windows,
+                    budget_sec=cfg.naver_budget_min * 60,
+                    start_at=int(state.meta.get("naver_cursor", 0)))
+                if got:
+                    state.naver_legs.update(got)
+                state.meta["naver_cursor"] = nxt
+                state.meta["naver_last_run"] = today.isoformat()
+                pct = (100 * (1 if nxt == 0 else nxt / max(total, 1)))
+                log.info("네이버 반영 %d건 (누적 %d) · 진행 %d/%d (%.0f%%)",
+                         len(got), len(state.naver_legs), nxt or total, total, pct)
+            except Exception as e:  # noqa: BLE001 - 보조 소스 실패가 본 작업을 막지 않는다
+                log.info("네이버 수집 오류: %s", str(e)[:200])
+
+    if naver_run:
+        state.save()
+        log.info("네이버 수동 수집 종료 · 저장 완료")
+        return 0
 
     # ---- 판정 & 알림 ----
     combos = engine.build_combos(cfg, state, today)
