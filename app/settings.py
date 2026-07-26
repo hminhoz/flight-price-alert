@@ -65,6 +65,8 @@ class Settings:
 
     # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
     route_windows: dict = field(default_factory=dict, repr=False)
+    digest_top_n: int = 3
+    digest_hour: int = 9
     cycle_report: str = "daily"     # 한 바퀴 완료 보고: daily | every | off
     min_below_baseline_pct: float = 2.0
     min_redrop_pct: float = 2.0     # 재알림 최소 하락폭 (%)
@@ -154,6 +156,8 @@ def load(path: Path | None = None) -> Settings:
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,
+        digest_top_n=max(1, int(al.get("digest_top_n", 3))),
+        digest_hour=int(al.get("digest_hour", 9)),
         cycle_report=str(al.get("cycle_report", "daily")).lower(),
         min_below_baseline_pct=float(al.get("min_below_baseline_pct", 2)),
         min_redrop_pct=float(al.get("min_redrop_pct", 2)),

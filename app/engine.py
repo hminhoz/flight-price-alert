@@ -391,12 +391,21 @@ def note_shard(cfg: Settings, state: State, shard: int) -> tuple[int, int, bool]
 
 def cycle_report(cfg: Settings, state: State, today: dt.date,
                  total_legs: int) -> str | None:
-    """한 바퀴 완료 알림. cycle_report 정책에 따라 None을 돌려줄 수 있다."""
+    """한 바퀴 완료 시각 헤더. 본문(도시별 최저 조합)은 notify가 붙인다.
+
+    None이면 정책상 보내지 않는다는 뜻.
+    """
     policy = cfg.cycle_report
     if policy == "off":
         return None
-    if policy == "daily" and state.meta.get("last_cycle_report") == today.isoformat():
-        return None
+    if policy == "daily":
+        if state.meta.get("last_cycle_report") == today.isoformat():
+            return None
+        # 한국 시각 기준 digest_hour 이후 첫 완주에만 보낸다.
+        # 예전엔 '날짜가 바뀐 뒤 첫 완주'라 새벽 1시쯤 울렸다 (v1.46).
+        kst_hour = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=9)).hour
+        if kst_hour < cfg.digest_hour:
+            return None
     state.meta["last_cycle_report"] = today.isoformat()
 
     started = state.meta.get("cycle_started_at")
@@ -405,18 +414,11 @@ def cycle_report(cfg: Settings, state: State, today: dt.date,
         try:
             d = dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(started)
             mins = int(d.total_seconds() // 60)
-            took = f" · {mins // 60}시간 {mins % 60}분 걸림" if mins >= 60 else f" · {mins}분 걸림"
+            took = (f" · {mins // 60}시간 {mins % 60}분 걸림" if mins >= 60
+                    else f" · {mins}분 걸림")
         except ValueError:
             pass
-
-    lines = [f"🔄 <b>전체 한 바퀴 완료</b>",
-             f"{total_legs:,}개 편도를 모두 확인했습니다{took}"]
-    body = _baseline_lines(cfg, state)
-    if body:
-        lines.append("")
-        lines.append(f"지금 최저가 (성인 {cfg.adults}명 기준 1인당)")
-        lines += body
-    return "\n".join(lines)
+    return f"{total_legs:,}개 편도를 모두 확인했습니다{took}"
 
 
 def _baseline_lines(cfg: Settings, state: State) -> list[str]:

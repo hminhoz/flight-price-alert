@@ -48,9 +48,11 @@ def main() -> int:
     #   빈값     → 실전
     #   "1"      → 테스트 (전송·저장 없음)
     #   "preview"→ 미리보기 (기준가 무시하고 현재 최저가를 실제로 1회 전송, 저장 없음)
+    #   "digest" → 도시별 지금 최저가 한 통만 전송 (저장 없음). 조용한 날 확인용
     _mode = (os.environ.get("DRY_RUN") or "").strip().lower()
     dry = _mode == "1"
     preview = _mode == "preview"
+    digest = _mode == "digest"
 
     state.prune_past_legs(today)
     state.first_run_date(today)
@@ -234,6 +236,13 @@ def main() -> int:
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
 
+    # ---- 다이제스트 모드: 도시별 지금 최저가를 한 통으로 ----
+    if digest:
+        for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):
+            notify.send(_m)
+        log.info("다이제스트 전송 완료 · 상태 저장하지 않음")
+        return 0
+
     # ---- 미리보기 모드: 기준가와 무관하게 지금 최저가를 실제로 보내본다 ----
     if preview:
         pv = engine.preview_alerts(cfg, combos)
@@ -301,9 +310,10 @@ def main() -> int:
 
     # 한 바퀴(전 조합 1회 훑기) 완료 보고
     if cycle_done:
-        msg = engine.cycle_report(cfg, state, today, len(engine.all_legs(cfg, today)))
-        if msg:
-            deliver(msg)
+        sub = engine.cycle_report(cfg, state, today, len(engine.all_legs(cfg, today)))
+        if sub:
+            for _m in notify.format_digest(cfg, combos, sub, today):
+                deliver(_m)
             log.info("한 바퀴 완료 보고 전송")
         else:
             log.info("한 바퀴 완료 (보고는 정책상 생략)")

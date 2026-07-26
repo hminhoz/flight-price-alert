@@ -113,6 +113,7 @@ def main():
     test_cross_airport_combos()
     test_weak_alert_suppressed()
     test_header_matches_cheapest_shown()
+    test_digest()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -259,11 +260,10 @@ def test_cycle_progress():
         _, _, done = engine.note_shard(cfg, st, 0)
         assert not done, "같은 샤드 반복은 완주가 아니다"
 
-    # daily 정책: 하루 한 번만 보고
-    st.baselines = {"ICN-NGO|2026-08": {"baseline": 700_000, "daily_min": {}}}
+    # daily 정책: 하루 한 번만 보고. (v1.45부터 본문은 notify.format_digest가
+    # 만들고, cycle_report는 '몇 편 확인했는지' 부제만 돌려준다)
     first = engine.cycle_report(cfg, st, today, 1017)
-    assert first and "한 바퀴 완료" in first and "1,017" in first, first
-    assert "350,000/인" in first, first          # 700,000 / 성인 2명
+    assert first and "1,017" in first, first
     assert engine.cycle_report(cfg, st, today, 1017) is None, "하루 두 번 보고됨"
     print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
@@ -499,6 +499,62 @@ def test_header_matches_cheapest_shown():
     assert msg2.count("9/16") == 1, msg2
     assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
     print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
+
+
+def test_digest():
+    """조용한 날 볼 수 있는 도시별 최저가 요약 (v1.45).
+
+    한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않으므로, 알림이 없는 날에
+    현재 시세를 확인할 창구가 필요하다.
+    """
+    from app.notify import format_digest
+    cfg = load()
+    r1, r2 = cfg.routes[0], cfg.routes[1]
+
+    def mk(route, day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    combos = [mk(r1, 10, 900_000), mk(r1, 12, 700_000), mk(r2, 11, 500_000)]
+    msgs = format_digest(cfg, combos, "테스트", dt.date(2026, 8, 1))
+    msg = "\n".join(msgs)
+
+    # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
+    assert msg.count("원</b>/인부터") == 2, msg
+    i2 = msg.index(engine.city_label(cfg, r2))
+    i1 = msg.index(engine.city_label(cfg, r1))
+    assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
+    assert "250,000원</b>/인부터" in msg, msg      # 500,000 / 2명
+    assert "350,000원</b>/인부터" in msg, msg      # 700,000 / 2명
+    assert "450,000원" in msg, "도시 안에서는 여러 날짜를 보여준다"
+    assert msg.count("<a href=") == 3, "날짜마다 링크"
+
+    # 도시별 표시 개수는 설정을 따른다
+    many = [mk(r1, d, 900_000 - d * 1000) for d in range(1, 9)]
+    msg3 = "\n".join(format_digest(cfg, many, "", dt.date(2026, 8, 1)))
+    assert msg3.count("<a href=") == cfg.digest_top_n, msg3
+
+    # 텔레그램 4096자 제한을 넘으면 나눠 보낸다 (실측 8도시×3날짜 = 6,400자)
+    from app.notify import TELEGRAM_LIMIT
+    big = [mk(r, d, 500_000 + i * 1000)
+           for i, r in enumerate(cfg.routes) for d in range(1, 6)]
+    parts = format_digest(cfg, big, "긴 경우", dt.date(2026, 8, 1))
+    assert len(parts) > 1, "안 나뉘었다"
+    for pmsg in parts:
+        assert len(pmsg) < TELEGRAM_LIMIT, len(pmsg)
+    # 도시가 통째로 한 통 안에 있어야 한다 (블록이 쪼개지면 안 됨)
+    joined = "\n".join(parts)
+    for r in cfg.routes:
+        assert joined.count(f"{engine.city_label(cfg, r)} ") >= 1
+
+    # 콤보가 없어도 죽지 않는다
+    empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))
+    assert len(empty) == 1 and "아직 비교할 조합이 없습니다" in empty[0]
+    print(f"OK 다이제스트: 도시 제목 + 날짜 {cfg.digest_top_n}개·싼 순·링크·빈 데이터 방어")
 
 
 def test_tolerant_parser():
@@ -774,11 +830,10 @@ def test_cycle_progress():
         _, _, done = engine.note_shard(cfg, st, 0)
         assert not done, "같은 샤드 반복은 완주가 아니다"
 
-    # daily 정책: 하루 한 번만 보고
-    st.baselines = {"ICN-NGO|2026-08": {"baseline": 700_000, "daily_min": {}}}
+    # daily 정책: 하루 한 번만 보고. (v1.45부터 본문은 notify.format_digest가
+    # 만들고, cycle_report는 '몇 편 확인했는지' 부제만 돌려준다)
     first = engine.cycle_report(cfg, st, today, 1017)
-    assert first and "한 바퀴 완료" in first and "1,017" in first, first
-    assert "350,000/인" in first, first          # 700,000 / 성인 2명
+    assert first and "1,017" in first, first
     assert engine.cycle_report(cfg, st, today, 1017) is None, "하루 두 번 보고됨"
     print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
@@ -1014,6 +1069,62 @@ def test_header_matches_cheapest_shown():
     assert msg2.count("9/16") == 1, msg2
     assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
     print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
+
+
+def test_digest():
+    """조용한 날 볼 수 있는 도시별 최저가 요약 (v1.45).
+
+    한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않으므로, 알림이 없는 날에
+    현재 시세를 확인할 창구가 필요하다.
+    """
+    from app.notify import format_digest
+    cfg = load()
+    r1, r2 = cfg.routes[0], cfg.routes[1]
+
+    def mk(route, day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    combos = [mk(r1, 10, 900_000), mk(r1, 12, 700_000), mk(r2, 11, 500_000)]
+    msgs = format_digest(cfg, combos, "테스트", dt.date(2026, 8, 1))
+    msg = "\n".join(msgs)
+
+    # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
+    assert msg.count("원</b>/인부터") == 2, msg
+    i2 = msg.index(engine.city_label(cfg, r2))
+    i1 = msg.index(engine.city_label(cfg, r1))
+    assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
+    assert "250,000원</b>/인부터" in msg, msg      # 500,000 / 2명
+    assert "350,000원</b>/인부터" in msg, msg      # 700,000 / 2명
+    assert "450,000원" in msg, "도시 안에서는 여러 날짜를 보여준다"
+    assert msg.count("<a href=") == 3, "날짜마다 링크"
+
+    # 도시별 표시 개수는 설정을 따른다
+    many = [mk(r1, d, 900_000 - d * 1000) for d in range(1, 9)]
+    msg3 = "\n".join(format_digest(cfg, many, "", dt.date(2026, 8, 1)))
+    assert msg3.count("<a href=") == cfg.digest_top_n, msg3
+
+    # 텔레그램 4096자 제한을 넘으면 나눠 보낸다 (실측 8도시×3날짜 = 6,400자)
+    from app.notify import TELEGRAM_LIMIT
+    big = [mk(r, d, 500_000 + i * 1000)
+           for i, r in enumerate(cfg.routes) for d in range(1, 6)]
+    parts = format_digest(cfg, big, "긴 경우", dt.date(2026, 8, 1))
+    assert len(parts) > 1, "안 나뉘었다"
+    for pmsg in parts:
+        assert len(pmsg) < TELEGRAM_LIMIT, len(pmsg)
+    # 도시가 통째로 한 통 안에 있어야 한다 (블록이 쪼개지면 안 됨)
+    joined = "\n".join(parts)
+    for r in cfg.routes:
+        assert joined.count(f"{engine.city_label(cfg, r)} ") >= 1
+
+    # 콤보가 없어도 죽지 않는다
+    empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))
+    assert len(empty) == 1 and "아직 비교할 조합이 없습니다" in empty[0]
+    print(f"OK 다이제스트: 도시 제목 + 날짜 {cfg.digest_top_n}개·싼 순·링크·빈 데이터 방어")
 
 
 def test_tolerant_parser():

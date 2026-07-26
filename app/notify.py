@@ -256,6 +256,76 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
     return [m for _, m in messages]
 
 
+TELEGRAM_LIMIT = 4096
+_SAFE_LEN = 3600      # 여유를 두고 자른다 (링크 URL이 하나에 180자쯤 된다)
+
+
+def format_digest(cfg: Settings, combos: list, subtitle: str = "",
+                  today: "dt.date | None" = None) -> list[str]:
+    """도시별 '지금 최저가' 한 줄 요약 (v1.45).
+
+    왜 필요한가: 한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않는다. 조용한
+    날에 "지금 뭐가 제일 싸지?"를 확인할 방법이 없었다. 예전 한 바퀴 완료
+    메시지는 기준가 숫자만 나열해 날짜도 링크도 없어 쓸 수가 없었다.
+    → 도시마다 실제 최저 조합을 날짜·시각·항공사·링크까지 한 줄로 싣는다.
+    """
+    from .engine import _seoul_group, city_label
+    today = today or (dt.datetime.now(dt.timezone.utc)
+                      + dt.timedelta(hours=9)).date()
+    n = max(cfg.adults, 1)
+
+    by_city: dict = {}
+    for c in combos or []:
+        by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
+
+    head = ["🔄 <b>지금 최저가</b>"]
+    if subtitle:
+        head.append(subtitle)
+    if not by_city:
+        return ["\n".join(head + ["", "아직 비교할 조합이 없습니다."])]
+
+    # 도시를 제목으로 올리고 날짜를 밑에 붙인다. 도시별 1개만 보여주면 "어느
+    # 도시가 싼지"는 알아도 "언제 가야 싼지"를 모른다. 반대로 도시명을 매 줄
+    # 반복하면 지저분해진다 (v1.46).
+    blocks: list[str] = []
+    for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
+        # 같은 출발일·같은 가격이면 박 수가 긴 쪽만
+        pick: dict = {}
+        for c in city_combos:
+            k = (c.dep, c.price)
+            if k not in pick or c.nights > pick[k].nights:
+                pick[k] = c
+        picked = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.digest_top_n]
+        top = picked[0]
+        rows = [f"<b>{city_label(cfg, top.route)} "
+                f"{round(top.price / n):,}원</b>/인부터"]
+        for c in picked:
+            codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+            url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
+                                     back=c.back if c.is_cross else None)
+            rows.append(
+                f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박'
+                f'{_airport_note(c)} · {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} '
+                f'{_airlines(c)} · {round(c.price / n):,}원')
+        blocks.append("\n".join(rows))
+
+    # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다
+    # (실측 8개 도시 × 3날짜 = 6,400자로 한 통에 안 들어갔다, v1.46).
+    foot = f"성인 {cfg.adults}명 · 편도 2장 합산 기준 · ⚠는 선호 시간대 밖"
+    msgs: list[str] = []
+    cur: list[str] = list(head)
+    for b in blocks:
+        candidate = cur + ["", b]
+        if len("\n".join(candidate)) + len(foot) + 2 > _SAFE_LEN and len(cur) > len(head):
+            msgs.append("\n".join(cur))
+            cur = [f"🔄 <b>지금 최저가</b> (이어서 {len(msgs) + 1})", "", b]
+        else:
+            cur = candidate
+    cur += ["", foot]
+    msgs.append("\n".join(cur))
+    return msgs
+
+
 def send(text: str) -> bool:
     """TELEGRAM_CHAT_ID의 모든 대상에게 전송. 하나라도 성공하면 True.
 
