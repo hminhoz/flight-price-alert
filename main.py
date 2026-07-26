@@ -328,7 +328,7 @@ def main() -> int:
             rt = r.get("rows") or {}
             lines.append(f"· {r['label']} 결과행 {rt.get('n',0)}개 {rt.get('sel','')}")
             for x in rt.get("texts", [])[:2]:
-                lines.append(f"   {x[:160]}")
+                lines.append(f"   {x[:180]}")
             lines.append(f"· {r['label']} 가로챈 응답 {r.get('captured_len',0):,}자"
                          + (f" · 키 {r['json_keys'][:8]}" if r.get("json_keys") else "")
                          + (f" · SSE {r['sse_data_lines']}줄"

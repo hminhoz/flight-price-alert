@@ -253,26 +253,51 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 # 7차에서 querySelector는 되는데 직후 querySelectorAll이 0이었다.
                 # SSE로 결과가 계속 다시 그려져 호출 사이에 비는 순간이 있다.
                 # → 호출을 나누지 말고 **한 번에, 재시도까지 JS 안에서** 처리한다.
+                # 8차: 행 구조는 잡혔으나 **가격이 없었다** — 고른 컨테이너가
+                # 일정 부분만 감싸고 가격은 바깥에 있다.
+                # → 부모로 올라가며 '원'이 나오는 조상까지 확장해서 읽는다.
                 row["rows"] = page.evaluate("""async () => {
                     const sels = ['[class^=domestic_item]',
                                   '[class*=combination_item]',
                                   '[class*=international_item]'];
                     const sleep = ms => new Promise(r => setTimeout(r, ms));
-                    for (let attempt = 0; attempt < 8; attempt++) {
+                    const upToPrice = (e) => {
+                      let n = e;
+                      for (let i = 0; i < 5 && n; i++) {
+                        const t = n.innerText || '';
+                        if (/[0-9],[0-9]{3}\\s*원/.test(t)) return n;
+                        n = n.parentElement;
+                      }
+                      return e;
+                    };
+                    const clean = (e) => (e.innerText || '').split('\\n')
+                        .map(x => x.trim()).filter(Boolean).join(' | ').slice(0, 420);
+                    for (let a = 0; a < 8; a++) {
                       for (const s of sels) {
-                        const els = Array.from(document.querySelectorAll(s));
-                        const good = els.filter(e => (e.innerText || '').length > 30);
-                        if (good.length) {
-                          return {sel: s, n: good.length,
-                                  texts: good.slice(0, 5).map(
-                                    e => e.innerText.split('\\n')
-                                          .map(x => x.trim()).filter(Boolean)
-                                          .join(' | ').slice(0, 400))};
+                        const els = Array.from(document.querySelectorAll(s))
+                          .filter(e => (e.innerText || '').length > 30);
+                        if (!els.length) continue;
+                        const seen = new Set(); const out = [];
+                        for (const e of els) {
+                          const p = upToPrice(e);
+                          if (seen.has(p)) continue;
+                          seen.add(p);
+                          out.push(clean(p));
+                          if (out.length >= 5) break;
                         }
+                        // 첫 행의 조상 사슬도 함께 남긴다 (어느 층에 가격이 있는지)
+                        const chain = [];
+                        let n = els[0];
+                        for (let i = 0; i < 4 && n; i++) {
+                          chain.push((n.className || '').toString().slice(0, 40)
+                                     + ' >> ' + clean(n).slice(0, 160));
+                          n = n.parentElement;
+                        }
+                        return {sel: s, n: els.length, texts: out, chain: chain};
                       }
                       await sleep(1200);
                     }
-                    return {sel: '', n: 0, texts: []};
+                    return {sel: '', n: 0, texts: [], chain: []};
                 }""")
                 text = page.inner_text("body")
                 row["body_len"] = len(text)
