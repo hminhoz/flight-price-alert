@@ -48,23 +48,36 @@ def _leg_time(leg: dict) -> str:
     return f"{leg.get('dep_time', '?')}{'⚠' if leg.get('off_window') else ''}"
 
 
-_AIRLINE_KO = {
+# 항공사명은 **IATA 코드 기준**으로 매핑한다. 이름은 사명 변경에 흔들린다 —
+# 실제로 티웨이항공이 '트리니티항공(Trinity Airways)'으로 바꾸는 중이라
+# 구글이 이미 새 이름을 쓰고 있었다. 코드(TW)와 편명은 그대로다.
+_AIRLINE_BY_CODE = {
+    "KE": "대한항공", "OZ": "아시아나", "7C": "제주항공", "LJ": "진에어",
+    "TW": "티웨이", "BX": "에어부산", "RS": "에어서울", "ZE": "이스타",
+    "YP": "에어프레미아", "4V": "파라타",
+    "MM": "피치", "NH": "ANA", "JL": "JAL", "ZG": "집에어", "IJ": "스프링재팬",
+}
+# 코드를 못 얻은 경우를 위한 이름 보조 매핑
+_AIRLINE_BY_NAME = {
     "Korean Air": "대한항공", "Asiana Airlines": "아시아나", "Jeju Air": "제주항공",
-    "Jin Air": "진에어", "T'way Air": "티웨이", "Tway Air": "티웨이",
+    "Jin Air": "진에어", "T'way Air": "티웨이", "Trinity Airways": "티웨이",
     "Air Busan": "에어부산", "Air Seoul": "에어서울", "Eastar Jet": "이스타",
-    "Peach Aviation": "피치", "Peach": "피치", "ZIPAIR": "집에어",
-    "ANA": "ANA", "All Nippon Airways": "ANA", "전일본공수": "ANA",
-    "JAL": "JAL", "Japan Airlines": "JAL", "Parata Air": "파라타",
+    "Air Premia": "에어프레미아", "Peach Aviation": "피치", "Peach": "피치",
+    "ZIPAIR Tokyo": "집에어", "ZIPAIR": "집에어",
+    "All Nippon Airways": "ANA", "Japan Airlines": "JAL",
 }
 
 
-def _ko_air(name: str) -> str:
-    return _AIRLINE_KO.get((name or "").strip(), name)
+def _ko_air(name: str, code: str = "") -> str:
+    return (_AIRLINE_BY_CODE.get((code or "").strip().upper())
+            or _AIRLINE_BY_NAME.get((name or "").strip())
+            or name)
 
 
 def _airlines(c) -> str:
     """가는 편·오는 편 항공사. 같으면 한 번만. 이름은 한글로."""
-    a, b = _ko_air(c.out_leg.get("airline", "")), _ko_air(c.ret_leg.get("airline", ""))
+    a = _ko_air(c.out_leg.get("airline", ""), c.out_leg.get("carrier", ""))
+    b = _ko_air(c.ret_leg.get("airline", ""), c.ret_leg.get("carrier", ""))
     return a if a == b else f"{a}/{b}"
 
 
@@ -210,7 +223,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
                                    back=c.back if c.is_cross else None)
-            out_air = _ko_air(c.out_leg.get("airline", ""))
+            out_air = _ko_air(c.out_leg.get("airline", ""),
+                              c.out_leg.get("carrier", ""))
             tag = f" ({out_air}만)" if any(x for x in codes if x) and out_air else ""
             link = f'<a href="{g}">구글에서 보기{tag}</a>'
             if not c.is_cross:
