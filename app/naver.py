@@ -44,12 +44,22 @@ def _to_time(h: str, m: str) -> dt.time | None:
         return None
 
 
+# 목록 전체를 감싼 컨테이너가 같이 잡힐 때가 있다(달력·헤더 포함).
+# 그런 덩어리를 한 편으로 오인하면 항공사명이 "가는 편 선택"이 된다.
+_JUNK = ("가는 편 선택", "오는 편 선택", "출발시각 빠른 순", "가격 낮은 순",
+         "트래블클럽", "왕복 항공편 선택")
+
+
+def _is_junk(text: str, legs) -> bool:
+    return any(k in text for k in _JUNK) or len(legs) > 6
+
+
 def parse_domestic(text: str) -> dict | None:
     """국내선 편도 한 줄. 실패하면 None."""
     if not text or has_spend_condition(text):
         return None
     legs = _LEG.findall(text)
-    if len(legs) < 2:
+    if len(legs) < 2 or _is_junk(text, legs):
         return None
     price_m = _PRICE.search(text) or _PRICE_LOOSE.search(text)
     if not price_m:
@@ -73,7 +83,7 @@ def parse_intl(text: str) -> dict | None:
     if not text or has_spend_condition(text):
         return None
     legs = _LEG.findall(text)
-    if len(legs) < 4:          # 가는 편 2개 + 오는 편 2개
+    if len(legs) < 4 or _is_junk(text, legs):   # 가는 편 2개 + 오는 편 2개
         return None
     price_m = _PRICE.search(text) or _PRICE_LOOSE.search(text)
     if not price_m:

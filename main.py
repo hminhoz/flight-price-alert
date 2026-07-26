@@ -301,8 +301,24 @@ def main() -> int:
             k = c.route.key
             if k not in best or c.price < best[k].price:
                 best[k] = c
+        # 국제선을 한 노선(오사카)만 보고 판단하면 성급하다.
+        # 국내선 1 + 서로 다른 국제선 도시 4곳으로 교차검증한다 (v1.68).
+        picked, seen_city = [], set()
+        dom = [c for c in best.values() if getattr(c.route, "domestic", False)]
+        if dom:
+            picked.append(min(dom, key=lambda x: x.price))
+        for c in sorted(best.values(), key=lambda x: x.price):
+            if getattr(c.route, "domestic", False):
+                continue
+            city = engine._seoul_group(cfg, c.route)
+            if city in seen_city:
+                continue
+            seen_city.add(city)
+            picked.append(c)
+            if len(picked) >= 5:
+                break
         cases = []
-        for c in sorted(best.values(), key=lambda x: x.price)[:2]:
+        for c in picked:
             cases.append({
                 "origin": c.route.origin, "dest": c.route.destination,
                 "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
