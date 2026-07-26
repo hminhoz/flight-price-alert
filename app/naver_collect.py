@@ -122,7 +122,12 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
 
 
 def _read_rows(page) -> list:
-    """결과가 붙을 때까지 기다렸다가 가격 포함 행들을 읽는다."""
+    """결과가 붙을 때까지 기다렸다가 가격 포함 행들을 읽는다.
+
+    앞 60개만 읽었더니 오는 편(18시 이후 조건)이 92건 중 1건만 잡혔다.
+    목록이 '출발시각 빠른 순'이라 저녁 편은 뒤쪽에 있는데 잘려나간 것.
+    → 넉넉히 읽고 중복을 제거한다 (v1.72).
+    """
     js = (
         'async () => {'
         '  const NL = String.fromCharCode(10);'
@@ -131,8 +136,14 @@ def _read_rows(page) -> list:
         '    const els = Array.from(document.querySelectorAll("[class*=domestic_inner]"))'
         '      .filter(e => (e.innerText || "").indexOf("원") !== -1);'
         '    if (els.length) {'
-        '      return els.slice(0, 60).map(e => (e.innerText || "").split(NL)'
-        '        .map(x => x.trim()).filter(Boolean).join(" | ").slice(0, 400));'
+        '      const seen = new Set(); const out = [];'
+        '      for (const e of els) {'
+        '        const s = (e.innerText || "").split(NL).map(x => x.trim())'
+        '                   .filter(Boolean).join(" | ").slice(0, 400);'
+        '        if (s && !seen.has(s)) { seen.add(s); out.push(s); }'
+        '        if (out.length >= 250) break;'
+        '      }'
+        '      return out;'
         '    }'
         '    await sleep(1500);'
         '  }'

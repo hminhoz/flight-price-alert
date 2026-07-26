@@ -292,10 +292,15 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 lines.append(f"{n_link} · {g_link}" if from_naver
                              else f"{g_link} · {n_link}")
 
-        if near:
+        if near or any("↳" in x for x in lines):
             lines.append("")
-            lines.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜예요 "
-                         "(↳ 는 같은 편의 다른 사이트 가격)")
+            foot = []
+            if near:
+                foot.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜")
+            if any("↳" in x for x in lines):
+                foot.append("↳ 는 같은 편의 다른 사이트 가격")
+            lines.append(" · ".join(foot) + "예요" if len(foot) == 1
+                         else " / ".join(foot))
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 
