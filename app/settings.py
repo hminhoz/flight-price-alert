@@ -65,6 +65,7 @@ class Settings:
 
     # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
     route_windows: dict = field(default_factory=dict, repr=False)
+    live_board: bool = True
     digest_top_n: int = 3
     digest_hour: int = 9
     cycle_report: str = "daily"     # 한 바퀴 완료 보고: daily | every | off
@@ -106,6 +107,24 @@ def _parse_excludes(items: list) -> list:
             d = dt.date.fromisoformat(s.strip())
             out.append((d, d))
     return out
+
+
+def _cycle_policy(v) -> str:
+    """한 바퀴 보고 정책 정규화.
+
+    YAML 1.1은 따옴표 없는 off/on/yes/no 를 불리언으로 읽는다. 그래서
+    `cycle_report: off` 가 False → "false" 가 되어 "off" 와도 "daily" 와도
+    맞지 않았고, 두 분기 모두 비껴가 **매번 발송**되는 상태가 됐다 (v1.47).
+    알 수 없는 값은 조용한 쪽(off)으로 떨어뜨려 스팸을 막는다.
+    """
+    s = str(v).strip().lower()
+    if s in ("off", "false", "no", "none", "0"):
+        return "off"
+    if s in ("every", "always", "true", "yes"):
+        return "every"
+    if s == "daily":
+        return "daily"
+    return "off"
 
 
 def _parse_time(s: str) -> dt.time:
@@ -156,9 +175,10 @@ def load(path: Path | None = None) -> Settings:
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,
+        live_board=bool(al.get("live_board", True)),
         digest_top_n=max(1, int(al.get("digest_top_n", 3))),
         digest_hour=int(al.get("digest_hour", 9)),
-        cycle_report=str(al.get("cycle_report", "daily")).lower(),
+        cycle_report=_cycle_policy(al.get("cycle_report", "daily")),
         min_below_baseline_pct=float(al.get("min_below_baseline_pct", 2)),
         min_redrop_pct=float(al.get("min_redrop_pct", 2)),
         bundle_min_gap_pct=float(al.get("bundle_min_gap_pct", 3)),

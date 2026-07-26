@@ -308,6 +308,17 @@ def main() -> int:
         log.info("=== 사전 점검 결과: %d건 중 %d건 확보 ===",
                  len(cheapest_per_route), ok)
 
+    # ---- 고정판 갱신 (알림 없이 조용히) ----
+    if cfg.live_board and not dry:
+        stamp = (dt.datetime.now(dt.timezone.utc)
+                 + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
+        try:
+            state.meta["board_ids"] = notify.upsert_board(
+                notify.format_board(cfg, combos, stamp, today), state.board_ids())
+            log.info("고정판 갱신 완료")
+        except Exception as e:  # noqa: BLE001 - 고정판 실패가 알림을 막지 않는다
+            log.info("고정판 갱신 실패: %s", str(e)[:150])
+
     # 한 바퀴(전 조합 1회 훑기) 완료 보고
     if cycle_done:
         sub = engine.cycle_report(cfg, state, today, len(engine.all_legs(cfg, today)))

@@ -256,6 +256,55 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
     return [m for _, m in messages]
 
 
+def format_board(cfg: Settings, combos: list, stamp: str,
+                 today: "dt.date | None" = None) -> str:
+    """고정판용 압축 요약 — 한 통에 전 도시가 들어가야 한다.
+
+    도시마다 최저 1건은 링크와 함께 자세히, 나머지 날짜는 링크 없이 한 줄로.
+    링크 하나가 180자쯤이라 전부 걸면 4096자를 넘긴다 (v1.46에서 겪음).
+    """
+    from .engine import _seoul_group, city_label
+    today = today or (dt.datetime.now(dt.timezone.utc)
+                      + dt.timedelta(hours=9)).date()
+    n = max(cfg.adults, 1)
+
+    by_city: dict = {}
+    for c in combos or []:
+        by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
+
+    lines = [f"📌 <b>항공권 최저가</b> · {stamp} 기준"]
+    if not by_city:
+        lines.append("")
+        lines.append("아직 비교할 조합이 없습니다.")
+        return "\n".join(lines)
+
+    for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
+        pick: dict = {}
+        for c in city_combos:
+            k = (c.dep, c.price)
+            if k not in pick or c.nights > pick[k].nights:
+                pick[k] = c
+        picked = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.digest_top_n]
+        top = picked[0]
+        codes = [top.out_leg.get("carrier", ""), top.ret_leg.get("carrier", "")]
+        url = google_flights_url(top.route, top.dep, top.ret, cfg.adults, codes,
+                                 back=top.back if top.is_cross else None)
+        lines.append("")
+        lines.append(
+            f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
+            f'<a href="{url}">{_d(top.dep)}~{_d(top.ret)}</a> {top.nights}박'
+            f'{_airport_note(top)}')
+        lines.append(f'   {_leg_time(top.out_leg)}/{_leg_time(top.ret_leg)} '
+                     f'{_airlines(top)}')
+        rest = picked[1:]
+        if rest:
+            lines.append("   다른 날 " + " · ".join(
+                f"{_d(c.dep)} {round(c.price / n):,}" for c in rest))
+    lines.append("")
+    lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
+    return "\n".join(lines)
+
+
 TELEGRAM_LIMIT = 4096
 _SAFE_LEN = 3600      # 여유를 두고 자른다 (링크 URL이 하나에 180자쯤 된다)
 
@@ -326,38 +375,76 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
     return msgs
 
 
+def _targets() -> tuple[str, list[str]]:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN") or ""
+    raw = os.environ.get("TELEGRAM_CHAT_ID") or ""
+    return token, [c.strip() for c in raw.split(",") if c.strip()]
+
+
+def _post(token: str, method: str, payload: dict):
+    try:
+        r = requests.post(f"https://api.telegram.org/bot{token}/{method}",
+                          json=payload, timeout=15)
+        if r.status_code != 200:
+            log.info("telegram %s %s: %s", method, r.status_code, r.text[:180])
+            return None
+        return r.json().get("result")
+    except requests.RequestException as e:
+        log.error("telegram %s failed: %s", method, e)
+        return None
+
+
 def send(text: str) -> bool:
     """TELEGRAM_CHAT_ID의 모든 대상에게 전송. 하나라도 성공하면 True.
 
-    여러 명에게 보내려면 Secret에 콤마로 나열한다 (v1.35):
+    여러 명에게 보내려면 Secret에 콤마로 나열한다:
         123456789,-1001234567890
     그룹은 chat_id가 음수다. 그룹 방에 봇을 초대한 뒤
     https://api.telegram.org/bot<TOKEN>/getUpdates 로 확인할 수 있다.
     """
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    raw = os.environ.get("TELEGRAM_CHAT_ID") or ""
-    targets = [c.strip() for c in raw.split(",") if c.strip()]
+    token, targets = _targets()
     if not token or not targets:
         log.error("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 미설정")
         return False
-    ok_any = False
+    ok = False
     for chat_id in targets:
-        try:
-            r = requests.post(
-                f"https://api.telegram.org/bot{token}/sendMessage",
-                json={
-                    "chat_id": chat_id,
-                    "text": text,
-                    "parse_mode": "HTML",
-                    "disable_web_page_preview": True,
-                },
-                timeout=15,
-            )
-            if r.status_code == 200:
-                ok_any = True
-            else:
-                log.error("telegram %s (chat %s): %s",
-                          r.status_code, chat_id, r.text[:200])
-        except requests.RequestException as e:
-            log.error("telegram send failed (chat %s): %s", chat_id, e)
-    return ok_any
+        if _post(token, "sendMessage", {
+                "chat_id": chat_id, "text": text, "parse_mode": "HTML",
+                "disable_web_page_preview": True}) is not None:
+            ok = True
+    return ok
+
+
+def upsert_board(text: str, ids: dict) -> dict:
+    """항상 최신 시세를 담는 '고정판' 한 통을 만들거나 갱신한다 (v1.47).
+
+    왜 수정인가: 시세 확인은 푸시가 잘못된 도구다. 내가 원하는 시점이 아니라
+    시스템이 정한 시점에 오고, 하루만 지나도 낡는다. 텔레그램은 봇이 자기
+    메시지를 나중에 수정할 수 있고 **수정은 알림이 울리지 않는다.**
+    → 방에 한 통 고정해두고 실행마다 내용만 갈아끼운다. 푸시는 진짜 특가에만.
+
+    ids: {chat_id: message_id}. 갱신된 사전을 돌려준다(호출부가 저장).
+    """
+    token, targets = _targets()
+    if not token or not targets:
+        return ids
+    out = dict(ids or {})
+    for chat_id in targets:
+        mid = out.get(chat_id)
+        if mid:
+            r = _post(token, "editMessageText", {
+                "chat_id": chat_id, "message_id": mid, "text": text,
+                "parse_mode": "HTML", "disable_web_page_preview": True})
+            if r is not None:
+                continue          # 갱신 성공
+            # 내용이 같으면 텔레그램이 거부하고, 삭제됐으면 실패한다.
+            # 어느 쪽이든 새로 보내면 되지만, 같은 내용일 땐 보내지 않는다.
+            if out.get(f"{chat_id}:text") == text:
+                continue
+        r = _post(token, "sendMessage", {
+            "chat_id": chat_id, "text": text, "parse_mode": "HTML",
+            "disable_web_page_preview": True})
+        if r and r.get("message_id"):
+            out[chat_id] = r["message_id"]
+        out[f"{chat_id}:text"] = text
+    return out

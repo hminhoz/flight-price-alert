@@ -90,6 +90,9 @@ class State:
             self.meta["first_run"] = today.isoformat()
         return dt.date.fromisoformat(self.meta["first_run"])
 
+    def board_ids(self) -> dict:
+        return self.meta.setdefault("board_ids", {})
+
     def merge_time_hist(self, hist: dict) -> None:
         """실행별 시간 분포를 data/time_hist.json 에 누적한다.
 

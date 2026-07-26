@@ -114,6 +114,7 @@ def main():
     test_weak_alert_suppressed()
     test_header_matches_cheapest_shown()
     test_digest()
+    test_live_board()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -260,11 +261,23 @@ def test_cycle_progress():
         _, _, done = engine.note_shard(cfg, st, 0)
         assert not done, "같은 샤드 반복은 완주가 아니다"
 
-    # daily 정책: 하루 한 번만 보고. (v1.45부터 본문은 notify.format_digest가
-    # 만들고, cycle_report는 '몇 편 확인했는지' 부제만 돌려준다)
-    first = engine.cycle_report(cfg, st, today, 1017)
+    # 보고 정책 (v1.47부터 기본은 off — 고정판이 그 역할을 대신한다)
+    import copy
+    d = copy.copy(cfg)
+    d.cycle_report = "daily"
+    d.digest_hour = 0                     # 시각 조건은 여기서 검증하지 않는다
+    first = engine.cycle_report(d, st, today, 1017)
     assert first and "1,017" in first, first
-    assert engine.cycle_report(cfg, st, today, 1017) is None, "하루 두 번 보고됨"
+    assert engine.cycle_report(d, st, today, 1017) is None, "하루 두 번 보고됨"
+
+    # off면 아예 보내지 않는다. YAML이 따옴표 없는 off를 False로 읽어
+    # 두 분기를 모두 비껴가 매번 발송되던 버그가 있었다 (v1.47)
+    from app.settings import _cycle_policy
+    assert _cycle_policy(False) == "off" and _cycle_policy("off") == "off"
+    o = copy.copy(cfg)
+    o.cycle_report = "off"
+    st.meta.pop("last_cycle_report", None)
+    assert engine.cycle_report(o, st, today, 1017) is None, "off인데 발송됨"
     print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
 
@@ -555,6 +568,40 @@ def test_digest():
     empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))
     assert len(empty) == 1 and "아직 비교할 조합이 없습니다" in empty[0]
     print(f"OK 다이제스트: 도시 제목 + 날짜 {cfg.digest_top_n}개·싼 순·링크·빈 데이터 방어")
+
+
+def test_live_board():
+    """고정판은 반드시 한 통에 들어가야 한다 (v1.47).
+
+    수정(editMessageText)으로 갱신하는 구조라 여러 통으로 나눌 수 없다.
+    노선이 늘어도 4096자를 넘지 않는지 지킨다.
+    """
+    from app.notify import format_board, TELEGRAM_LIMIT
+    cfg = load()
+
+    def mk(route, day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    # 전 노선 × 넉넉한 날짜로 최악을 가정
+    big = [mk(r, d, 300_000 + i * 7000 + d * 100)
+           for i, r in enumerate(cfg.routes) for d in range(1, 15)]
+    board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
+    assert len(board) < TELEGRAM_LIMIT, f"고정판이 {len(board)}자로 한 통을 넘었다"
+
+    # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
+    cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
+    assert board.count("<a href=") == len(cities), board.count("<a href=")
+    assert "다른 날" in board, board
+    assert "📌" in board.splitlines()[0]
+
+    # 빈 데이터에도 죽지 않는다
+    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
+    print(f"OK 고정판: 한 통 {len(board)}자 · 도시별 링크 1개 · 다른 날짜 병기")
 
 
 def test_tolerant_parser():
@@ -830,11 +877,23 @@ def test_cycle_progress():
         _, _, done = engine.note_shard(cfg, st, 0)
         assert not done, "같은 샤드 반복은 완주가 아니다"
 
-    # daily 정책: 하루 한 번만 보고. (v1.45부터 본문은 notify.format_digest가
-    # 만들고, cycle_report는 '몇 편 확인했는지' 부제만 돌려준다)
-    first = engine.cycle_report(cfg, st, today, 1017)
+    # 보고 정책 (v1.47부터 기본은 off — 고정판이 그 역할을 대신한다)
+    import copy
+    d = copy.copy(cfg)
+    d.cycle_report = "daily"
+    d.digest_hour = 0                     # 시각 조건은 여기서 검증하지 않는다
+    first = engine.cycle_report(d, st, today, 1017)
     assert first and "1,017" in first, first
-    assert engine.cycle_report(cfg, st, today, 1017) is None, "하루 두 번 보고됨"
+    assert engine.cycle_report(d, st, today, 1017) is None, "하루 두 번 보고됨"
+
+    # off면 아예 보내지 않는다. YAML이 따옴표 없는 off를 False로 읽어
+    # 두 분기를 모두 비껴가 매번 발송되던 버그가 있었다 (v1.47)
+    from app.settings import _cycle_policy
+    assert _cycle_policy(False) == "off" and _cycle_policy("off") == "off"
+    o = copy.copy(cfg)
+    o.cycle_report = "off"
+    st.meta.pop("last_cycle_report", None)
+    assert engine.cycle_report(o, st, today, 1017) is None, "off인데 발송됨"
     print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
 
@@ -1125,6 +1184,40 @@ def test_digest():
     empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))
     assert len(empty) == 1 and "아직 비교할 조합이 없습니다" in empty[0]
     print(f"OK 다이제스트: 도시 제목 + 날짜 {cfg.digest_top_n}개·싼 순·링크·빈 데이터 방어")
+
+
+def test_live_board():
+    """고정판은 반드시 한 통에 들어가야 한다 (v1.47).
+
+    수정(editMessageText)으로 갱신하는 구조라 여러 통으로 나눌 수 없다.
+    노선이 늘어도 4096자를 넘지 않는지 지킨다.
+    """
+    from app.notify import format_board, TELEGRAM_LIMIT
+    cfg = load()
+
+    def mk(route, day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    # 전 노선 × 넉넉한 날짜로 최악을 가정
+    big = [mk(r, d, 300_000 + i * 7000 + d * 100)
+           for i, r in enumerate(cfg.routes) for d in range(1, 15)]
+    board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
+    assert len(board) < TELEGRAM_LIMIT, f"고정판이 {len(board)}자로 한 통을 넘었다"
+
+    # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
+    cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
+    assert board.count("<a href=") == len(cities), board.count("<a href=")
+    assert "다른 날" in board, board
+    assert "📌" in board.splitlines()[0]
+
+    # 빈 데이터에도 죽지 않는다
+    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
+    print(f"OK 고정판: 한 통 {len(board)}자 · 도시별 링크 1개 · 다른 날짜 병기")
 
 
 def test_tolerant_parser():
