@@ -311,7 +311,8 @@ def main() -> int:
             })
         log.info("네이버 탐침 %d건 시작", len(cases))
         res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"))
-        lines = ["🧪 <b>네이버 탐침 결과</b>", res.get("note", "")]
+        lines = ["🧪 <b>네이버 탐침 결과</b>", res.get("note", ""),
+                 f"화면: {res.get('display','?')}"]
         for r in res.get("cases", []):
             g = r.get("google_price")
             nv = r.get("min_price")
@@ -320,7 +321,8 @@ def main() -> int:
                 lines.append(f"· {r['label']} 구글 {g:,} / 네이버 {nv:,} ({gap:+.0f}%)")
             else:
                 why = r.get("error", "")[:40] or (
-                    f"{r.get('clicked','')} · {'/'.join(r.get('markers', []))}")
+                    f"{r.get('clicked','')} · 본문{r.get('body_len','?')}자"
+                    f" · {'/'.join(r.get('markers', []))}")
                 lines.append(f"· {r['label']} 값 못 읽음 — {why}")
         for r in res.get("cases", [])[:1]:
             if r.get("clickables"):

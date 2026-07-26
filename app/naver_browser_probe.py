@@ -53,6 +53,48 @@ def _ensure_playwright() -> bool:
     return True
 
 
+def _start_display() -> str:
+    """가상 화면(Xvfb)을 띄운다. 실패하면 빈 문자열.
+
+    3차까지 headless로 돌렸는데 검색이 끝내 안 걸렸다. headless는 가장
+    알아보기 쉬운 형태다. 실제 화면을 띄운 브라우저는 구별이 훨씬 어렵다.
+    GitHub 러너는 sudo가 되므로 xvfb를 직접 설치해 쓴다.
+    """
+    import os
+    import shutil
+    import time
+    if not shutil.which("Xvfb"):
+        r = subprocess.run(["sudo", "apt-get", "install", "-y", "-qq", "xvfb"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            log.info("xvfb 설치 실패: %s", (r.stderr or "")[-200:])
+            return ""
+    try:
+        subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1400x1000x24",
+                          "-nolisten", "tcp"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(2)
+        os.environ["DISPLAY"] = ":99"
+        return ":99"
+    except Exception as e:  # noqa: BLE001
+        log.info("Xvfb 실행 실패: %s", str(e)[:150])
+        return ""
+
+
+# 자동화 흔적을 지우는 초기 스크립트. 페이지 스크립트보다 먼저 실행된다.
+_STEALTH = """
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+Object.defineProperty(navigator, 'languages', {get: () => ['ko-KR','ko','en-US']});
+Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+window.chrome = window.chrome || {runtime: {}};
+const _q = navigator.permissions && navigator.permissions.query;
+if (_q) navigator.permissions.query = (p) => (
+  p && p.name === 'notifications'
+    ? Promise.resolve({state: Notification.permission})
+    : _q(p));
+"""
+
+
 def _url(o: str, d: str, dep: str, ret: str, adults: int, domestic: bool) -> str:
     kind = "domestic" if domestic else "international"
     return (f"https://flight.naver.com/flights/{kind}/"
@@ -71,9 +113,16 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
 
     from playwright.sync_api import sync_playwright
 
+    disp = _start_display()
+    result["display"] = disp or "없음(headless로 진행)"
+    log.info("가상 화면: %s", result["display"])
+
     seen_api: dict = {}
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(args=["--no-sandbox"])
+        browser = pw.chromium.launch(
+            headless=not disp,
+            args=["--no-sandbox", "--disable-blink-features=AutomationControlled",
+                  "--disable-dev-shm-usage", "--window-size=1400,1000"])
         ctx = browser.new_context(
             locale="ko-KR", timezone_id="Asia/Seoul",
             viewport={"width": 1400, "height": 1000},
@@ -96,6 +145,7 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
             seen_api[key] = {"url": key, "status": res.status,
                              "type": res.headers.get("content-type", "")[:60]}
 
+        ctx.add_init_script(_STEALTH)
         ctx.on("response", on_response)
         page = ctx.new_page()
 
@@ -111,6 +161,21 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 # 2차에서 button:has-text('검색')이 헤더 통합검색을 눌러
                 # 페이지가 오류 화면(본문 513자)으로 바뀌었다.
                 # → 선택자를 더 추측하지 말고 **실제 요소 목록을 뽑는다.**
+                # 3차에서 실물 확인: 검색 버튼 class = searchBox_btn_search__*
+                clicked = ""
+                for sel in ("[class*=searchBox_btn_search]",
+                            "button[class*=btn_search]"):
+                    try:
+                        el = page.locator(sel).first
+                        if el.count():
+                            el.click(timeout=8000)
+                            clicked = sel
+                            break
+                    except Exception:  # noqa: BLE001
+                        continue
+                row["clicked"] = clicked or "검색 버튼 못 찾음"
+                page.wait_for_timeout(2000)
+
                 row["clickables"] = page.evaluate("""() => {
                     const out = [];
                     document.querySelectorAll('button, a[role=button], [class*=search] a')
@@ -128,7 +193,6 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                     page.wait_for_timeout(1500)
                     if _PRICE.search(page.inner_text("body")):
                         break
-                row["clicked"] = "누르지 않음(요소 조사 모드)"
                 text = page.inner_text("body")
                 row["body_len"] = len(text)
                 for marker in ("검색 결과", "항공편이 없", "다시 검색",
