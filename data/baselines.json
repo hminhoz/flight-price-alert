@@ -221,13 +221,13 @@
   }
  },
  "ICN-NGO|2026-08": {
-  "alltime_min": 641989,
-  "alltime_min_at": "2026-07-26T10:28:24+00:00",
-  "alltime_min_prev": 676883,
-  "baseline": 659436,
+  "alltime_min": 641975,
+  "alltime_min_at": "2026-07-26T10:43:58+00:00",
+  "alltime_min_prev": 641989,
+  "baseline": 659429,
   "daily_min": {
    "2026-07-25": 676883,
-   "2026-07-26": 641989
+   "2026-07-26": 641975
   }
  },
  "ICN-NGO|2026-09": {
@@ -362,12 +362,12 @@
   }
  },
  "X:KIX-ICN|2026-08": {
-  "alltime_min": 472304,
-  "alltime_min_at": "2026-07-26T09:29:51+00:00",
-  "alltime_min_prev": 494741,
-  "baseline": 472304,
+  "alltime_min": 472292,
+  "alltime_min_at": "2026-07-26T10:43:58+00:00",
+  "alltime_min_prev": 472304,
+  "baseline": 472292,
   "daily_min": {
-   "2026-07-26": 472304
+   "2026-07-26": 472292
   }
  },
  "X:KIX-ICN|2026-09": {
