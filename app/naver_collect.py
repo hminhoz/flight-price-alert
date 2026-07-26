@@ -28,31 +28,38 @@ _ONEWAY = "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?adult={n}"
 
 def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             windows: dict, budget_sec: int = 1500,
-            start_at: int = 0, probe_mod=None) -> tuple[dict, int, int]:
+            known: dict | None = None, probe_mod=None) -> tuple[dict, int, int]:
     """편도 단위로 훑어 {leg_key: {...}} 를 돌려준다.
 
     route_pairs: [("GMP","CJU","out","GMP-CJU"), ("CJU","GMP","ret","GMP-CJU"), ...]
     dates_by_pair: {(o,d,direction): [date, ...]}
     windows: {(route_key, direction): (lo, hi)}
-    budget_sec: 이 시간을 넘기면 **거기서 멈추고 다음 실행이 이어받는다**.
-                버리면 뒷부분 날짜가 영영 갱신되지 않는다 (v1.70).
-    start_at:   이어받을 위치. 전체를 한 바퀴 돌면 0으로 되돌아간다.
+    budget_sec: 이 시간을 넘기면 거기서 멈춘다.
+    known:      이미 모아둔 것 {leg_key: {... "at": iso}}.
+                **아직 못 모은 것 → 오래된 것 순으로 돈다** (v1.77).
+                순번 커서를 쓰던 방식은 가는 편(앞쪽 53건)만 반복하고
+                오는 편(뒤쪽 92건)은 예산이 모자라 영영 못 채웠다.
 
-    Returns: (수집분, 다음 시작 위치, 전체 작업 수)
+    Returns: (수집분, 남은 미수집 수, 전체 작업 수)
     """
     out: dict = {}
+    known = known or {}
     jobs = [(o, d, direction, rk, day)
             for (o, d, direction, rk) in route_pairs
             for day in dates_by_pair.get((o, d, direction), [])]
     total = len(jobs)
     if not total:
         return out, 0, 0
-    start_at = start_at % total
+    # 못 모은 것 먼저, 그다음 오래된 것 순
+    jobs.sort(key=lambda j: known.get(
+        f"{j[3]}|{j[2]}|{j[4].isoformat()}", {}).get("at", ""))
+    missing = sum(1 for j in jobs
+                  if f"{j[3]}|{j[2]}|{j[4].isoformat()}" not in known)
     if probe_mod is None:
         from . import naver_browser_probe as probe_mod
     if not probe_mod._ensure_playwright():
         log.info("네이버 수집: playwright 준비 실패 → 건너뜀")
-        return out, start_at, total
+        return out, missing, total
 
     from playwright.sync_api import sync_playwright
 
@@ -77,11 +84,10 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
         ctx.add_init_script(probe_mod._STEALTH)
         page = ctx.new_page()
 
-        idx = start_at
         visited = 0
-        while visited < total and time.time() - started < budget_sec:
-            o, d, direction, route_key, day = jobs[idx % total]
-            idx += 1
+        for o, d, direction, route_key, day in jobs:
+            if time.time() - started >= budget_sec:
+                break
             visited += 1
             url = _ONEWAY.format(o=o, d=d, ymd=day.strftime("%Y%m%d"), n=adults)
             try:
@@ -117,6 +123,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
                 "dep_time": best["dep"].strftime("%H:%M") if best["dep"] else "",
                 "seat": best.get("seat", ""),
                 "source": "naver",
+                "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             }
         skipped = total - visited
         browser.close()
@@ -124,11 +131,10 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     for d_, (q, rws, ok_) in sorted(seen_stat.items()):
         log.info("  방향 %s: 조회 %d · 읽은 행 평균 %.0f · 조건 통과 %d",
                  d_, q, rws / max(q, 1), ok_)
-    log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 남은 %d건은 다음 실행이 이어받음 "
-             "(%.0f분, 다음 시작 %d)",
-             done, total, len(out), skipped, (time.time() - started) / 60,
-             idx % total)
-    return out, idx % total, total
+    still = max(0, missing - len(out))
+    log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 미수집 %d건 남음 (%.0f분)",
+             done, total, len(out), still, (time.time() - started) / 60)
+    return out, still, total
 
 
 def _read_rows(page) -> list:

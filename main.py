@@ -271,23 +271,21 @@ def main() -> int:
                         day += dt.timedelta(days=1)
                     dates_by[(o, d, "out")] = outs
                     dates_by[(d, o, "ret")] = rets
-                got, nxt, total = NVC.collect(
+                got, remain, total = NVC.collect(
                     pairs, dates_by, cfg.adults, windows,
                     budget_sec=cfg.naver_budget_min * 60,
-                    start_at=int(state.meta.get("naver_cursor", 0)))
+                    known=state.naver_legs)
                 if got:
                     state.naver_legs.update(got)
-                state.meta["naver_cursor"] = nxt
+                state.meta["naver_remain"] = remain
                 state.meta["naver_total"] = total
                 if state.meta.get("naver_day") != today.isoformat():
                     state.meta["naver_day"] = today.isoformat()
                     state.meta["naver_runs"] = 0
                 state.meta["naver_runs"] = int(state.meta.get("naver_runs", 0)) + 1
                 state.meta["naver_last_run"] = today.isoformat()
-                pct = (100 * (1 if nxt == 0 else nxt / max(total, 1)))
-                log.info("네이버 반영 %d건 (누적 %d) · 진행 %d/%d (%.0f%%) · "
-                         "오늘 %d/%d회",
-                         len(got), len(state.naver_legs), nxt or total, total, pct,
+                log.info("네이버 반영 %d건 (누적 %d/%d) · 미수집 %d건 · 오늘 %d/%d회",
+                         len(got), len(state.naver_legs), total, remain,
                          state.meta["naver_runs"], cfg.naver_runs_per_day)
             except Exception as e:  # noqa: BLE001 - 보조 소스 실패가 본 작업을 막지 않는다
                 log.info("네이버 수집 오류: %s", str(e)[:200])
@@ -309,15 +307,15 @@ def main() -> int:
                 gaps.append(g["price"] - v["price"])
             else:
                 lose += 1
-        cur = int(state.meta.get("naver_cursor", 0))
+        rem = int(state.meta.get("naver_remain", 0))
         tot = int(state.meta.get("naver_total", 0)) or 145
         msg = ["🧪 <b>네이버 수집 완료</b>",
                f"가는 편 {by_dir.get('out', 0)}건 · 오는 편 {by_dir.get('ret', 0)}건 "
                f"(누적 {len(nvl)}건)"]
-        if cur:
-            msg.append(f"진행 {cur}/{tot} — 다시 실행하면 이어받아요")
+        if rem:
+            msg.append(f"{tot}건 중 {rem}건 미수집 — 다음 실행이 이어받아요")
         else:
-            msg.append(f"한 바퀴 완주 ({tot}건 확인)")
+            msg.append(f"전체 {tot}건 수집 완료")
         if win + lose:
             avg = round(sum(gaps) / len(gaps) / max(cfg.adults, 1)) if gaps else 0
             msg.append(f"구글 대비 승 {win} · 패 {lose}"

@@ -124,6 +124,7 @@ def main():
     test_naver_parser()
     test_naver_leg_merge()
     test_naver_schedule()
+    test_naver_job_order()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -959,6 +960,36 @@ def test_naver_schedule():
     assert due_now({"naver_day": "2026-07-25", "naver_runs": n},
                    today, 12, cfg.naver_hour, n)
     print(f"OK 네이버 일정: 하루 {n}회까지 자동 이어받기 · 날짜 바뀌면 초기화")
+
+
+def test_naver_job_order():
+    """네이버 수집은 **못 모은 것부터** 돈다 (v1.77).
+
+    순번 커서를 쓰던 방식은 앞쪽(가는 편 53건)만 반복하고 뒤쪽(오는 편 92건)은
+    예산이 모자라 영영 못 채웠다. 실제로 오는 편이 92건 중 1건이었다.
+    """
+    import datetime as _dt
+
+    def order(jobs, known):
+        js = list(jobs)
+        js.sort(key=lambda j: known.get(
+            f"{j[3]}|{j[2]}|{j[4].isoformat()}", {}).get("at", ""))
+        return [f"{j[2]}:{j[4].day}" for j in js]
+
+    d = _dt.date(2026, 9, 1)
+    jobs = [("GMP", "CJU", "out", "GMP-CJU", d),
+            ("GMP", "CJU", "out", "GMP-CJU", d + _dt.timedelta(1)),
+            ("CJU", "GMP", "ret", "GMP-CJU", d),
+            ("CJU", "GMP", "ret", "GMP-CJU", d + _dt.timedelta(1))]
+    known = {
+        f"GMP-CJU|out|{d.isoformat()}": {"at": "2026-07-26T10:00:00"},
+        f"GMP-CJU|out|{(d + _dt.timedelta(1)).isoformat()}": {"at": "2026-07-26T09:00:00"},
+    }
+    got = order(jobs, known)
+    # 못 모은 오는 편 둘이 먼저, 그다음 오래된 out(09시)부터
+    assert got[:2] == ["ret:1", "ret:2"], got
+    assert got[2] == "out:2" and got[3] == "out:1", got
+    print("OK 네이버 순서: 미수집 우선 · 그다음 오래된 것부터")
 
 
 def test_tolerant_parser():
@@ -1923,6 +1954,36 @@ def test_naver_schedule():
     assert due_now({"naver_day": "2026-07-25", "naver_runs": n},
                    today, 12, cfg.naver_hour, n)
     print(f"OK 네이버 일정: 하루 {n}회까지 자동 이어받기 · 날짜 바뀌면 초기화")
+
+
+def test_naver_job_order():
+    """네이버 수집은 **못 모은 것부터** 돈다 (v1.77).
+
+    순번 커서를 쓰던 방식은 앞쪽(가는 편 53건)만 반복하고 뒤쪽(오는 편 92건)은
+    예산이 모자라 영영 못 채웠다. 실제로 오는 편이 92건 중 1건이었다.
+    """
+    import datetime as _dt
+
+    def order(jobs, known):
+        js = list(jobs)
+        js.sort(key=lambda j: known.get(
+            f"{j[3]}|{j[2]}|{j[4].isoformat()}", {}).get("at", ""))
+        return [f"{j[2]}:{j[4].day}" for j in js]
+
+    d = _dt.date(2026, 9, 1)
+    jobs = [("GMP", "CJU", "out", "GMP-CJU", d),
+            ("GMP", "CJU", "out", "GMP-CJU", d + _dt.timedelta(1)),
+            ("CJU", "GMP", "ret", "GMP-CJU", d),
+            ("CJU", "GMP", "ret", "GMP-CJU", d + _dt.timedelta(1))]
+    known = {
+        f"GMP-CJU|out|{d.isoformat()}": {"at": "2026-07-26T10:00:00"},
+        f"GMP-CJU|out|{(d + _dt.timedelta(1)).isoformat()}": {"at": "2026-07-26T09:00:00"},
+    }
+    got = order(jobs, known)
+    # 못 모은 오는 편 둘이 먼저, 그다음 오래된 out(09시)부터
+    assert got[:2] == ["ret:1", "ret:2"], got
+    assert got[2] == "out:2" and got[3] == "out:1", got
+    print("OK 네이버 순서: 미수집 우선 · 그다음 오래된 것부터")
 
 
 def test_tolerant_parser():
