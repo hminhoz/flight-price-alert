@@ -60,6 +60,7 @@ class Settings:
     failure_alert_cooldown_hours: int
     naver_routes: tuple = ()
     naver_hour: int = 5
+    naver_runs_per_day: int = 3
     naver_budget_min: int = 20
     exclude_airlines: tuple = ()
     cross_airports: bool = True
@@ -177,6 +178,7 @@ def load(path: Path | None = None) -> Settings:
         currency=s.get("currency", "KRW"),
         naver_routes=tuple(s.get("naver_routes") or []),
         naver_hour=int(s.get("naver_hour", 5)),
+        naver_runs_per_day=max(1, int(s.get("naver_runs_per_day", 3))),
         naver_budget_min=int(s.get("naver_budget_min", 20)),
         exclude_airlines=tuple(
             str(x).strip().upper() for x in (s.get("exclude_airlines") or [])),

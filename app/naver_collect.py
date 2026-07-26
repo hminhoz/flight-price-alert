@@ -153,8 +153,16 @@ def _read_rows(page) -> list:
     return page.evaluate(js) or []
 
 
-def due_today(meta: dict, today: dt.date, hour_kst: int, run_hour: int) -> bool:
-    """하루 1회, 지정 시각 이후 첫 실행에서만 True."""
-    if meta.get("naver_last_run") == today.isoformat():
+def due_now(meta: dict, today: dt.date, hour_kst: int, run_hour: int,
+            max_per_day: int) -> bool:
+    """지금 실행에서 네이버를 이어받을지.
+
+    '하루 1회'로 두었더니 145건을 한 번에 못 채워 **뒷부분이 영영 밀렸다**.
+    게다가 수동 트리거(`naver-run`)를 매번 입력해야 해서 실제로는 거의
+    안 돌았다. → 하루 max_per_day 번까지 자동으로 이어받는다 (v1.74).
+    """
+    if hour_kst < run_hour:
         return False
-    return hour_kst >= run_hour
+    if meta.get("naver_day") != today.isoformat():
+        return True                      # 오늘 첫 실행
+    return int(meta.get("naver_runs", 0)) < max_per_day

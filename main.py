@@ -57,7 +57,9 @@ def main() -> int:
     preview = _mode == "preview"
     digest = _mode == "digest"
     naver_probe = _mode == "naver"
-    naver_run = _mode in ("naver-run", "naverrun")   # 하루 1회 제한 무시하고 즉시 수집
+    # 하이픈·공백·대소문자 어떻게 넣어도 받는다 (입력 실수로 조용히 평범한
+    # 실행이 돼버리는 일이 있었다)
+    naver_run = _mode.replace("_", "-") in ("naver-run", "naverrun", "naverrun")        or _raw.replace(" ", "-").replace("_", "-") == "naver-run"
     # 깃허브 입력에서도 월을 받는다. 텔레그램 /digest 8 과 같은 동작.
     #   "digest 8" → 8월만 자세히 · "8" 또는 "8월" → 8월만 가볍게 한 통
     manual_month = notify.parse_month(_mode, _arg)
@@ -124,6 +126,13 @@ def main() -> int:
         log.info("보기 전용 모드 → 검색 건너뜀 (저장된 데이터로 즉시 응답)")
 
     done_n, total_n, cycle_done = engine.note_shard(cfg, state, shard)
+    # 어떤 모드로 도는지 로그 맨 앞에 남긴다. 입력이 먹혔는지 추측하지 않도록.
+    log.info("실행 모드: 입력=%r → %s", _raw,
+             "테스트(1)" if dry else "미리보기" if preview else
+             "다이제스트" if digest else "네이버탐침" if naver_probe else
+             "네이버수집" if naver_run else
+             (f"{manual_month}월 요약" if brief else "실전"))
+
     log.info("shard=%d 검색 대상 %d개 leg · 이번 바퀴 진행 %d/%d%s",
              shard, len(legs), done_n, total_n, " (완주)" if cycle_done else "")
     for r in cfg.routes:
@@ -240,7 +249,8 @@ def main() -> int:
     if cfg.naver_routes and not dry and not (brief or digest or naver_probe):
         from app import naver_collect as NVC
         kst_hour = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=9)).hour
-        if naver_run or NVC.due_today(state.meta, today, kst_hour, cfg.naver_hour):
+        if naver_run or NVC.due_now(state.meta, today, kst_hour, cfg.naver_hour,
+                                    cfg.naver_runs_per_day):
             try:
                 pairs, dates_by, windows = [], {}, {}
                 for rk in cfg.naver_routes:
@@ -269,10 +279,16 @@ def main() -> int:
                     state.naver_legs.update(got)
                 state.meta["naver_cursor"] = nxt
                 state.meta["naver_total"] = total
+                if state.meta.get("naver_day") != today.isoformat():
+                    state.meta["naver_day"] = today.isoformat()
+                    state.meta["naver_runs"] = 0
+                state.meta["naver_runs"] = int(state.meta.get("naver_runs", 0)) + 1
                 state.meta["naver_last_run"] = today.isoformat()
                 pct = (100 * (1 if nxt == 0 else nxt / max(total, 1)))
-                log.info("네이버 반영 %d건 (누적 %d) · 진행 %d/%d (%.0f%%)",
-                         len(got), len(state.naver_legs), nxt or total, total, pct)
+                log.info("네이버 반영 %d건 (누적 %d) · 진행 %d/%d (%.0f%%) · "
+                         "오늘 %d/%d회",
+                         len(got), len(state.naver_legs), nxt or total, total, pct,
+                         state.meta["naver_runs"], cfg.naver_runs_per_day)
             except Exception as e:  # noqa: BLE001 - 보조 소스 실패가 본 작업을 막지 않는다
                 log.info("네이버 수집 오류: %s", str(e)[:200])
 

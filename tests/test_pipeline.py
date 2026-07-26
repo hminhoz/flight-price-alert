@@ -123,6 +123,7 @@ def main():
     test_run_mode_parsing()
     test_naver_parser()
     test_naver_leg_merge()
+    test_naver_schedule()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -930,6 +931,34 @@ def test_naver_leg_merge():
     g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
     assert g["price"] == 300_000 and "source" not in g, g
     print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
+
+
+def test_naver_schedule():
+    """네이버 수집이 하루 여러 번 자동으로 이어받는지 (v1.74).
+
+    '하루 1회'로 두었더니 145건을 한 번에 못 채워 뒷부분이 영영 밀렸고,
+    수동 트리거를 매번 입력해야 해 실제로는 거의 안 돌았다.
+    """
+    from app.naver_collect import due_now
+    cfg = load()
+    today = dt.date(2026, 7, 26)
+    n = cfg.naver_runs_per_day
+    assert n >= 2, "1회면 한 바퀴를 못 채운다"
+
+    # 시작 시각 전에는 쉰다
+    assert not due_now({}, today, cfg.naver_hour - 1, cfg.naver_hour, n)
+    # 오늘 첫 실행은 항상 수집
+    assert due_now({}, today, cfg.naver_hour, cfg.naver_hour, n)
+    # 한도 안이면 계속 이어받는다
+    assert due_now({"naver_day": today.isoformat(), "naver_runs": n - 1},
+                   today, 12, cfg.naver_hour, n)
+    # 한도를 채우면 멈춘다
+    assert not due_now({"naver_day": today.isoformat(), "naver_runs": n},
+                       today, 12, cfg.naver_hour, n)
+    # 날짜가 바뀌면 초기화
+    assert due_now({"naver_day": "2026-07-25", "naver_runs": n},
+                   today, 12, cfg.naver_hour, n)
+    print(f"OK 네이버 일정: 하루 {n}회까지 자동 이어받기 · 날짜 바뀌면 초기화")
 
 
 def test_tolerant_parser():
@@ -1866,6 +1895,34 @@ def test_naver_leg_merge():
     g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
     assert g["price"] == 300_000 and "source" not in g, g
     print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
+
+
+def test_naver_schedule():
+    """네이버 수집이 하루 여러 번 자동으로 이어받는지 (v1.74).
+
+    '하루 1회'로 두었더니 145건을 한 번에 못 채워 뒷부분이 영영 밀렸고,
+    수동 트리거를 매번 입력해야 해 실제로는 거의 안 돌았다.
+    """
+    from app.naver_collect import due_now
+    cfg = load()
+    today = dt.date(2026, 7, 26)
+    n = cfg.naver_runs_per_day
+    assert n >= 2, "1회면 한 바퀴를 못 채운다"
+
+    # 시작 시각 전에는 쉰다
+    assert not due_now({}, today, cfg.naver_hour - 1, cfg.naver_hour, n)
+    # 오늘 첫 실행은 항상 수집
+    assert due_now({}, today, cfg.naver_hour, cfg.naver_hour, n)
+    # 한도 안이면 계속 이어받는다
+    assert due_now({"naver_day": today.isoformat(), "naver_runs": n - 1},
+                   today, 12, cfg.naver_hour, n)
+    # 한도를 채우면 멈춘다
+    assert not due_now({"naver_day": today.isoformat(), "naver_runs": n},
+                       today, 12, cfg.naver_hour, n)
+    # 날짜가 바뀌면 초기화
+    assert due_now({"naver_day": "2026-07-25", "naver_runs": n},
+                   today, 12, cfg.naver_hour, n)
+    print(f"OK 네이버 일정: 하루 {n}회까지 자동 이어받기 · 날짜 바뀌면 초기화")
 
 
 def test_tolerant_parser():
