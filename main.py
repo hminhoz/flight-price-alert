@@ -325,6 +325,11 @@ def main() -> int:
                     f" · {'/'.join(r.get('markers', []))}")
                 lines.append(f"· {r['label']} 값 못 읽음 — {why}")
         for r in res.get("cases", [])[:2]:
+            rt = r.get("rows_text") or {}
+            if rt.get("n"):
+                lines.append(f"· {r['label']} 결과행 {rt['n']}개 ({rt['sel']})")
+                for x in rt.get("texts", [])[:2]:
+                    lines.append(f"   {x[:150]}")
             lines.append(f"· {r['label']} 가로챈 응답 {r.get('captured_len',0):,}자"
                          + (f" · 키 {r['json_keys'][:8]}" if r.get("json_keys") else "")
                          + (f" · SSE {r['sse_data_lines']}줄"

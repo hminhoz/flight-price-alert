@@ -98,16 +98,46 @@ if (_q) navigator.permissions.query = (p) => (
 // 못 읽는다(스트리밍이라 버려짐). 대신 페이지의 fetch를 감싸 응답을 복제해
 // 통째로 모아둔다. clone()은 원본 스트림을 방해하지 않는다.
 window.__nv = '';
+// 6차에서 clone().text()가 0자였다. SSE는 연결이 계속 열려 있어 text()가
+// 스트림 종료까지 기다리다 끝내 값을 못 준다. → **조각이 올 때마다 받는다.**
+function _pump(res) {
+  try {
+    const r = res.clone().body.getReader();
+    const dec = new TextDecoder();
+    (function step() {
+      r.read().then(({done, value}) => {
+        if (value) window.__nv += dec.decode(value, {stream: true});
+        if (!done) step();
+      }).catch(() => {});
+    })();
+  } catch (e) {}
+}
 const _of = window.fetch;
 window.fetch = async function (...args) {
   const res = await _of.apply(this, args);
   try {
     const u = (args[0] && args[0].url) || String(args[0] || '');
-    if (u.indexOf('searchFlights') !== -1) {
-      res.clone().text().then(t => { window.__nv += t; }).catch(() => {});
-    }
+    if (u.indexOf('searchFlights') !== -1) _pump(res);
   } catch (e) {}
   return res;
+};
+// fetch가 아니라 XHR을 쓸 가능성도 덮는다
+const _oo = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function (m, u) {
+  this.__nvWatch = String(u || '').indexOf('searchFlights') !== -1;
+  return _oo.apply(this, arguments);
+};
+const _os = XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.send = function () {
+  if (this.__nvWatch) {
+    this.addEventListener('progress', () => {
+      try { window.__nv = this.responseText || window.__nv; } catch (e) {}
+    });
+    this.addEventListener('load', () => {
+      try { window.__nv += this.responseText || ''; } catch (e) {}
+    });
+  }
+  return _os.apply(this, arguments);
 };
 const _OES = window.EventSource;
 if (_OES) {
@@ -281,6 +311,19 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                         return s + ' ||| ' + el.outerHTML.slice(0, 1400);
                     }
                     return '';
+                }""")
+                row["rows_text"] = page.evaluate("""() => {
+                    const sels = ['[class^=domestic_item]', '[class*=combination_item]',
+                                  '[class*=international_item]', '[class*=_item__]'];
+                    for (const s of sels) {
+                      const els = [...document.querySelectorAll(s)];
+                      if (els.length >= 1) {
+                        return {sel: s, n: els.length,
+                                texts: els.slice(0, 3).map(
+                                  e => (e.innerText || '').replace(/\\s*\\n\\s*/g, ' | ').slice(0, 320))};
+                      }
+                    }
+                    return {sel: '', n: 0, texts: []};
                 }""")
             except Exception:  # noqa: BLE001
                 row["row_html"] = ""
