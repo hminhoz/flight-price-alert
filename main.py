@@ -319,8 +319,9 @@ def main() -> int:
                 gap = (nv - g) / g * 100
                 lines.append(f"· {r['label']} 구글 {g:,} / 네이버 {nv:,} ({gap:+.0f}%)")
             else:
-                lines.append(f"· {r['label']} 네이버 값 못 읽음"
-                             + (f" ({r['error'][:40]})" if r.get("error") else ""))
+                why = r.get("error", "")[:40] or (
+                    f"{r.get('clicked','')} · {'/'.join(r.get('markers', []))}")
+                lines.append(f"· {r['label']} 값 못 읽음 — {why}")
         if res.get("api_calls"):
             lines.append("")
             lines.append("발견한 API: " + ", ".join(

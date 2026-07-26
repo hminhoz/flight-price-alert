@@ -82,10 +82,13 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                         "Chrome/139.0.0.0 Safari/537.36"))
 
         def on_response(res):
+            # 1차 탐침에서 URL에 api/graphql이 든 것만 기록했더니 설정 파일과
+            # 에러 수집기만 잡혔다. 걸러내지 말고 naver 요청을 다 본다.
             u = res.url
-            if "naver.com" not in u:
+            if "naver" not in u:
                 return
-            if not any(k in u for k in ("api", "graphql", "searchFlights")):
+            if any(u.endswith(x) for x in (".js", ".css", ".png", ".jpg",
+                                           ".svg", ".woff", ".woff2", ".ico")):
                 return
             key = u.split("?")[0]
             if key in seen_api:
@@ -103,13 +106,38 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                    "google_price": c.get("google_price")}
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=45000)
-                # SPA라 결과가 늦게 붙는다. 가격 문자열이 보일 때까지 기다린다.
-                for _ in range(20):
+                page.wait_for_timeout(3000)
+
+                # 1차 탐침 결과: 페이지는 열리는데 검색 API 호출이 0건이었다.
+                # URL 진입만으로는 검색이 시작되지 않고 버튼을 눌러야 한다.
+                clicked = ""
+                for sel in ("button:has-text('항공권 검색')",
+                            "a:has-text('항공권 검색')",
+                            "button:has-text('검색')",
+                            "[class*=searchBox] button",
+                            "[class*=search] button[type=submit]"):
+                    try:
+                        el = page.locator(sel).first
+                        if el.count() and el.is_visible():
+                            el.click(timeout=5000)
+                            clicked = sel
+                            break
+                    except Exception:  # noqa: BLE001
+                        continue
+                row["clicked"] = clicked or "버튼 못 찾음"
+
+                # 검색은 10~30초 걸린다. 가격이 보일 때까지 최대 60초.
+                for _ in range(40):
                     page.wait_for_timeout(1500)
                     text = page.inner_text("body")
                     if _PRICE.search(text):
                         break
                 text = page.inner_text("body")
+                row["body_len"] = len(text)
+                for marker in ("검색 결과", "항공편이 없", "다시 검색",
+                               "로그인", "일시적", "오류"):
+                    if marker in text:
+                        row.setdefault("markers", []).append(marker)
                 prices = sorted({int(m.replace(",", ""))
                                  for m in _PRICE.findall(text)})
                 prices = [p for p in prices if p >= 30000]   # 잡음 제거
