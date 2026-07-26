@@ -41,6 +41,10 @@ routes:
       # 15:00 으로는 14:30 출발편이 30분 차이로 탈락 → 14:00 (v1.12.1)
       return_departure: { earliest: "14:00" } }
   - { origin: GMP, destination: HND, label: "김포-하네다" }
+  # 김포발 일본 취항지는 도쿄·오사카·나고야 셋뿐 (한국공항공사 기준).
+  # 인천만 넣고 김포 짝을 빠뜨렸던 두 노선을 채운다.
+  - { origin: GMP, destination: KIX, label: "김포-오사카" }
+  - { origin: GMP, destination: NGO, label: "김포-나고야" }
   - { origin: ICN, destination: OKA, label: "인천-오키나와" }
   - { origin: ICN, destination: KOJ, label: "인천-가고시마",
       # ICN→KOJ 출발편은 12:47·15:45 등 오후 편중 (실측: 가는 편 0/39)
@@ -58,7 +62,12 @@ routes:
   # 파서 실패에 근거했을 수 있어 한 번 확인한다. 통계 보고 아니면 다시 끈다.
   - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
   # ---- 여전히 휴면 ----
-  # - { origin: ICN, destination: HND, label: "인천-하네다" }   # 경유편만 반환
+  # - { origin: ICN, destination: HND, label: "인천-하네다" }
+  #   야간 전용 노선이라 조건상 불가. 밤에 인천 출발 → 새벽 하네다 도착,
+  #   복편은 새벽 1~2시 하네다 출발. "가는 편 06~13시"에 원천적으로 안 걸린다.
+  #   예전의 "경유편만 반환" 판정도 실은 이것 때문이었다 (파서 문제 아님).
+  # - { origin: GMP, destination: NRT, label: "김포-나리타" }
+  #   존재하지 않는 노선. 인천공항 개항 이후 운항 이력 없음.
   # - { origin: ICN, destination: CJU, label: "인천-제주", domestic: true }
   #   → 김포-제주가 되면 이것도 켠다
 
@@ -98,7 +107,8 @@ alerts:
   bundle_min_gap_pct: 3          # 묶음 안에서 바로 앞 항목보다 이만큼은 비싸야
                                  # 별도 줄로 보여준다. 1~2% 차이나는 옆 날짜를
                                  # 3줄로 늘어놓는 대신 아래 '유사 가격대'에 맡긴다
-  similar_margin_pct: 10         # 알림에 '최저가 +N% 이내 다른 날짜'도 함께 표시
+  similar_margin_pct: 15         # 알림에 '최저가 +N% 이내 다른 날짜'도 함께 표시
+                                 # 10%로는 후보가 1~2개뿐인 노선이 많아 15%로
   similar_top_n: 4               # 위 유사가격 날짜 최대 표시 개수
   cycle_report: daily            # 전체 한 바퀴(전 조합 1회 훑기) 완료 보고
                                  #   daily = 하루 첫 완주 때만 (기본)

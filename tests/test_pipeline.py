@@ -283,14 +283,22 @@ def test_near_dates_linked():
     near = [mk(12, 820_000), mk(14, 840_000)]
     msg = format_alerts(cfg, [a], [top] + near, today=dt.date(2026, 8, 1))[0]
 
-    body = msg.split("근처 날짜")[1]
-    assert body.count("<a href=") == len(near), body   # 줄마다 링크 1개
+    # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
+    one_liners = [l for l in msg.split("\n") if l.startswith("· <a href=")]
+    assert len(one_liners) == len(near), msg
+    body = "\n".join(one_liners)
     assert "9/12" in body, body                         # 날짜·요일
     assert "07:30/19:40" in body, body                  # 출발/귀국 시각
     assert "제주항공" in body, body                       # 항공사
     assert "410,000원/인" in body, body                  # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
-    print("OK 근처 날짜: 링크·요일·출발귀국시각·항공사·1인당 금액")
+
+    # 메시지 전체가 오름차순이어야 한다 (13만 → 16만 → 13만 사태 방지)
+    import re as _re
+    shown = [int(x.replace(",", "")) for x in
+             _re.findall(r"([\d,]+)원/인", _re.sub(r"</?b>", "", msg))]
+    assert shown == sorted(shown), f"금액이 오름차순이 아니다: {shown}"
+    print("OK 근처 날짜: 본문에 오름차순 통합 · 링크·시각·항공사 포함")
 
 
 def test_time_histogram():
@@ -666,14 +674,22 @@ def test_near_dates_linked():
     near = [mk(12, 820_000), mk(14, 840_000)]
     msg = format_alerts(cfg, [a], [top] + near, today=dt.date(2026, 8, 1))[0]
 
-    body = msg.split("근처 날짜")[1]
-    assert body.count("<a href=") == len(near), body   # 줄마다 링크 1개
+    # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
+    one_liners = [l for l in msg.split("\n") if l.startswith("· <a href=")]
+    assert len(one_liners) == len(near), msg
+    body = "\n".join(one_liners)
     assert "9/12" in body, body                         # 날짜·요일
     assert "07:30/19:40" in body, body                  # 출발/귀국 시각
     assert "제주항공" in body, body                       # 항공사
     assert "410,000원/인" in body, body                  # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
-    print("OK 근처 날짜: 링크·요일·출발귀국시각·항공사·1인당 금액")
+
+    # 메시지 전체가 오름차순이어야 한다 (13만 → 16만 → 13만 사태 방지)
+    import re as _re
+    shown = [int(x.replace(",", "")) for x in
+             _re.findall(r"([\d,]+)원/인", _re.sub(r"</?b>", "", msg))]
+    assert shown == sorted(shown), f"금액이 오름차순이 아니다: {shown}"
+    print("OK 근처 날짜: 본문에 오름차순 통합 · 링크·시각·항공사 포함")
 
 
 def test_time_histogram():

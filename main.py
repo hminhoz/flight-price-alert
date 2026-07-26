@@ -20,6 +20,16 @@ from app.settings import load
 from app.state import State
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+# HTTP 클라이언트 소음 차단 (v1.37).
+# primp/httpx 등이 요청마다 수백 글자짜리 구글 tfs URL을 통째로 찍는다.
+# 432 leg 실행이면 이런 줄만 600개 넘어 로그가 수 MB가 되고, 정작 필요한
+# 통계·진단 줄이 묻힌다. 로그를 통째로 복사하기도 어려워진다.
+# 오류는 WARNING 이상이라 그대로 보인다. 되살리려면 아래 줄을 지울 것.
+for _noisy in ("primp", "httpx", "httpcore", "urllib3", "requests",
+               "urllib3.connectionpool"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
+
 log = logging.getLogger("main")
 
 

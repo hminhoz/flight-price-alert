@@ -91,55 +91,71 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             pruned.append(a)
         top = pruned
         route = top[0].combo.route
-        month = top[0].combo.dep.month
-        record = any(a.kind == "record" for a in top)
         n = cfg.adults
+        record = any(a.kind == "record" for a in top)
         head_price = round(best_price(top[0]) / max(n, 1))
+        lines = [f"{'🏆' if record else '✈️'} "
+                 f"<b>{route.label} 1인 {head_price:,}원부터</b>"]
 
-        # 제목에 금액을 넣는다: 잠금화면 미리보기에서 노선만 보이고 얼마인지
-        # 안 보이면 열어봐야 알 수 있다 (v1.29).
-        lines = [f"{'🏆' if record else '✈️'} <b>{route.label} 1인 {head_price:,}원</b>"]
+        # 근처 날짜 후보 (알림 조건은 아니지만 값이 비슷한 조합)
+        shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
+        base = min(a.combo.price for a in top)
+        limit = base * (1 + cfg.similar_margin_pct / 100)
+        near = sorted(
+            (c for c in combos_by_route.get(_key, [])
+             if (c.dep, c.nights) not in shown_deps and c.price <= limit),
+            key=lambda c: c.price)[: cfg.similar_top_n]
 
-        # 왜 싼지 한 줄로. '기준가' 같은 내부 용어 대신 체감되는 표현으로.
-        base_per = round(top[0].baseline / max(n, 1))
-        if record and top[0].prev_min:
-            prev_per = round(top[0].prev_min / max(n, 1))
-            cut = (top[0].prev_min - top[0].combo.price) / top[0].prev_min * 100
-            lines.append(f"{month}월 역대 최저 · 직전 최저 {prev_per:,}원보다 "
-                         f"{cut:.0f}% 쌉니다")
-        else:
-            cut = (top[0].baseline - best_price(top[0])) / max(top[0].baseline, 1) * 100
-            if cut >= 1:
-                lines.append(f"{month}월 요즘 최저가({base_per:,}원)보다 {cut:.0f}% 쌉니다")
-            else:
-                lines.append(f"{month}월 요즘 최저가({base_per:,}원) 수준입니다")
+        # 주 항목과 근처 날짜를 **하나의 오름차순 스트림**으로 합친다 (v1.38).
+        # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
+        # 탓에 두 번째 주 항목보다 근처 날짜가 싸게 나왔다. 실측 김포-제주에서
+        # 13만 → 16만 → 13만 순으로 보여 정렬이 깨진 것처럼 읽혔다.
+        stream = [(best_price(a), 0, a) for a in top]
+        stream += [(c.price, 1, c) for c in near]
+        stream.sort(key=lambda x: (x[0], x[1]))
 
-        for a in top:
-            c = a.combo
+        for _price, kind, obj in stream:
+            if kind == 1:  # 근처 날짜 — 한 줄
+                c = obj
+                codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+                url = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
+                lines.append(
+                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 · '
+                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} {_airlines(c)} · '
+                    f'{round(c.price / n):,}원/인')
+                continue
+
+            a, c = obj, obj.combo
             lines.append("")
             lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박")
 
-            # 실제로 낼 돈만 굵게. 대안 구매법은 한 줄 아래에 이유와 함께.
-            # (편도 2장이 쌀 때도 왕복이 쌀 때도 있어 한쪽 고정이 불가 — v1.14 실측)
             one, rt = c.price, a.rt_price
             if rt and rt < one:
-                lines.append(f"왕복권 <b>{round(rt / n):,}원</b>/인 · "
-                             f"{n}명 {rt:,}원")
+                lines.append(f"왕복권 <b>{round(rt / n):,}원</b>/인 · {n}명 {rt:,}원")
                 lines.append(f"편도 2장으로 사면 {round(one / n):,}원/인 → 왕복이 유리")
             elif rt:
-                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · "
-                             f"{n}명 {one:,}원")
+                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · {n}명 {one:,}원")
                 lines.append(f"왕복권으로 사면 {round(rt / n):,}원/인 → 편도 2장이 유리")
             else:
-                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · "
-                             f"{n}명 {one:,}원")
+                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · {n}명 {one:,}원")
 
-            # 선호 시간 밖인 편은 해당 시각 옆에 ⚠만 붙인다 (v1.35).
-            # 별도 설명 줄은 매번 같은 문장이 반복돼 길기만 했다.
             lines.append(f"{_leg_time(c.out_leg)} 출발 · "
                          f"{_leg_time(c.ret_leg)} 귀국 · {_airlines(c)}")
 
-            # 재알림일 때만 표시. 첫 알림은 대부분 첫 알림이라 배지가 의미 없다.
+            # 왜 싼지는 항목마다 붙인다. 한 메시지에 여러 달이 섞일 수 있어
+            # 제목에 특정 월을 박아두면 두 번째 항목부터 틀린 말이 된다 (v1.38).
+            m = c.dep.month
+            if a.kind == "record" and a.prev_min:
+                prev_per = round(a.prev_min / max(n, 1))
+                cut = (a.prev_min - c.price) / a.prev_min * 100
+                lines.append(f"{m}월 역대 최저 · 직전 최저 {prev_per:,}원보다 "
+                             f"{cut:.0f}% 쌉니다")
+            else:
+                base_per = round(a.baseline / max(n, 1))
+                cut = (a.baseline - best_price(a)) / max(a.baseline, 1) * 100
+                lines.append(f"{m}월 요즘 최저가({base_per:,}원)"
+                             + (f"보다 {cut:.0f}% 쌉니다" if cut >= 1 else " 수준입니다"))
+
             if a.prev_sent:
                 gap = a.prev_sent - c.price
                 lines.append(f"🔻 지난 알림 {round(a.prev_sent / n):,}원/인에서 "
@@ -153,29 +169,9 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             lines.append(f'<a href="{g}">구글에서 보기{tag}</a> · '
                          f'<a href="{nv}">네이버</a>')
 
-        # 근처 날짜 목록 — 이미 수집된 데이터라 추가 검색 비용 0.
-        # 기준은 반드시 '편도 2장'끼리여야 한다. 위 대표 금액이 왕복일 때
-        # 그걸 기준으로 잡으면 임계가 낮아져 목록이 거의 안 뜬다 (v1.29).
-        shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
-        base = min(a.combo.price for a in top)
-        limit = base * (1 + cfg.similar_margin_pct / 100)
-        near = sorted(
-            (c for c in combos_by_route.get(_key, [])
-             if (c.dep, c.nights) not in shown_deps and c.price <= limit),
-            key=lambda c: c.price)[: cfg.similar_top_n]
         if near:
             lines.append("")
-            lines.append("📅 <b>근처 날짜도 비슷한 값</b> — 편도 2장 기준이라 "
-                         "왕복은 더 쌀 수 있어요")
-            for c in near:
-                # 날짜 자체를 링크로. 목록만 보고는 실제로 갈 수가 없어서
-                # 바로 눌러 확인할 수 있게 한다 (사용자 요청, v1.31).
-                codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-                url = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
-                lines.append(
-                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 · '
-                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} {_airlines(c)} · '
-                    f'{round(c.price / n):,}원/인')
+            lines.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜예요")
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 
