@@ -431,6 +431,48 @@ def send(text: str) -> bool:
     return ok
 
 
+def poll_commands(offset: int) -> tuple[list, int]:
+    """지난 실행 이후 방에 들어온 봇 명령을 읽는다 (v1.52).
+
+    텔레그램 명령을 받으려면 봇이 항상 켜져 있어야 하는데, 무료 구성에는
+    상시 서버가 없다. 대신 **실행할 때마다 밀린 메시지를 한 번 훑는다.**
+    즉시 응답은 아니고 다음 실행까지(최대 1시간쯤) 기다려야 한다.
+
+    허용된 chat_id에서 온 것만 받는다. 아무나 봇을 부려서 조회를 돌리게
+    두면 안 되기 때문.
+
+    Returns: ([(chat_id, 명령어)], 다음 offset)
+    """
+    token, targets = _targets()
+    if not token or not targets:
+        return [], offset
+    allowed = set(targets)
+    try:
+        r = requests.get(f"https://api.telegram.org/bot{token}/getUpdates",
+                         params={"offset": offset, "timeout": 0, "limit": 20},
+                         timeout=15)
+        if r.status_code != 200:
+            log.info("getUpdates %s: %s", r.status_code, r.text[:150])
+            return [], offset
+        updates = r.json().get("result") or []
+    except (requests.RequestException, ValueError) as e:
+        log.info("getUpdates 실패: %s", str(e)[:120])
+        return [], offset
+
+    cmds = []
+    nxt = offset
+    for u in updates:
+        nxt = max(nxt, int(u.get("update_id", 0)) + 1)
+        msg = u.get("message") or u.get("channel_post") or {}
+        chat_id = str((msg.get("chat") or {}).get("id", ""))
+        text = (msg.get("text") or "").strip()
+        if not text.startswith("/") or chat_id not in allowed:
+            continue
+        cmd = text.split()[0].lstrip("/").split("@")[0].lower()
+        cmds.append((chat_id, cmd))
+    return cmds, nxt
+
+
 def upsert_board(text: str, ids: dict) -> dict:
     """항상 최신 시세를 담는 '고정판' 한 통을 만들거나 갱신한다.
 

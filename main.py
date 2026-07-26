@@ -68,6 +68,30 @@ def main() -> int:
     max_legs = os.environ.get("MAX_LEGS")
     if max_legs:
         legs = legs[: int(max_legs)]
+    # ---- 텔레그램 명령 확인 (지난 실행 이후 밀린 것) ----
+    wants_digest = False
+    if not dry:
+        try:
+            cmds, new_offset = notify.poll_commands(
+                int(state.meta.get("tg_offset", 0)))
+            state.meta["tg_offset"] = new_offset
+            for _chat, cmd in cmds:
+                if cmd in ("digest", "시세", "now", "board"):
+                    wants_digest = True
+                elif cmd in ("help", "start", "도움말"):
+                    notify.send(
+                        "🤖 <b>쓸 수 있는 명령</b>\n"
+                        "/digest — 지금 최저가를 도시별로 자세히 (날짜마다 링크)\n"
+                        "/help — 이 안내\n\n"
+                        "명령은 <b>다음 실행 때</b> 처리됩니다 (최대 1시간). "
+                        "바로 보고 싶으면 고정해둔 📌 메시지를 확인하세요 — "
+                        "실행마다 조용히 갱신됩니다.")
+            if cmds:
+                log.info("텔레그램 명령 %d건 수신: %s",
+                         len(cmds), [c for _, c in cmds])
+        except Exception as e:  # noqa: BLE001 - 명령 처리 실패가 본 작업을 막지 않는다
+            log.info("명령 확인 실패: %s", str(e)[:150])
+
     from app.search import set_excluded_airlines
     set_excluded_airlines(cfg.exclude_airlines)
     if cfg.exclude_airlines:
@@ -241,7 +265,12 @@ def main() -> int:
             polite_delay(cfg.request_delay_sec)
         log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
 
-    # ---- 다이제스트 모드: 도시별 지금 최저가를 한 통으로 ----
+    # ---- 다이제스트: 수동 모드이거나 텔레그램 /digest 요청이 있을 때 ----
+    if wants_digest and not digest:
+        for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):
+            notify.send(_m)
+        log.info("텔레그램 /digest 요청 처리 완료")
+
     if digest:
         for _m in notify.format_digest(cfg, combos, "요청하신 현재 시세입니다", today):
             notify.send(_m)

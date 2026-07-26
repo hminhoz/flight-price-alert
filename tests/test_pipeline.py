@@ -117,6 +117,7 @@ def main():
     test_live_board()
     test_board_ids_compact()
     test_exclude_airlines()
+    test_poll_commands()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -708,6 +709,42 @@ def test_exclude_airlines():
                   carrier="LJ", now=now)
     assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)), "정상 조합까지 막혔다"
     print("OK 제외 항공사: 수집·조합 양쪽에서 차단, 코드·이름 모두 인식")
+
+
+def test_poll_commands():
+    """텔레그램 명령은 허용된 방에서 온 것만, offset은 전진해야 한다 (v1.52)."""
+    import os
+    from app import notify as N
+
+    payload = {"result": [
+        {"update_id": 10, "message": {"chat": {"id": 999}, "text": "/digest"}},
+        {"update_id": 11, "message": {"chat": {"id": 999}, "text": "안녕"}},
+        {"update_id": 12, "message": {"chat": {"id": 555}, "text": "/digest"}},
+        {"update_id": 13, "message": {"chat": {"id": 999}, "text": "/Help@mybot"}},
+    ]}
+
+    class _R:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return payload
+
+    old_get, old_env = N.requests.get, dict(os.environ)
+    os.environ["TELEGRAM_BOT_TOKEN"] = "t"
+    os.environ["TELEGRAM_CHAT_ID"] = "999"
+    N.requests.get = lambda *a, **k: _R()
+    try:
+        cmds, nxt = N.poll_commands(0)
+        assert nxt == 14, nxt                       # 마지막 update_id + 1
+        assert cmds == [("999", "digest"), ("999", "help")], cmds
+        # 남의 방(555)에서 온 명령은 무시 — 아무나 조회를 돌리게 두면 안 된다
+        assert all(c == "999" for c, _ in cmds)
+    finally:
+        N.requests.get = old_get
+        os.environ.clear()
+        os.environ.update(old_env)
+    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진")
 
 
 def test_tolerant_parser():
@@ -1428,6 +1465,42 @@ def test_exclude_airlines():
                   carrier="LJ", now=now)
     assert engine.build_combos(cfg, st, dt.date(2026, 8, 1)), "정상 조합까지 막혔다"
     print("OK 제외 항공사: 수집·조합 양쪽에서 차단, 코드·이름 모두 인식")
+
+
+def test_poll_commands():
+    """텔레그램 명령은 허용된 방에서 온 것만, offset은 전진해야 한다 (v1.52)."""
+    import os
+    from app import notify as N
+
+    payload = {"result": [
+        {"update_id": 10, "message": {"chat": {"id": 999}, "text": "/digest"}},
+        {"update_id": 11, "message": {"chat": {"id": 999}, "text": "안녕"}},
+        {"update_id": 12, "message": {"chat": {"id": 555}, "text": "/digest"}},
+        {"update_id": 13, "message": {"chat": {"id": 999}, "text": "/Help@mybot"}},
+    ]}
+
+    class _R:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return payload
+
+    old_get, old_env = N.requests.get, dict(os.environ)
+    os.environ["TELEGRAM_BOT_TOKEN"] = "t"
+    os.environ["TELEGRAM_CHAT_ID"] = "999"
+    N.requests.get = lambda *a, **k: _R()
+    try:
+        cmds, nxt = N.poll_commands(0)
+        assert nxt == 14, nxt                       # 마지막 update_id + 1
+        assert cmds == [("999", "digest"), ("999", "help")], cmds
+        # 남의 방(555)에서 온 명령은 무시 — 아무나 조회를 돌리게 두면 안 된다
+        assert all(c == "999" for c, _ in cmds)
+    finally:
+        N.requests.get = old_get
+        os.environ.clear()
+        os.environ.update(old_env)
+    print("OK 텔레그램 명령: 허용 방만 · @봇이름 처리 · offset 전진")
 
 
 def test_tolerant_parser():
