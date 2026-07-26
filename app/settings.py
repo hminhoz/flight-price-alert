@@ -66,6 +66,7 @@ class Settings:
     # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
     route_windows: dict = field(default_factory=dict, repr=False)
     live_board: bool = True
+    board_top_n: int = 8
     digest_top_n: int = 3
     digest_hour: int = 9
     cycle_report: str = "daily"     # 한 바퀴 완료 보고: daily | every | off
@@ -176,6 +177,7 @@ def load(path: Path | None = None) -> Settings:
         routes=routes,
         route_windows=route_windows,
         live_board=bool(al.get("live_board", True)),
+        board_top_n=max(1, int(al.get("board_top_n", 8))),
         digest_top_n=max(1, int(al.get("digest_top_n", 3))),
         digest_hour=int(al.get("digest_hour", 9)),
         cycle_report=_cycle_policy(al.get("cycle_report", "daily")),

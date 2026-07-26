@@ -115,6 +115,7 @@ def main():
     test_header_matches_cheapest_shown()
     test_digest()
     test_live_board()
+    test_board_ids_compact()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -587,7 +588,7 @@ def test_live_board():
             ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
                      "carrier": "7C"})
 
-    # 전 노선 × 넉넉한 날짜로 최악을 가정
+    # 전 노선 × 넉넉한 날짜로 최악을 가정해도 한 통에 들어가야 한다
     big = [mk(r, d, 300_000 + i * 7000 + d * 100)
            for i, r in enumerate(cfg.routes) for d in range(1, 15)]
     board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
@@ -596,12 +597,65 @@ def test_live_board():
     # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
     assert board.count("<a href=") == len(cities), board.count("<a href=")
-    assert "다른 날" in board, board
     assert "📌" in board.splitlines()[0]
+
+    # 자동 맞춤: 여유가 있으면 많이, 없으면 줄인다 (v1.48)
+    small = [mk(r, d, 300_000 + d * 100) for r in cfg.routes[:2] for d in range(1, 15)]
+    b_small = format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1))
+    b_small_rows = b_small.count("~")          # 날짜 줄 수
+    b_big_rows = board.count("~")
+    assert b_small_rows > 0 and b_big_rows > 0
+    assert len(b_small) < TELEGRAM_LIMIT and len(board) < TELEGRAM_LIMIT
+    # 도시가 적으면 도시당 더 많이 실린다
+    assert b_small_rows / 2 > b_big_rows / len(cities), (b_small_rows, b_big_rows)
 
     # 빈 데이터에도 죽지 않는다
     assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
-    print(f"OK 고정판: 한 통 {len(board)}자 · 도시별 링크 1개 · 다른 날짜 병기")
+    print(f"OK 고정판: 한 통 {len(board)}자 · 링크 1개/도시 · 날짜 수 자동 맞춤")
+
+
+def test_board_ids_compact():
+    """고정판 상태는 해시만 남긴다 (v1.49).
+
+    전문을 meta.json에 넣으면 실행마다 4KB가 커밋에 쌓인다. 실제로 그렇게
+    돌고 있었고, 수정 성공 시 그 값을 갱신하지도 않아 비교가 무용지물이었다.
+    """
+    import os
+    from app import notify as N
+
+    calls = []
+
+    def fake_post(token, method, payload):
+        calls.append(method)
+        return {"message_id": 112} if method == "sendMessage" else {"ok": True}
+
+    old_post, old_env = N._post, dict(os.environ)
+    os.environ["TELEGRAM_BOT_TOKEN"] = "t"
+    os.environ["TELEGRAM_CHAT_ID"] = "999"
+    N._post = fake_post
+    try:
+        ids = N.upsert_board("첫 내용", {})
+        assert ids["999"] == 112 and calls == ["sendMessage"], (ids, calls)
+
+        calls.clear()                      # 내용 동일 → 호출 없음
+        ids = N.upsert_board("첫 내용", ids)
+        assert calls == [], calls
+
+        calls.clear()                      # 내용 변경 → 수정
+        ids = N.upsert_board("바뀐 내용", ids)
+        assert calls == ["editMessageText"], calls
+
+        # 전문은 저장하지 않는다 (해시만)
+        assert not any(str(k).endswith(":text") for k in ids), ids
+        assert all(len(str(v)) < 20 for v in ids.values()), ids
+        # 예전 형식(:text)이 남아 있어도 정리된다
+        ids2 = N.upsert_board("또 바뀜", {**ids, "999:text": "x" * 4000})
+        assert not any(str(k).endswith(":text") for k in ids2)
+    finally:
+        N._post = old_post
+        os.environ.clear()
+        os.environ.update(old_env)
+    print("OK 고정판 상태: 해시만 저장 · 동일 내용은 호출 생략")
 
 
 def test_tolerant_parser():
@@ -1203,7 +1257,7 @@ def test_live_board():
             ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
                      "carrier": "7C"})
 
-    # 전 노선 × 넉넉한 날짜로 최악을 가정
+    # 전 노선 × 넉넉한 날짜로 최악을 가정해도 한 통에 들어가야 한다
     big = [mk(r, d, 300_000 + i * 7000 + d * 100)
            for i, r in enumerate(cfg.routes) for d in range(1, 15)]
     board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
@@ -1212,12 +1266,65 @@ def test_live_board():
     # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
     assert board.count("<a href=") == len(cities), board.count("<a href=")
-    assert "다른 날" in board, board
     assert "📌" in board.splitlines()[0]
+
+    # 자동 맞춤: 여유가 있으면 많이, 없으면 줄인다 (v1.48)
+    small = [mk(r, d, 300_000 + d * 100) for r in cfg.routes[:2] for d in range(1, 15)]
+    b_small = format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1))
+    b_small_rows = b_small.count("~")          # 날짜 줄 수
+    b_big_rows = board.count("~")
+    assert b_small_rows > 0 and b_big_rows > 0
+    assert len(b_small) < TELEGRAM_LIMIT and len(board) < TELEGRAM_LIMIT
+    # 도시가 적으면 도시당 더 많이 실린다
+    assert b_small_rows / 2 > b_big_rows / len(cities), (b_small_rows, b_big_rows)
 
     # 빈 데이터에도 죽지 않는다
     assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
-    print(f"OK 고정판: 한 통 {len(board)}자 · 도시별 링크 1개 · 다른 날짜 병기")
+    print(f"OK 고정판: 한 통 {len(board)}자 · 링크 1개/도시 · 날짜 수 자동 맞춤")
+
+
+def test_board_ids_compact():
+    """고정판 상태는 해시만 남긴다 (v1.49).
+
+    전문을 meta.json에 넣으면 실행마다 4KB가 커밋에 쌓인다. 실제로 그렇게
+    돌고 있었고, 수정 성공 시 그 값을 갱신하지도 않아 비교가 무용지물이었다.
+    """
+    import os
+    from app import notify as N
+
+    calls = []
+
+    def fake_post(token, method, payload):
+        calls.append(method)
+        return {"message_id": 112} if method == "sendMessage" else {"ok": True}
+
+    old_post, old_env = N._post, dict(os.environ)
+    os.environ["TELEGRAM_BOT_TOKEN"] = "t"
+    os.environ["TELEGRAM_CHAT_ID"] = "999"
+    N._post = fake_post
+    try:
+        ids = N.upsert_board("첫 내용", {})
+        assert ids["999"] == 112 and calls == ["sendMessage"], (ids, calls)
+
+        calls.clear()                      # 내용 동일 → 호출 없음
+        ids = N.upsert_board("첫 내용", ids)
+        assert calls == [], calls
+
+        calls.clear()                      # 내용 변경 → 수정
+        ids = N.upsert_board("바뀐 내용", ids)
+        assert calls == ["editMessageText"], calls
+
+        # 전문은 저장하지 않는다 (해시만)
+        assert not any(str(k).endswith(":text") for k in ids), ids
+        assert all(len(str(v)) < 20 for v in ids.values()), ids
+        # 예전 형식(:text)이 남아 있어도 정리된다
+        ids2 = N.upsert_board("또 바뀜", {**ids, "999:text": "x" * 4000})
+        assert not any(str(k).endswith(":text") for k in ids2)
+    finally:
+        N._post = old_post
+        os.environ.clear()
+        os.environ.update(old_env)
+    print("OK 고정판 상태: 해시만 저장 · 동일 내용은 호출 생략")
 
 
 def test_tolerant_parser():

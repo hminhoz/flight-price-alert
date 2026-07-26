@@ -258,10 +258,13 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 
 def format_board(cfg: Settings, combos: list, stamp: str,
                  today: "dt.date | None" = None) -> str:
-    """고정판용 압축 요약 — 한 통에 전 도시가 들어가야 한다.
+    """고정판용 압축 요약 — 반드시 한 통(4096자)에 들어가야 한다.
 
-    도시마다 최저 1건은 링크와 함께 자세히, 나머지 날짜는 링크 없이 한 줄로.
-    링크 하나가 180자쯤이라 전부 걸면 4096자를 넘긴다 (v1.46에서 겪음).
+    수정(editMessageText)으로 갱신하는 구조라 여러 통으로 나눌 수 없다.
+    도시별 최저 1건만 링크를 걸고(URL 하나가 180자쯤 된다) 나머지 날짜는
+    링크 없이 25자짜리 텍스트로 붙인다. 그래서 날짜는 많이 실을 수 있다.
+    **개수를 고정하지 않고 한 통에 들어가는 만큼 자동으로 줄인다** (v1.48) —
+    노선이 늘어도 길이 초과로 발송이 실패하지 않는다.
     """
     from .engine import _seoul_group, city_label
     today = today or (dt.datetime.now(dt.timezone.utc)
@@ -271,38 +274,51 @@ def format_board(cfg: Settings, combos: list, stamp: str,
     by_city: dict = {}
     for c in combos or []:
         by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
-
-    lines = [f"📌 <b>항공권 최저가</b> · {stamp} 기준"]
     if not by_city:
-        lines.append("")
-        lines.append("아직 비교할 조합이 없습니다.")
-        return "\n".join(lines)
+        return f"📌 <b>항공권 최저가</b> · {stamp} 기준\n\n아직 비교할 조합이 없습니다."
 
+    # 도시별 후보 정리 (같은 출발일·같은 가격이면 박 수가 긴 쪽만)
+    ranked: list[list] = []
     for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
         pick: dict = {}
         for c in city_combos:
             k = (c.dep, c.price)
             if k not in pick or c.nights > pick[k].nights:
                 pick[k] = c
-        picked = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.digest_top_n]
-        top = picked[0]
-        codes = [top.out_leg.get("carrier", ""), top.ret_leg.get("carrier", "")]
-        url = google_flights_url(top.route, top.dep, top.ret, cfg.adults, codes,
-                                 back=top.back if top.is_cross else None)
+        ranked.append(sorted(pick.values(), key=lambda c: (c.price, c.dep)))
+
+    def build(per_city: int) -> str:
+        lines = [f"📌 <b>항공권 최저가</b> · {stamp} 기준"]
+        for picked in ranked:
+            sel = picked[:per_city]
+            top = sel[0]
+            codes = [top.out_leg.get("carrier", ""), top.ret_leg.get("carrier", "")]
+            url = google_flights_url(top.route, top.dep, top.ret, cfg.adults, codes,
+                                     back=top.back if top.is_cross else None)
+            lines.append("")
+            lines.append(
+                f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
+                f'<a href="{url}">{_d(top.dep)}~{_d(top.ret)}</a> {top.nights}박'
+                f'{_airport_note(top)}')
+            lines.append(f'   {_leg_time(top.out_leg)}/{_leg_time(top.ret_leg)} '
+                         f'{_airlines(top)}')
+            for c in sel[1:]:
+                lines.append(
+                    f'   {_d(c.dep)}~{_d(c.ret)} {c.nights}박 '
+                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} · '
+                    f'{round(c.price / n):,}원')
         lines.append("")
-        lines.append(
-            f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
-            f'<a href="{url}">{_d(top.dep)}~{_d(top.ret)}</a> {top.nights}박'
-            f'{_airport_note(top)}')
-        lines.append(f'   {_leg_time(top.out_leg)}/{_leg_time(top.ret_leg)} '
-                     f'{_airlines(top)}')
-        rest = picked[1:]
-        if rest:
-            lines.append("   다른 날 " + " · ".join(
-                f"{_d(c.dep)} {round(c.price / n):,}" for c in rest))
-    lines.append("")
-    lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
-    return "\n".join(lines)
+        lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
+        return "\n".join(lines)
+
+    for per_city in range(cfg.board_top_n, 0, -1):
+        text = build(per_city)
+        if len(text) <= _BOARD_SAFE_LEN:
+            return text
+    return build(1)[:_BOARD_SAFE_LEN]
+
+
+_BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다
 
 
 TELEGRAM_LIMIT = 4096
@@ -416,35 +432,42 @@ def send(text: str) -> bool:
 
 
 def upsert_board(text: str, ids: dict) -> dict:
-    """항상 최신 시세를 담는 '고정판' 한 통을 만들거나 갱신한다 (v1.47).
+    """항상 최신 시세를 담는 '고정판' 한 통을 만들거나 갱신한다.
 
     왜 수정인가: 시세 확인은 푸시가 잘못된 도구다. 내가 원하는 시점이 아니라
     시스템이 정한 시점에 오고, 하루만 지나도 낡는다. 텔레그램은 봇이 자기
     메시지를 나중에 수정할 수 있고 **수정은 알림이 울리지 않는다.**
-    → 방에 한 통 고정해두고 실행마다 내용만 갈아끼운다. 푸시는 진짜 특가에만.
+    메시지를 수정해도 고정(핀)은 유지된다.
 
-    ids: {chat_id: message_id}. 갱신된 사전을 돌려준다(호출부가 저장).
+    내용이 그대로면 API를 아예 호출하지 않는다. 비교는 전문이 아니라 **해시**로
+    한다 — 전문을 meta.json에 넣으면 실행마다 4KB가 커밋에 쌓인다 (v1.49).
+
+    ids: {chat_id: message_id, "chat_id:h": 내용해시}. 갱신된 사전을 돌려준다.
     """
+    import hashlib
+
     token, targets = _targets()
     if not token or not targets:
         return ids
-    out = dict(ids or {})
+    digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
+    out = {k: v for k, v in (ids or {}).items() if not str(k).endswith(":text")}
+
     for chat_id in targets:
         mid = out.get(chat_id)
+        if mid and out.get(f"{chat_id}:h") == digest:
+            continue                      # 내용 동일 → 호출 생략
         if mid:
             r = _post(token, "editMessageText", {
                 "chat_id": chat_id, "message_id": mid, "text": text,
                 "parse_mode": "HTML", "disable_web_page_preview": True})
             if r is not None:
-                continue          # 갱신 성공
-            # 내용이 같으면 텔레그램이 거부하고, 삭제됐으면 실패한다.
-            # 어느 쪽이든 새로 보내면 되지만, 같은 내용일 땐 보내지 않는다.
-            if out.get(f"{chat_id}:text") == text:
+                out[f"{chat_id}:h"] = digest
                 continue
+            log.info("고정판 수정 실패(chat %s) → 새로 발송", chat_id)
         r = _post(token, "sendMessage", {
             "chat_id": chat_id, "text": text, "parse_mode": "HTML",
             "disable_web_page_preview": True})
         if r and r.get("message_id"):
             out[chat_id] = r["message_id"]
-        out[f"{chat_id}:text"] = text
+            out[f"{chat_id}:h"] = digest
     return out
