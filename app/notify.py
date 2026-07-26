@@ -25,6 +25,17 @@ def _won(n: int) -> str:
     return f"₩{n:,}"
 
 
+def _leg_time(leg: dict) -> str:
+    """출발 시각. 선호 시간대 밖이면 ⚠를 붙여 짧게 표시한다."""
+    return f"{leg.get('dep_time', '?')}{'⚠' if leg.get('off_window') else ''}"
+
+
+def _airlines(c) -> str:
+    """가는 편·오는 편 항공사. 같으면 한 번만."""
+    a, b = c.out_leg.get("airline", ""), c.ret_leg.get("airline", "")
+    return a if a == b else f"{a}/{b}"
+
+
 def _per(total: int, adults: int) -> str:
     """1인당 금액을 앞세우고 총액을 괄호에 (사용자 요청, v1.23)."""
     if adults <= 1:
@@ -106,10 +117,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         for a in top:
             c = a.combo
             lines.append("")
-            dday = (c.dep - today).days
-            when = f"D-{dday}" if dday > 0 else ("오늘 출발" if dday == 0 else "")
-            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박"
-                         + (f" · {when}" if when else ""))
+            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박")
 
             # 실제로 낼 돈만 굵게. 대안 구매법은 한 줄 아래에 이유와 함께.
             # (편도 2장이 쌀 때도 왕복이 쌀 때도 있어 한쪽 고정이 불가 — v1.14 실측)
@@ -126,22 +134,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · "
                              f"{n}명 {one:,}원")
 
-            out_air = c.out_leg.get("airline", "")
-            ret_air = c.ret_leg.get("airline", "")
-            air = out_air if out_air == ret_air else f"{out_air} / {ret_air}"
-            lines.append(f"{c.out_leg.get('dep_time','?')} 출발 · "
-                         f"{c.ret_leg.get('dep_time','?')} 귀국 · {air}")
-
-            # 선호 시간대에 편이 없어 양보한 경우엔 반드시 알린다 (v1.33).
-            # 이걸 숨기면 "왜 오후 출발이 왔지?" 하고 신뢰를 잃는다.
-            off = []
-            if c.out_leg.get("off_window"):
-                off.append("가는 편")
-            if c.ret_leg.get("off_window"):
-                off.append("오는 편")
-            if off:
-                lines.append(f"⚠️ {' · '.join(off)}이 선호 시간대 밖입니다 "
-                             f"(이 노선은 선호 시간대 운항이 거의 없어요)")
+            # 선호 시간 밖인 편은 해당 시각 옆에 ⚠만 붙인다 (v1.35).
+            # 별도 설명 줄은 매번 같은 문장이 반복돼 길기만 했다.
+            lines.append(f"{_leg_time(c.out_leg)} 출발 · "
+                         f"{_leg_time(c.ret_leg)} 귀국 · {_airlines(c)}")
 
             # 재알림일 때만 표시. 첫 알림은 대부분 첫 알림이라 배지가 의미 없다.
             if a.prev_sent:
@@ -152,6 +148,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
             nv = naver_url(route, c.dep, c.ret, cfg.adults)
+            out_air = c.out_leg.get("airline", "")
             tag = f" ({out_air}만)" if any(x for x in codes if x) and out_air else ""
             lines.append(f'<a href="{g}">구글에서 보기{tag}</a> · '
                          f'<a href="{nv}">네이버</a>')
@@ -175,10 +172,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 # 바로 눌러 확인할 수 있게 한다 (사용자 요청, v1.31).
                 codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
                 url = google_flights_url(route, c.dep, c.ret, cfg.adults, codes)
-                dd = (c.dep - today).days
-                when = f" · D-{dd}" if dd > 0 else ""
-                lines.append(f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> '
-                             f'{c.nights}박{when} · {round(c.price / n):,}원/인')
+                lines.append(
+                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 · '
+                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} {_airlines(c)} · '
+                    f'{round(c.price / n):,}원/인')
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 
@@ -188,25 +185,37 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 
 
 def send(text: str) -> bool:
+    """TELEGRAM_CHAT_ID의 모든 대상에게 전송. 하나라도 성공하면 True.
+
+    여러 명에게 보내려면 Secret에 콤마로 나열한다 (v1.35):
+        123456789,-1001234567890
+    그룹은 chat_id가 음수다. 그룹 방에 봇을 초대한 뒤
+    https://api.telegram.org/bot<TOKEN>/getUpdates 로 확인할 수 있다.
+    """
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
+    raw = os.environ.get("TELEGRAM_CHAT_ID") or ""
+    targets = [c.strip() for c in raw.split(",") if c.strip()]
+    if not token or not targets:
         log.error("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 미설정")
         return False
-    try:
-        r = requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            json={
-                "chat_id": chat_id,
-                "text": text,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-            },
-            timeout=15,
-        )
-        if r.status_code != 200:
-            log.error("telegram %s: %s", r.status_code, r.text[:200])
-        return r.status_code == 200
-    except requests.RequestException as e:
-        log.error("telegram send failed: %s", e)
-        return False
+    ok_any = False
+    for chat_id in targets:
+        try:
+            r = requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                },
+                timeout=15,
+            )
+            if r.status_code == 200:
+                ok_any = True
+            else:
+                log.error("telegram %s (chat %s): %s",
+                          r.status_code, chat_id, r.text[:200])
+        except requests.RequestException as e:
+            log.error("telegram send failed (chat %s): %s", chat_id, e)
+    return ok_any

@@ -144,6 +144,9 @@ def main() -> int:
     from app.search import time_histogram
     hist = time_histogram()
     if hist:
+        # 로그로만 두면 옮겨 보기가 번거로워 파일로도 누적한다 (v1.36).
+        # data/time_hist.json 을 열면 언제든 확인 가능. 지우면 초기화.
+        state.merge_time_hist(hist)
         log.info("시간 분포 (직항 출발 시각 · 현재 시간창이 담는 비율)")
         for (o, d), hours in sorted(hist.items()):
             route = next((r for r in cfg.routes

@@ -101,6 +101,8 @@ def main():
 
     test_window_override()
     test_widened_window_marks_off_preference()
+    test_off_window_mark_is_short()
+    test_time_hist_persisted()
     test_roundtrip_verification()
     test_display_selection()
 
@@ -283,9 +285,12 @@ def test_near_dates_linked():
 
     body = msg.split("근처 날짜")[1]
     assert body.count("<a href=") == len(near), body   # 줄마다 링크 1개
-    assert "9/12" in body and "D-42" in body, body      # 날짜·남은 일수
+    assert "9/12" in body, body                         # 날짜·요일
+    assert "07:30/19:40" in body, body                  # 출발/귀국 시각
+    assert "제주항공" in body, body                       # 항공사
     assert "410,000원/인" in body, body                  # 820,000 / 2명
-    print("OK 근처 날짜: 줄마다 링크·요일·D-day·1인당 금액")
+    assert "D-" not in body, "D-day는 빼기로 했다"
+    print("OK 근처 날짜: 링크·요일·출발귀국시각·항공사·1인당 금액")
 
 
 def test_time_histogram():
@@ -321,6 +326,44 @@ def test_time_histogram():
                         "2026-08-01", "ICN", "NGO")
     assert best is not None and best.price == 300_000, best
     print("OK 시간 분포: 탈락편 포함 집계 · 채택은 창 안에서만")
+
+
+def test_off_window_mark_is_short():
+    """선호 시간 밖 표시는 시각 옆 ⚠ 한 글자로 (v1.35)."""
+    cfg = load()
+    r = [x for x in cfg.routes if x.key == "ICN-KOJ"][0]
+    c = engine.Combo(route=r, dep=dt.date(2026, 8, 12), nights=3, price=900_000,
+                     out_leg={"price": 1, "airline": "대한항공",
+                              "dep_time": "16:20", "carrier": "KE",
+                              "off_window": True},
+                     ret_leg={"price": 1, "airline": "대한항공",
+                              "dep_time": "18:55", "carrier": "KE"})
+    a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
+    msg = format_alerts(cfg, [a])[0]
+    assert "16:20⚠ 출발" in msg, msg
+    assert "18:55 귀국" in msg, msg            # 조건 맞는 쪽엔 표시 없음
+    assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
+    print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
+
+
+def test_time_hist_persisted():
+    """시간 분포가 실행마다 누적 저장되는지 (v1.36).
+
+    이 값은 원래 로그에만 있어 옮겨 보기가 번번이 실패했다.
+    data/time_hist.json 에 쌓아두면 저장소에서 바로 확인할 수 있다.
+    """
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+
+    st.merge_time_hist({("ICN", "KOJ"): {8: 1, 16: 13}})
+    st.merge_time_hist({("ICN", "KOJ"): {16: 5}, ("GMP", "CJU"): {6: 4}})
+
+    koj = st.time_hist["ICN-KOJ"]
+    assert koj == {"8": 1, "16": 18}, koj          # 실행 간 누적
+    assert st.time_hist["GMP-CJU"] == {"6": 4}
+    assert st.time_hist["_runs"] == 2, st.time_hist
+    assert "_updated" in st.time_hist
+    print("OK 시간 분포 저장: 실행 간 누적 · 노선별 분리")
 
 
 def test_tolerant_parser():
@@ -625,9 +668,12 @@ def test_near_dates_linked():
 
     body = msg.split("근처 날짜")[1]
     assert body.count("<a href=") == len(near), body   # 줄마다 링크 1개
-    assert "9/12" in body and "D-42" in body, body      # 날짜·남은 일수
+    assert "9/12" in body, body                         # 날짜·요일
+    assert "07:30/19:40" in body, body                  # 출발/귀국 시각
+    assert "제주항공" in body, body                       # 항공사
     assert "410,000원/인" in body, body                  # 820,000 / 2명
-    print("OK 근처 날짜: 줄마다 링크·요일·D-day·1인당 금액")
+    assert "D-" not in body, "D-day는 빼기로 했다"
+    print("OK 근처 날짜: 링크·요일·출발귀국시각·항공사·1인당 금액")
 
 
 def test_time_histogram():
@@ -663,6 +709,44 @@ def test_time_histogram():
                         "2026-08-01", "ICN", "NGO")
     assert best is not None and best.price == 300_000, best
     print("OK 시간 분포: 탈락편 포함 집계 · 채택은 창 안에서만")
+
+
+def test_off_window_mark_is_short():
+    """선호 시간 밖 표시는 시각 옆 ⚠ 한 글자로 (v1.35)."""
+    cfg = load()
+    r = [x for x in cfg.routes if x.key == "ICN-KOJ"][0]
+    c = engine.Combo(route=r, dep=dt.date(2026, 8, 12), nights=3, price=900_000,
+                     out_leg={"price": 1, "airline": "대한항공",
+                              "dep_time": "16:20", "carrier": "KE",
+                              "off_window": True},
+                     ret_leg={"price": 1, "airline": "대한항공",
+                              "dep_time": "18:55", "carrier": "KE"})
+    a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
+    msg = format_alerts(cfg, [a])[0]
+    assert "16:20⚠ 출발" in msg, msg
+    assert "18:55 귀국" in msg, msg            # 조건 맞는 쪽엔 표시 없음
+    assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
+    print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
+
+
+def test_time_hist_persisted():
+    """시간 분포가 실행마다 누적 저장되는지 (v1.36).
+
+    이 값은 원래 로그에만 있어 옮겨 보기가 번번이 실패했다.
+    data/time_hist.json 에 쌓아두면 저장소에서 바로 확인할 수 있다.
+    """
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+
+    st.merge_time_hist({("ICN", "KOJ"): {8: 1, 16: 13}})
+    st.merge_time_hist({("ICN", "KOJ"): {16: 5}, ("GMP", "CJU"): {6: 4}})
+
+    koj = st.time_hist["ICN-KOJ"]
+    assert koj == {"8": 1, "16": 18}, koj          # 실행 간 누적
+    assert st.time_hist["GMP-CJU"] == {"6": 4}
+    assert st.time_hist["_runs"] == 2, st.time_hist
+    assert "_updated" in st.time_hist
+    print("OK 시간 분포 저장: 실행 간 누적 · 노선별 분리")
 
 
 def test_tolerant_parser():

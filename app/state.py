@@ -40,6 +40,8 @@ class State:
         self.baselines: dict = _load("baselines.json")
         self.alerts_sent: dict = _load("alerts_sent.json")
         self.meta: dict = _load("meta.json")
+        # 노선·방향별 직항 출발 시각 분포 (시간창 판단 근거, v1.36)
+        self.time_hist: dict = _load("time_hist.json")
 
     # ---------- legs ----------
     @staticmethod
@@ -88,6 +90,24 @@ class State:
             self.meta["first_run"] = today.isoformat()
         return dt.date.fromisoformat(self.meta["first_run"])
 
+    def merge_time_hist(self, hist: dict) -> None:
+        """실행별 시간 분포를 data/time_hist.json 에 누적한다.
+
+        왜 파일로 남기나: 이 값은 원래 로그에만 있었는데, 로그를 옮겨오는
+        과정이 번번이 실패했다. 저장소에 파일로 두면 언제든 바로 확인할 수 있고
+        여러 실행이 쌓여 표본도 커진다. 초기화하려면 파일을 지우면 된다.
+
+        hist: {(origin, dest): {hour: count}}
+        """
+        cur = self.time_hist
+        for (o, d), hours in hist.items():
+            slot = cur.setdefault(f"{o}-{d}", {})
+            for h, c in hours.items():
+                slot[str(h)] = slot.get(str(h), 0) + c
+        cur["_runs"] = cur.get("_runs", 0) + 1
+        cur["_updated"] = dt.datetime.now(dt.timezone.utc).isoformat(
+            timespec="seconds")
+
     def record_run_stats(self, *, attempted: int, failed: int) -> None:
         runs = self.meta.setdefault("recent_runs", [])
         runs.append({
@@ -101,3 +121,4 @@ class State:
         _save("baselines.json", self.baselines)
         _save("alerts_sent.json", self.alerts_sent)
         _save("meta.json", self.meta)
+        _save("time_hist.json", self.time_hist)
