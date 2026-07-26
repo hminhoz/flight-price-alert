@@ -244,23 +244,36 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 row["clicked"] = clicked or "검색 버튼 못 찾음"
                 page.wait_for_timeout(2000)
 
-                row["clickables"] = page.evaluate("""() => {
-                    const out = [];
-                    document.querySelectorAll('button, a[role=button], [class*=search] a')
-                      .forEach(el => {
-                        const t = (el.innerText || '').trim().replace(/\\s+/g, ' ');
-                        if (!t || t.length > 24) return;
-                        const r = el.getBoundingClientRect();
-                        if (r.width < 20 || r.height < 12) return;
-                        out.push(t + ' | ' + (el.className || '').toString().slice(0, 42));
-                      });
-                    return out.slice(0, 40);
-                }""")
-                # 결과가 저절로 붙는지 먼저 본다 (클릭 없이 최대 60초)
+                # 결과가 붙을 때까지 기다린다 (검색 10~30초)
                 for _ in range(40):
                     page.wait_for_timeout(1500)
                     if _PRICE.search(page.inner_text("body")):
                         break
+
+                # 7차에서 querySelector는 되는데 직후 querySelectorAll이 0이었다.
+                # SSE로 결과가 계속 다시 그려져 호출 사이에 비는 순간이 있다.
+                # → 호출을 나누지 말고 **한 번에, 재시도까지 JS 안에서** 처리한다.
+                row["rows"] = page.evaluate("""async () => {
+                    const sels = ['[class^=domestic_item]',
+                                  '[class*=combination_item]',
+                                  '[class*=international_item]'];
+                    const sleep = ms => new Promise(r => setTimeout(r, ms));
+                    for (let attempt = 0; attempt < 8; attempt++) {
+                      for (const s of sels) {
+                        const els = Array.from(document.querySelectorAll(s));
+                        const good = els.filter(e => (e.innerText || '').length > 30);
+                        if (good.length) {
+                          return {sel: s, n: good.length,
+                                  texts: good.slice(0, 5).map(
+                                    e => e.innerText.split('\\n')
+                                          .map(x => x.trim()).filter(Boolean)
+                                          .join(' | ').slice(0, 400))};
+                        }
+                      }
+                      await sleep(1200);
+                    }
+                    return {sel: '', n: 0, texts: []};
+                }""")
                 text = page.inner_text("body")
                 row["body_len"] = len(text)
                 for marker in ("검색 결과", "항공편이 없", "다시 검색",
@@ -273,7 +286,11 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 row["found"] = len(prices)
                 row["min_price"] = prices[0] if prices else None
                 row["sample"] = prices[:6]
-                row["body_head"] = " ".join(text[:250].split())
+                # 파서를 짜려면 실물 배치를 봐야 한다. 결과가 시작되는 지점부터 넉넉히.
+                mark = max(text.find("가는 편 선택"), text.find("가격 낮은 순"),
+                           text.find("출발시각 빠른 순"), 0)
+                row["body_sample"] = " | ".join(
+                    x.strip() for x in text[mark:mark + 3000].splitlines() if x.strip())
             except Exception as e:  # noqa: BLE001
                 row["error"] = str(e)[:200]
             # 페이지가 모아둔 응답 본문을 꺼낸다
