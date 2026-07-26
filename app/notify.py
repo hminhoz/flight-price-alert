@@ -143,9 +143,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 🏆는 '깰 이전 기록이 있을 때'만. 새로 잡힌 조합은 비교 대상이 없어
         # 역대 최저라고 해봐야 의미가 없다 (v1.42).
         record = any(a.kind == "record" and a.prev_min for a in top)
-        head_price = round(best_price(top[0]) / max(n, 1))
-        lines = [f"{'🏆' if record else '✈️'} "
-                 f"<b>{city_label(cfg, route)} 1인 {head_price:,}원부터</b>"]
+        lines = [""]   # 제목은 표시 항목을 다 정한 뒤 채운다 (아래 head_idx)
+        head_idx = 0
         # 이 도시에 서울발 공항이 여러 개면 항목마다 공항을 밝힌다.
         multi_air = len({(c.route.origin, c.route.destination)
                          for c in combos_by_route.get(_key, [])
@@ -156,10 +155,16 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
         base = min(a.combo.price for a in top)
         limit = base * (1 + cfg.similar_margin_pct / 100)
-        near = sorted(
-            (c for c in combos_by_route.get(_key, [])
-             if (c.dep, c.nights) not in shown_deps and c.price <= limit),
-            key=lambda c: c.price)[: cfg.similar_top_n]
+        cands = [c for c in combos_by_route.get(_key, [])
+                 if (c.dep, c.nights) not in shown_deps and c.price <= limit]
+        # 같은 날 출발·같은 가격이면 박 수가 긴 쪽이 이득이라 그것만 남긴다.
+        # (3박과 4박이 같은 값이라 두 줄씩 뜨던 문제)
+        pick: dict = {}
+        for c in cands:
+            k = (c.dep, c.price, c.out_leg.get("dep_time"), c.ret_leg.get("dep_time"))
+            if k not in pick or c.nights > pick[k].nights:
+                pick[k] = c
+        near = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.similar_top_n]
 
         # 주 항목과 근처 날짜를 **하나의 오름차순 스트림**으로 합친다 (v1.38).
         # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
@@ -168,6 +173,13 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         stream = [(best_price(a), 0, a) for a in top]
         stream += [(c.price, 1, c) for c in near]
         stream.sort(key=lambda x: (x[0], x[1]))
+
+        # 제목의 "N원부터"는 **이 메시지에 실제로 실리는 것 중 최저가**여야 한다.
+        # 알림 항목만 보고 정하면, 더 싼 근처 날짜가 바로 아래 있는데도 제목이
+        # 비싼 값을 말하는 모순이 생긴다 (v1.44).
+        head_price = round(min(x[0] for x in stream) / max(n, 1))
+        lines[head_idx] = (f"{'🏆' if record else '✈️'} "
+                           f"<b>{city_label(cfg, route)} 1인 {head_price:,}원부터</b>")
 
         for _price, kind, obj in stream:
             if kind == 1:  # 근처 날짜 — 한 줄

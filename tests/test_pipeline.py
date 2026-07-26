@@ -112,6 +112,7 @@ def main():
     test_price_ordering()
     test_cross_airport_combos()
     test_weak_alert_suppressed()
+    test_header_matches_cheapest_shown()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -460,6 +461,44 @@ def test_weak_alert_suppressed():
     al = engine.process(cfg, st, [combo(950_000)], today)
     assert len(al) == 1, al
     print("OK 약한 알림 차단: 기준가 대비 임계 미만은 발송하지 않음")
+
+
+def test_header_matches_cheapest_shown():
+    """제목의 'N원부터'가 메시지에 실린 것 중 최저가와 일치하는지 (v1.44).
+
+    알림 항목만 보고 제목을 정하면, 더 싼 근처 날짜가 바로 아래 있는데도
+    제목이 비싼 값을 말한다. 실측 나고야에서 제목 368,688원 / 본문 282,139원.
+    """
+    import re as _re
+    cfg = load()
+    r = cfg.routes[0]
+
+    def mk(day, price, nights=3):
+        return engine.Combo(
+            route=r, dep=dt.date(2026, 9, day), nights=nights, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    alert_combo = mk(10, 800_000)
+    a = engine.Alert(kind="baseline", combo=alert_combo, baseline=900_000,
+                     prev_min=None)
+    cheaper = mk(14, 600_000)          # 알림은 아니지만 더 싸다
+    msg = format_alerts(cfg, [a], [alert_combo, cheaper])[0]
+
+    head = msg.splitlines()[0]
+    shown = [int(x.replace(",", "")) for x in
+             _re.findall(r"([\d,]+)원", _re.sub(r"</?b>", "", msg))]
+    assert f"{300_000:,}원부터" in head, head      # 600,000 / 2명
+    assert min(shown) == 300_000, (head, shown)
+
+    # 같은 날 같은 값이면 박 수가 긴 쪽만 (3박·4박 중복 제거)
+    dup3, dup4 = mk(16, 620_000, 3), mk(16, 620_000, 4)
+    msg2 = format_alerts(cfg, [a], [alert_combo, dup3, dup4])[0]
+    assert msg2.count("9/16") == 1, msg2
+    assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
+    print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
 
 
 def test_tolerant_parser():
@@ -937,6 +976,44 @@ def test_weak_alert_suppressed():
     al = engine.process(cfg, st, [combo(950_000)], today)
     assert len(al) == 1, al
     print("OK 약한 알림 차단: 기준가 대비 임계 미만은 발송하지 않음")
+
+
+def test_header_matches_cheapest_shown():
+    """제목의 'N원부터'가 메시지에 실린 것 중 최저가와 일치하는지 (v1.44).
+
+    알림 항목만 보고 제목을 정하면, 더 싼 근처 날짜가 바로 아래 있는데도
+    제목이 비싼 값을 말한다. 실측 나고야에서 제목 368,688원 / 본문 282,139원.
+    """
+    import re as _re
+    cfg = load()
+    r = cfg.routes[0]
+
+    def mk(day, price, nights=3):
+        return engine.Combo(
+            route=r, dep=dt.date(2026, 9, day), nights=nights, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "제주항공",
+                     "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "제주항공",
+                     "carrier": "7C"})
+
+    alert_combo = mk(10, 800_000)
+    a = engine.Alert(kind="baseline", combo=alert_combo, baseline=900_000,
+                     prev_min=None)
+    cheaper = mk(14, 600_000)          # 알림은 아니지만 더 싸다
+    msg = format_alerts(cfg, [a], [alert_combo, cheaper])[0]
+
+    head = msg.splitlines()[0]
+    shown = [int(x.replace(",", "")) for x in
+             _re.findall(r"([\d,]+)원", _re.sub(r"</?b>", "", msg))]
+    assert f"{300_000:,}원부터" in head, head      # 600,000 / 2명
+    assert min(shown) == 300_000, (head, shown)
+
+    # 같은 날 같은 값이면 박 수가 긴 쪽만 (3박·4박 중복 제거)
+    dup3, dup4 = mk(16, 620_000, 3), mk(16, 620_000, 4)
+    msg2 = format_alerts(cfg, [a], [alert_combo, dup3, dup4])[0]
+    assert msg2.count("9/16") == 1, msg2
+    assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
+    print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
 
 
 def test_tolerant_parser():
