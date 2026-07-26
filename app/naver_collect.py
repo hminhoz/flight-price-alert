@@ -23,7 +23,27 @@ from . import naver as NV
 
 log = logging.getLogger(__name__)
 
-_ONEWAY = "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?adult={n}"
+# URL 형식을 하나로 못 박지 않는다 (v1.80).
+#   실측: 편도 URL이 가는 편은 68행, 오는 편은 2행. 왜 방향에 따라 갈리는지
+#   아직 모른다. "기본 검색이 김포→제주라 우연히 맞았다"는 설명은 데이터와
+#   맞지 않는다 — 그렇다면 오는 편도 68행이 나왔어야 한다.
+#   왕복 형식은 탐침에서 101행이 나왔지만 그건 **가는 편을 앞 구간에 둔 경우**뿐,
+#   오는 편을 앞에 둔 형식은 시험한 적이 없다.
+# → 추론으로 하나를 고르지 말고 **둘 다 시도하고 어느 쪽이 통했는지 기록**한다.
+_FORMS = (
+    ("왕복형", "https://flight.naver.com/flights/domestic/"
+               "{o}-{d}-{ymd}/{d}-{o}-{ymd2}?adult={n}"),
+    ("편도형", "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?adult={n}"),
+)
+_MIN_ROWS = 8      # 이보다 적게 읽히면 실패로 보고 다른 형식을 시도
+
+
+def _urls(o: str, d: str, day, adults: int):
+    import datetime as _dt
+    back = day + _dt.timedelta(days=3)
+    for name, tpl in _FORMS:
+        yield name, tpl.format(o=o, d=d, ymd=day.strftime("%Y%m%d"),
+                               ymd2=back.strftime("%Y%m%d"), n=adults)
 
 
 def collect(route_pairs: list, dates_by_pair: dict, adults: int,
@@ -69,6 +89,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     done = skipped = 0
     # 방향별 성적. 한쪽만 실패하면(오는 편 92건 중 1건 같은) 즉시 보이도록.
     seen_stat: dict = {}
+    form_stat: dict = {}   # (방향, 형식) -> [시도, 읽은 행] — 어느 URL이 통하는지
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(
@@ -89,23 +110,31 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             if time.time() - started >= budget_sec:
                 break
             visited += 1
-            url = _ONEWAY.format(o=o, d=d, ymd=day.strftime("%Y%m%d"), n=adults)
-            try:
-                page.goto(url, wait_until="domcontentloaded", timeout=40000)
-                page.wait_for_timeout(2500)
-                for sel in ("[class*=searchBox_btn_search]",
-                            "button[class*=btn_search]"):
-                    try:
-                        el = page.locator(sel).first
-                        if el.count():
-                            el.click(timeout=5000)
-                            break
-                    except Exception:  # noqa: BLE001
-                        continue
-                rows = _read_rows(page)
-            except Exception as e:  # noqa: BLE001
-                log.info("네이버 %s-%s %s 실패: %s", o, d, day, str(e)[:90])
-                continue
+            rows, used = [], ""
+            for form, url in _urls(o, d, day, adults):
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=40000)
+                    page.wait_for_timeout(2500)
+                    for sel in ("[class*=searchBox_btn_search]",
+                                "button[class*=btn_search]"):
+                        try:
+                            el = page.locator(sel).first
+                            if el.count():
+                                el.click(timeout=5000)
+                                break
+                        except Exception:  # noqa: BLE001
+                            continue
+                    rows = _read_rows(page)
+                except Exception as e:  # noqa: BLE001
+                    log.info("네이버 %s-%s %s %s 실패: %s",
+                             o, d, day, form, str(e)[:80])
+                    rows = []
+                used = form
+                if len(rows) >= _MIN_ROWS:
+                    break     # 충분히 읽혔으면 다른 형식은 시도하지 않는다
+            form_stat.setdefault((direction, used), [0, 0])
+            form_stat[(direction, used)][0] += 1
+            form_stat[(direction, used)][1] += len(rows)
 
             best = NV.pick_best(rows, domestic=True,
                                 out_window=windows.get((route_key, direction)))
@@ -128,6 +157,8 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
         skipped = total - visited
         browser.close()
 
+    for (d_, f_), (q, rws) in sorted(form_stat.items()):
+        log.info("  URL %s %s: 시도 %d · 읽은 행 평균 %.0f", d_, f_, q, rws / max(q, 1))
     for d_, (q, rws, ok_) in sorted(seen_stat.items()):
         log.info("  방향 %s: 조회 %d · 읽은 행 평균 %.0f · 조건 통과 %d",
                  d_, q, rws / max(q, 1), ok_)
@@ -137,7 +168,10 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     still = max(0, missing - newly)
     log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 미수집 %d건 남음 (%.0f분)",
              done, total, len(out), still, (time.time() - started) / 60)
-    return out, still, total, seen_stat
+    merged = dict(seen_stat)
+    for (d_, f_), (q, rws) in form_stat.items():
+        merged[f"{d_}·{f_}"] = [q, rws, 0]
+    return out, still, total, merged
 
 
 def _read_rows(page) -> list:

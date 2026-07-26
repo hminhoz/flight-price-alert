@@ -322,8 +322,12 @@ def main() -> int:
         ds = state.meta.get("naver_dstat") or {}
         for d_, v in sorted(ds.items()):
             q, rws, ok_ = (list(v) + [0, 0, 0])[:3]
-            msg.append(f"{'가는 편' if d_ == 'out' else '오는 편'}: 시도 {q} · "
-                       f"읽은 행 평균 {rws / max(q, 1):.0f} · 조건 통과 {ok_}")
+            if "·" in d_:          # URL 형식별 성적 (어느 형식이 통하는지)
+                msg.append(f"[{d_.replace('out', '가는편').replace('ret', '오는편')}] "
+                           f"시도 {q} · 읽은 행 평균 {rws / max(q, 1):.0f}")
+            else:
+                msg.append(f"{'가는 편' if d_ == 'out' else '오는 편'}: 시도 {q} · "
+                           f"읽은 행 평균 {rws / max(q, 1):.0f} · 조건 통과 {ok_}")
         if win + lose:
             avg = round(sum(gaps) / len(gaps) / max(cfg.adults, 1)) if gaps else 0
             msg.append(f"구글 대비 승 {win} · 패 {lose}"
