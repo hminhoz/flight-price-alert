@@ -125,9 +125,12 @@ def search_leg(
                 return best
             if not used_fallback:
                 return None  # 필터 쿼리가 정상 응답 + 조건 맞는 편 없음 → 신뢰
-            # 폴백 응답이 경유편 위주(직항 누락)였을 수 있음(v1.9 진단:
-            # ICN-HND 등에서 폴백이 경유만 반환) → 직항 쿼리에 기회를 더 준다
-            time.sleep(1.5 + random.uniform(0, 1.5))
+            # 폴백 응답이 경유편 위주(직항 누락)였을 수 있어 한 번 더 본다.
+            # 단 v1.24 관대 파서 도입 뒤 직항 쿼리 성공률이 크게 올라
+            # 이 경로 자체가 드물다. 기회는 1회로 제한 (v1.30).
+            if attempt >= 1:
+                return None
+            time.sleep(1.0 + random.uniform(0, 1.0))
         except _soft:
             soft_fails += 1
             if soft_fails >= 2:

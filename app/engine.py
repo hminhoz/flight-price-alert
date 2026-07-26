@@ -161,6 +161,8 @@ class Alert:
     combo: Combo
     baseline: int
     prev_min: int | None
+    # v1.26: 이 조합으로 직전에 알림 보냈던 가격. 없으면 이번이 첫 알림.
+    prev_sent: int | None = None
     # v1.12: 알림 확정 후 왕복 재조회로 얻은 실제 왕복 총액. 조회 실패 시 None.
     # 판정(기준가/역대최저)은 여전히 combo.price(편도 합산) 기준 — 기준가와 같은
     # 척도라야 비교가 성립하므로 이 값은 표시 전용이다.
@@ -252,15 +254,19 @@ def process(cfg: Settings, state: State, combos: list[Combo],
         is_below_baseline = c.price <= b["baseline"]
         if not (is_record or is_below_baseline):
             continue
-        # 중복 억제: 직전 알림가보다 낮을 때만
+        # 중복 억제: 직전 알림가보다 min_redrop_pct 이상 더 싸졌을 때만 재알림.
+        # (예전엔 1원만 내려도 다시 보내서 같은 조합이 반복 노출됐다)
         sent = state.alerts_sent.get(c.key)
-        if sent and c.price >= sent["price"]:
-            continue
+        if sent:
+            need = sent["price"] * (1 - cfg.min_redrop_pct / 100)
+            if c.price > need:
+                continue
         alerts.append(Alert(
             kind="record" if is_record else "baseline",
             combo=c,
             baseline=b["baseline"],
             prev_min=b.get("alltime_min_prev"),
+            prev_sent=sent["price"] if sent else None,
         ))
 
     # 3) 전송 확정분 기록 (실 전송은 notify 성공 후 caller가 확정해도 되지만
@@ -279,6 +285,74 @@ def mark_sent(state: State, alerts: list[Alert]) -> None:
 def is_observing(cfg: Settings, state: State, today: dt.date) -> bool:
     first_run = state.first_run_date(today)
     return today < first_run + dt.timedelta(days=cfg.observation_days)
+
+
+# ---------------------------------------------------------------- 한 바퀴 진행도
+
+def note_shard(cfg: Settings, state: State, shard: int) -> tuple[int, int, bool]:
+    """이번 실행의 샤드를 진행도에 기록.
+
+    Returns: (이번 바퀴에 훑은 샤드 수, 전체 샤드 수, 방금 한 바퀴를 마쳤는가)
+
+    샤드 커서는 매 실행 +1 되므로 shards번이면 전 조합을 한 번씩 본다. 다만
+    실행이 생략·중복될 수 있어 단순 카운트 대신 '본 샤드 집합'으로 판정한다.
+    """
+    seen = set(state.meta.get("cycle_shards") or [])
+    if not seen:
+        state.meta["cycle_started_at"] = dt.datetime.now(
+            dt.timezone.utc).isoformat(timespec="seconds")
+    seen.add(shard)
+    done = len(seen) >= cfg.shards
+    state.meta["cycle_shards"] = [] if done else sorted(seen)
+    if done:
+        state.meta["last_cycle_done_at"] = dt.datetime.now(
+            dt.timezone.utc).isoformat(timespec="seconds")
+    return (cfg.shards if done else len(seen)), cfg.shards, done
+
+
+def cycle_report(cfg: Settings, state: State, today: dt.date,
+                 total_legs: int) -> str | None:
+    """한 바퀴 완료 알림. cycle_report 정책에 따라 None을 돌려줄 수 있다."""
+    policy = cfg.cycle_report
+    if policy == "off":
+        return None
+    if policy == "daily" and state.meta.get("last_cycle_report") == today.isoformat():
+        return None
+    state.meta["last_cycle_report"] = today.isoformat()
+
+    started = state.meta.get("cycle_started_at")
+    took = ""
+    if started:
+        try:
+            d = dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(started)
+            mins = int(d.total_seconds() // 60)
+            took = f" · {mins // 60}시간 {mins % 60}분 걸림" if mins >= 60 else f" · {mins}분 걸림"
+        except ValueError:
+            pass
+
+    lines = [f"🔄 <b>전체 한 바퀴 완료</b>",
+             f"{total_legs:,}개 편도를 모두 확인했습니다{took}"]
+    body = _baseline_lines(cfg, state)
+    if body:
+        lines.append("")
+        lines.append(f"지금 최저가 (성인 {cfg.adults}명 기준 1인당)")
+        lines += body
+    return "\n".join(lines)
+
+
+def _baseline_lines(cfg: Settings, state: State) -> list[str]:
+    """노선·월별 현재 최저가 목록 (1인당)."""
+    labels = {r.key: r.label for r in cfg.routes}
+    out = []
+    for unit in sorted(state.baselines):
+        b = state.baselines[unit]
+        if "baseline" not in b:
+            continue
+        route_key, month = unit.split("|")
+        m = int(month.split("-")[1])
+        per = round(b["baseline"] / max(cfg.adults, 1))
+        out.append(f"· {labels.get(route_key, route_key)} {m}월: ₩{per:,}/인")
+    return out
 
 
 def observation_report(cfg: Settings, state: State, today: dt.date) -> str | None:

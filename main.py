@@ -56,7 +56,9 @@ def main() -> int:
     max_legs = os.environ.get("MAX_LEGS")
     if max_legs:
         legs = legs[: int(max_legs)]
-    log.info("shard=%d 검색 대상 %d개 leg", shard, len(legs))
+    done_n, total_n, cycle_done = engine.note_shard(cfg, state, shard)
+    log.info("shard=%d 검색 대상 %d개 leg · 이번 바퀴 진행 %d/%d%s",
+             shard, len(legs), done_n, total_n, " (완주)" if cycle_done else "")
     for r in cfg.routes:
         if cfg.has_window_override(r.key):
             o, rt = cfg.window_for(r.key, "out"), cfg.window_for(r.key, "ret")
@@ -69,15 +71,23 @@ def main() -> int:
     stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0, 0])  # [가격확보, 조건불일치, 실패, 데이터없음]
     last_errors: dict[str, str] = {}
     attempted = failed = 0
-    for leg in legs:
-        attempted += 1
+
+    def work(leg):
+        """네트워크 작업만 담당. 상태 기록은 메인 스레드에서 한다."""
+        polite_delay(cfg.request_delay_sec)
         window = cfg.window_for(leg.route.key, leg.direction)
         try:
-            res = search_leg(
+            return leg, search_leg(
                 leg.origin, leg.dest, leg.date.isoformat(),
                 adults=cfg.adults, window=window, currency=cfg.currency,
                 direct_only=cfg.direct_only, retries=cfg.retry,
-            )
+            ), None
+        except Exception as e:  # noqa: BLE001 - 분류는 아래에서
+            return leg, None, e
+
+    def absorb(leg, res, err):
+        nonlocal failed
+        if err is None:
             if res:
                 state.record_leg(leg.key, price=res.price, airline=res.airline,
                                  dep_time=res.dep_time, arr_time=res.arr_time,
@@ -86,14 +96,30 @@ def main() -> int:
             else:
                 state.record_leg(leg.key, price=None)
                 stats[leg.route.key][1] += 1
-        except NoFlightData:
+        elif isinstance(err, NoFlightData):
             state.record_leg(leg.key, price=None)
             stats[leg.route.key][3] += 1
-        except SearchError as e:
+        elif isinstance(err, SearchError):
             failed += 1
             stats[leg.route.key][2] += 1
-            last_errors[leg.route.key] = str(e)[:140]
-        polite_delay(cfg.request_delay_sec)
+            last_errors[leg.route.key] = str(err)[:140]
+        else:
+            failed += 1
+            stats[leg.route.key][2] += 1
+            last_errors[leg.route.key] = f"{type(err).__name__}: {str(err)[:120]}"
+
+    if cfg.concurrency > 1 and len(legs) > 1:
+        # 상태 기록은 메인 스레드가 순차로 하므로 자료구조 경합이 없다.
+        from concurrent.futures import ThreadPoolExecutor
+        log.info("동시 검색 %d개로 진행", cfg.concurrency)
+        with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
+            for leg, res, err in pool.map(work, legs):
+                attempted += 1
+                absorb(leg, res, err)
+    else:
+        for leg in legs:
+            attempted += 1
+            absorb(*work(leg))
 
     state.record_run_stats(attempted=attempted, failed=failed)
     log.info("검색 완료: %d 시도 → 가격확보 %d / 조건불일치 %d / 실패 %d / 데이터없음 %d",
@@ -221,6 +247,15 @@ def main() -> int:
             polite_delay(cfg.request_delay_sec)
         log.info("=== 사전 점검 결과: %d건 중 %d건 확보 ===",
                  len(cheapest_per_route), ok)
+
+    # 한 바퀴(전 조합 1회 훑기) 완료 보고
+    if cycle_done:
+        msg = engine.cycle_report(cfg, state, today, len(engine.all_legs(cfg, today)))
+        if msg:
+            deliver(msg)
+            log.info("한 바퀴 완료 보고 전송")
+        else:
+            log.info("한 바퀴 완료 (보고는 정책상 생략)")
 
     err = engine.failure_alert_needed(cfg, state)
     if err:

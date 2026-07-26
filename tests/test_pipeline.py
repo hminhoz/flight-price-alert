@@ -72,7 +72,7 @@ def main():
     assert alerts, "특가에 알림 미발생"
     assert all(a.kind == "record" for a in alerts)
     msgs = format_alerts(CFG, alerts, combos)
-    assert len(msgs) == 1 and "역대 최저가" in msgs[0] and "200,000" in msgs[0]
+    assert len(msgs) == 1 and "역대 최저" in msgs[0] and "200,000" in msgs[0]
     engine.mark_sent(state, alerts)
     print(f"OK 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")
     print("\n----- 메시지 미리보기 -----")
@@ -107,6 +107,9 @@ def main():
     test_preview_alerts()
     test_per_person_and_link()
     test_price_ordering()
+    test_new_vs_drop_badge()
+    test_bundle_gap_filter()
+    test_cycle_progress()
 
     print("\n=== 전체 통과 ===")
 
@@ -142,9 +145,9 @@ def test_per_person_and_link():
                  "carrier": "7C"})
     a = engine.Alert(kind="baseline", combo=combo, baseline=850_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "400,000/인" in msg, msg          # 800,000 / 성인 2명
-    assert "총 ₩800,000" in msg, msg          # 총액도 함께
-    assert "해당 항공사만" in msg, msg
+    assert "400,000원</b>/인" in msg, msg      # 800,000 / 성인 2명 (굵게)
+    assert "2명 800,000원" in msg, msg         # 총액도 함께
+    assert "구글에서 보기 (" in msg, msg        # 항공사 필터가 걸린 링크
 
     # 항공사 코드가 들어가면 링크가 달라져야 한다
     with_code = google_flights_url(route, combo.dep, combo.ret, cfg.adults, ["7C"])
@@ -153,7 +156,7 @@ def test_per_person_and_link():
     # 코드를 모르면 필터 없는 링크 + 다른 라벨
     combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
     msg2 = format_alerts(cfg, [a])[0]
-    assert "검색결과" in msg2 and "해당 항공사만" not in msg2
+    assert "구글에서 보기</a>" in msg2, msg2    # 필터 없으면 괄호 표기 없음
     print("OK 1인당 표기 + 항공사 필터 링크")
 
 
@@ -183,10 +186,78 @@ def test_price_ordering():
     assert r2.label in msgs[0], "더 싼 노선의 메시지가 먼저 와야 한다"
 
     body = msgs[1]
-    i_cheap = body.index("250,000/인")   # 500,000 / 2명
-    i_exp = body.index("400,000/인")     # 800,000 / 2명
+    i_cheap = body.index("250,000원")   # 500,000 / 2명
+    i_exp = body.index("400,000원</b>/인")   # 800,000 / 2명
     assert i_cheap < i_exp, f"싼 항목이 위에 와야 한다:\n{body}"
     print("OK 정렬: 노선 간·노선 내 모두 실제 금액 오름차순")
+
+
+def test_new_vs_drop_badge():
+    """첫 알림엔 🆕, 재알림엔 얼마나 더 내렸는지 표시 (v1.26)."""
+    cfg = load()
+    c = engine.Combo(route=cfg.routes[0], dep=dt.date(2026, 9, 10), nights=3,
+                     price=800_000,
+                     out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                     ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+    first = engine.Alert(kind="baseline", combo=c, baseline=850_000, prev_min=None)
+    msg = format_alerts(cfg, [first])[0]
+    assert "지난 알림" not in msg, "첫 알림에는 재알림 문구가 없어야 한다"
+
+    again = engine.Alert(kind="baseline", combo=c, baseline=850_000,
+                         prev_min=None, prev_sent=900_000)
+    msg = format_alerts(cfg, [again])[0]
+    assert "지난 알림" in msg and "50,000원 더 내렸어요" in msg, msg  # 100,000 / 2명
+    print("OK 재알림 표시: 첫 알림은 조용, 재알림은 하락폭 명시")
+
+
+def test_bundle_gap_filter():
+    """가격 차이가 미미한 옆 날짜는 묶음에서 빠지는지 (v1.27)."""
+    cfg = load()
+    r = cfg.routes[0]
+
+    def mk(day, price):
+        c = engine.Combo(route=r, dep=dt.date(2026, 9, day), nights=3, price=price,
+                         out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                         ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+        return engine.Alert(kind="baseline", combo=c, baseline=price, prev_min=None)
+
+    # 1% 차이 3개 → 1줄만 남아야 한다 (기본 임계 3%)
+    msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 808_000), mk(12, 816_000)])[0]
+    assert msg.count("3박") == 1, f"미미한 차이가 여러 줄로 노출됨:\n{msg}"
+
+    # 10% 차이면 둘 다 보여야 한다
+    msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 880_000)])[0]
+    assert msg.count("3박") == 2, msg
+    print("OK 묶음 간격: 1% 차이는 1줄로 정리, 10% 차이는 각각 노출")
+
+
+def test_cycle_progress():
+    """샤드를 다 훑으면 완주로 잡고, 보고 정책이 지켜지는지 (v1.28)."""
+    cfg = load()
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    today = dt.date(2026, 8, 1)
+
+    # 샤드를 하나씩 돌면 마지막에 완주
+    for i in range(cfg.shards):
+        n, total, done = engine.note_shard(cfg, st, i)
+        assert total == cfg.shards
+        assert done == (i == cfg.shards - 1), (i, done)
+    assert st.meta["cycle_shards"] == [], "완주 후에는 진행도가 초기화돼야 한다"
+
+    # 같은 샤드가 반복돼도 완주로 오인하지 않는다 (실행 중복 대비)
+    st.meta["cycle_shards"] = []
+    for _ in range(cfg.shards + 2):
+        _, _, done = engine.note_shard(cfg, st, 0)
+        assert not done, "같은 샤드 반복은 완주가 아니다"
+
+    # daily 정책: 하루 한 번만 보고
+    st.baselines = {"ICN-NGO|2026-08": {"baseline": 700_000, "daily_min": {}}}
+    first = engine.cycle_report(cfg, st, today, 1017)
+    assert first and "한 바퀴 완료" in first and "1,017" in first, first
+    assert "350,000/인" in first, first          # 700,000 / 성인 2명
+    assert engine.cycle_report(cfg, st, today, 1017) is None, "하루 두 번 보고됨"
+    print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
 
 def test_tolerant_parser():
@@ -283,28 +354,21 @@ def test_roundtrip_verification():
 
     # 왕복가 미확보 → 편도 2장만 표시
     msg = format_alerts(cfg, [a])[0]
-    assert "800,000" in msg and "편도 2장" in msg, msg
-    assert "왕복 티켓" not in msg
+    assert "편도 2장" in msg and "왕복권" not in msg, msg
 
-    # 왕복이 더 비싼 경우 → 편도 2장 쪽에 저렴 표시
+    # 왕복이 더 비싼 경우 → 편도 2장이 대표 금액, 왕복은 비교용 한 줄
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
-    assert "800,000" in msg and "1,200,000" in msg, msg
-    one_way_line = [l for l in msg.split("\n") if "편도 2장" in l][0]
-    round_line = [l for l in msg.split("\n") if "왕복 티켓" in l][0]
-    assert "50% 저렴" in one_way_line, one_way_line
-    assert "저렴" not in round_line, round_line
+    assert "편도 2장 <b>400,000원</b>/인" in msg, msg   # 800,000 / 2명
+    assert "왕복권으로 사면 600,000원/인" in msg, msg   # 1,200,000 / 2명
+    assert "편도 2장이 유리" in msg, msg
 
-    # 왕복이 더 싼 경우 → 왕복 쪽에 저렴 표시 (노선마다 갈리므로 양방향 필요)
+    # 왕복이 더 싼 경우 → 왕복이 대표 금액 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
-    round_line = [l for l in msg.split("\n") if "왕복 티켓" in l][0]
-    one_way_line = [l for l in msg.split("\n") if "편도 2장" in l][0]
-    assert "25% 저렴" in round_line, round_line
-    assert "저렴" not in one_way_line, one_way_line
-    # 판정 근거는 어느 쪽이든 편도합산 기준 유지 (기준가와 같은 척도)
-    assert "-11.1%" in msg, f"하락률이 편도합산 기준이 아니다: {msg}"
-    print("OK 알림 표시: 편도 2장과 왕복 티켓 병기, 싼 쪽 자동 강조")
+    assert "왕복권 <b>300,000원</b>/인" in msg, msg
+    assert "왕복이 유리" in msg, msg
+    print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 
 def test_display_selection():
@@ -321,10 +385,14 @@ def test_display_selection():
                                    prev_min=None))
     picked = engine.display_selection(cfg, alerts)
     assert len(picked) == cfg.bundle_top_n, len(picked)
-    # 본문에 실제로 실린 조합과 일치해야 한다 (쿼리 낭비/누락 방지)
+    # 본문에 실린 조합은 검증 대상의 부분집합이어야 한다.
+    # (v1.27부터 가격 차이가 미미한 항목은 본문에서 빠지므로 '일치'가 아니라
+    #  '포함'이 조건이다. 검증받지 않은 항목이 표시되는 일만 없으면 된다)
     msg = format_alerts(cfg, alerts)[0]
-    for a in picked:
-        assert f"{a.combo.dep.month}/{a.combo.dep.day}" in msg
+    picked_days = {f"{a.combo.dep.month}/{a.combo.dep.day}" for a in picked}
+    shown = {f"{a.combo.dep.month}/{a.combo.dep.day}" for a in alerts
+             if f"{a.combo.dep.month}/{a.combo.dep.day}" in msg}
+    assert shown and shown <= picked_days, (shown, picked_days)
     cheapest = min(a.combo.price for a in alerts)
     assert min(a.combo.price for a in picked) == cheapest, "최저가가 선별에서 누락"
     print(f"OK 검증 대상 선별: 알림 {len(alerts)}건 → 왕복 쿼리 {len(picked)}건")
