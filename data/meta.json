@@ -1,16 +1,13 @@
 {
- "cycle_shards": [],
- "cycle_started_at": "2026-07-26T03:16:47+00:00",
+ "cycle_shards": [
+  0
+ ],
+ "cycle_started_at": "2026-07-26T03:58:58+00:00",
  "first_run": "2026-07-24",
  "last_cycle_done_at": "2026-07-26T03:33:18+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "recent_runs": [
-  {
-   "at": "2026-07-25T12:52:50+00:00",
-   "attempted": 258,
-   "failed": 17
-  },
   {
    "at": "2026-07-25T13:11:39+00:00",
    "attempted": 252,
@@ -55,8 +52,13 @@
    "at": "2026-07-26T03:41:34+00:00",
    "attempted": 709,
    "failed": 0
+  },
+  {
+   "at": "2026-07-26T04:07:37+00:00",
+   "attempted": 732,
+   "failed": 0
   }
  ],
- "shard_cursor": 1,
+ "shard_cursor": 0,
  "startup_sent": true
 }
