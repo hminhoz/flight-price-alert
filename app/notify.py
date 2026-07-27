@@ -382,17 +382,25 @@ def format_board(cfg: Settings, combos: list, stamp: str,
     blocks = [city_block(pk[: cfg.board_top_n]) for pk in ranked]
     foot = f"성인 {cfg.adults}명 · ⚠는 선호 시간대 밖 · 날짜를 누르면 예약처로"
 
-    msgs, cur = [], [title]
+    # 통을 나눈 뒤 **모든 통에** 같은 형식으로 번호를 붙인다.
+    # 첫 통만 번호가 없어 "1/3은 왜 없지?"가 됐다 (v1.99).
+    msgs, cur = [], []
     for b in blocks:
-        cand = cur + ["", b]
-        if len("\n".join(cand)) + len(foot) + 2 > _BOARD_SAFE_LEN and len(cur) > 1:
+        cand = cur + ["", b] if cur else [b]
+        if len("\n".join(cand)) + len(title) + len(foot) + 8 > _BOARD_SAFE_LEN and cur:
             msgs.append("\n".join(cur))
-            cur = [f'📌 <b>항공권 최저가</b> ({len(msgs) + 1}/@)', '', b]
+            cur = [b]
         else:
             cur = cand
-    cur += ["", foot]
     msgs.append("\n".join(cur))
-    return [m.replace("/@)", f"/{len(msgs)})") for m in msgs]
+
+    total = len(msgs)
+    out = []
+    for i, body in enumerate(msgs, 1):
+        head = title if total == 1 else f"{title} · <b>{i}/{total}</b>"
+        tail = foot if i == total else f"({i}/{total} — 아래로 계속)"
+        out.append(f"{head}\n\n{body}\n\n{tail}")
+    return out
 
 
 def _blink(cfg, c) -> str:
