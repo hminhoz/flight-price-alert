@@ -315,17 +315,17 @@ def main() -> int:
                 gaps.append(g["price"] - v["price"])
             else:
                 lose += 1
-        if not naver_ran:
-            # 왜 안 돌았는지 바로 알 수 있게. 조용히 끝나면 "돌렸는데 왜?"가 된다.
-            msg.append(f"모드가 naver-run이 아니거나 노선 설정이 비어 있습니다 "
-                       f"(오늘 자동 수집 {state.meta.get('naver_runs', 0)}/"
-                       f"{cfg.naver_runs_per_day}회 사용)")
         rem = int(state.meta.get("naver_remain", 0))
         tot = int(state.meta.get("naver_total", 0)) or 145
         msg = ["🧪 <b>네이버 수집</b>" if naver_ran
                else "🧪 <b>네이버 수집 — 이번엔 실행되지 않았습니다</b>",
                f"가는 편 {by_dir.get('out', 0)}건 · 오는 편 {by_dir.get('ret', 0)}건 "
                f"(누적 {len(nvl)}건)"]
+        if not naver_ran:
+            # 왜 안 돌았는지 바로 알 수 있게. 조용히 끝나면 "돌렸는데 왜?"가 된다.
+            msg.append(f"모드가 naver-run이 아니거나 노선 설정이 비어 있습니다 "
+                       f"(오늘 자동 수집 {state.meta.get('naver_runs', 0)}/"
+                       f"{cfg.naver_runs_per_day}회 사용)")
         if rem:
             msg.append(f"{tot}건 중 {rem}건 미수집 — 다음 실행이 이어받아요")
         else:

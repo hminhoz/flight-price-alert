@@ -54,7 +54,9 @@ def _urls(o: str, d: str, day, adults: int):
 
 def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             windows: dict, budget_sec: int = 1500,
-            known: dict | None = None, probe_mod=None) -> tuple[dict, int, int]:
+            known: dict | None = None, probe_mod=None,
+            delay: tuple = (8, 16), reset_every: int = 12,
+            stop_after_fail: int = 6) -> tuple[dict, int, int, dict]:
     """편도 단위로 훑어 {leg_key: {...}} 를 돌려준다.
 
     route_pairs: [("GMP","CJU","out","GMP-CJU"), ("CJU","GMP","ret","GMP-CJU"), ...]

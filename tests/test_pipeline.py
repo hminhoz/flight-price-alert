@@ -125,6 +125,7 @@ def main():
     test_naver_leg_merge()
     test_naver_schedule()
     test_naver_job_order()
+    test_call_signatures()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -990,6 +991,50 @@ def test_naver_job_order():
     assert got[:2] == ["ret:1", "ret:2"], got
     assert got[2] == "out:2" and got[3] == "out:1", got
     print("OK 네이버 순서: 미수집 우선 · 그다음 오래된 것부터")
+
+
+def test_call_signatures():
+    """main.py가 넘기는 인자를 함수가 실제로 받는지 (v1.89).
+
+    2026-07-27 CI가 12초 만에 죽었다:
+      · `collect() got an unexpected keyword argument 'delay'` — 시그니처 수정이
+        한쪽에만 반영됐다
+      · `UnboundLocalError: msg` — 변수 정의보다 앞에 코드를 넣었다
+    둘 다 문법은 통과하므로 ast.parse로는 못 잡는다. 호출부와 정의를 대조한다.
+    """
+    import ast as _ast
+    import inspect
+    from app import naver_collect as NVC
+
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    tree = _ast.parse(src)
+
+    # main.py 안의 NVC.collect(...) 호출에서 쓰는 키워드를 모은다
+    used = set()
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Call):
+            continue
+        f = node.func
+        name = getattr(f, "attr", None) or getattr(f, "id", None)
+        if name != "collect":
+            continue
+        used |= {kw.arg for kw in node.keywords if kw.arg}
+    assert used, "main.py에서 collect 호출을 찾지 못했다 (테스트 전제 붕괴)"
+
+    have = set(inspect.signature(NVC.collect).parameters)
+    missing = used - have
+    assert not missing, f"collect가 안 받는 인자를 넘기고 있다: {sorted(missing)}"
+
+    # 반환값 개수도 맞아야 한다 (tuple 언패킹 실패는 런타임에야 터진다)
+    for node in _ast.walk(tree):
+        if (isinstance(node, _ast.Assign) and isinstance(node.value, _ast.Call)
+                and getattr(node.value.func, "attr", "") == "collect"
+                and isinstance(node.targets[0], _ast.Tuple)):
+            n = len(node.targets[0].elts)
+            doc = inspect.getsource(NVC.collect)
+            assert "-> tuple[dict, int, int, dict]" in doc and n == 4, (
+                f"collect 반환값 {n}개로 받는데 정의와 다르다")
+    print(f"OK 호출 시그니처: collect 인자 {len(used)}개·반환 4개 일치")
 
 
 def test_tolerant_parser():
@@ -1984,6 +2029,50 @@ def test_naver_job_order():
     assert got[:2] == ["ret:1", "ret:2"], got
     assert got[2] == "out:2" and got[3] == "out:1", got
     print("OK 네이버 순서: 미수집 우선 · 그다음 오래된 것부터")
+
+
+def test_call_signatures():
+    """main.py가 넘기는 인자를 함수가 실제로 받는지 (v1.89).
+
+    2026-07-27 CI가 12초 만에 죽었다:
+      · `collect() got an unexpected keyword argument 'delay'` — 시그니처 수정이
+        한쪽에만 반영됐다
+      · `UnboundLocalError: msg` — 변수 정의보다 앞에 코드를 넣었다
+    둘 다 문법은 통과하므로 ast.parse로는 못 잡는다. 호출부와 정의를 대조한다.
+    """
+    import ast as _ast
+    import inspect
+    from app import naver_collect as NVC
+
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    tree = _ast.parse(src)
+
+    # main.py 안의 NVC.collect(...) 호출에서 쓰는 키워드를 모은다
+    used = set()
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Call):
+            continue
+        f = node.func
+        name = getattr(f, "attr", None) or getattr(f, "id", None)
+        if name != "collect":
+            continue
+        used |= {kw.arg for kw in node.keywords if kw.arg}
+    assert used, "main.py에서 collect 호출을 찾지 못했다 (테스트 전제 붕괴)"
+
+    have = set(inspect.signature(NVC.collect).parameters)
+    missing = used - have
+    assert not missing, f"collect가 안 받는 인자를 넘기고 있다: {sorted(missing)}"
+
+    # 반환값 개수도 맞아야 한다 (tuple 언패킹 실패는 런타임에야 터진다)
+    for node in _ast.walk(tree):
+        if (isinstance(node, _ast.Assign) and isinstance(node.value, _ast.Call)
+                and getattr(node.value.func, "attr", "") == "collect"
+                and isinstance(node.targets[0], _ast.Tuple)):
+            n = len(node.targets[0].elts)
+            doc = inspect.getsource(NVC.collect)
+            assert "-> tuple[dict, int, int, dict]" in doc and n == 4, (
+                f"collect 반환값 {n}개로 받는데 정의와 다르다")
+    print(f"OK 호출 시그니처: collect 인자 {len(used)}개·반환 4개 일치")
 
 
 def test_tolerant_parser():
