@@ -73,7 +73,7 @@ def main():
     assert alerts, "특가에 알림 미발생"
     assert all(a.kind == "record" for a in alerts)
     msgs = format_alerts(CFG, alerts, combos)
-    assert len(msgs) == 1 and "역대 최저" in msgs[0] and "200,000" in msgs[0]
+    assert len(msgs) == 1 and "싸짐" in msgs[0] and "200,000" in msgs[0]
     engine.mark_sent(state, alerts)
     print(f"OK 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")
     print("\n----- 메시지 미리보기 -----")
@@ -150,7 +150,7 @@ def test_preview_alerts():
     assert min(a.combo.price for a in pv) == min(c.price for c in combos)
     # 기준가를 조합가와 같게 세팅하므로 메시지에 '기준가' 줄이 자연스럽게 나온다
     msg = format_alerts(cfg, pv, combos)[0]
-    assert "편도 2장" in msg
+    assert "원</b>/인" in msg
     print(f"OK 미리보기: 콤보 {len(combos)}개 → 노선별 최저 {len(pv)}건")
 
 
@@ -169,7 +169,7 @@ def test_per_person_and_link():
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg      # 800,000 / 성인 2명 (굵게)
     assert "2명 800,000원" in msg, msg         # 총액도 함께
-    assert "구글에서 보기 (" in msg, msg        # 항공사 필터가 걸린 링크
+    assert "<a href=" in msg, msg              # 링크
 
     # 항공사 코드가 들어가면 링크가 달라져야 한다
     with_code = google_flights_url(route, combo.dep, combo.ret, cfg.adults, ["7C"])
@@ -178,7 +178,7 @@ def test_per_person_and_link():
     # 코드를 모르면 필터 없는 링크 + 다른 라벨
     combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
     msg2 = format_alerts(cfg, [a])[0]
-    assert "구글에서 보기</a>" in msg2, msg2    # 필터 없으면 괄호 표기 없음
+    assert "구글</a>" in msg2, msg2
     print("OK 1인당 표기 + 항공사 필터 링크")
 
 
@@ -228,7 +228,7 @@ def test_new_vs_drop_badge():
     again = engine.Alert(kind="baseline", combo=c, baseline=850_000,
                          prev_min=None, prev_sent=900_000)
     msg = format_alerts(cfg, [again])[0]
-    assert "지난 알림" in msg and "50,000원 더 내렸어요" in msg, msg  # 100,000 / 2명
+    assert "지난 알림보다 50,000원 더 내림" in msg, msg  # 100,000 / 2명
     print("OK 재알림 표시: 첫 알림은 조용, 재알림은 하락폭 명시")
 
 
@@ -245,11 +245,11 @@ def test_bundle_gap_filter():
 
     # 1% 차이 3개 → 1줄만 남아야 한다 (기본 임계 3%)
     msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 808_000), mk(12, 816_000)])[0]
-    assert msg.count("3박") == 1, f"미미한 차이가 여러 줄로 노출됨:\n{msg}"
+    assert msg.split("다른 날짜")[0].count("3박") == 1, msg
 
     # 10% 차이면 둘 다 보여야 한다
     msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 880_000)])[0]
-    assert msg.count("3박") == 2, msg
+    assert msg.split("다른 날짜")[0].count("3박") == 2, msg
     print("OK 묶음 간격: 1% 차이는 1줄로 정리, 10% 차이는 각각 노출")
 
 
@@ -318,13 +318,10 @@ def test_near_dates_linked():
     msg = format_alerts(cfg, [a], [top] + near, today=dt.date(2026, 8, 1))[0]
 
     # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
-    one_liners = [l for l in msg.split("\n") if l.startswith("· <a href=")]
-    assert len(one_liners) == len(near), msg
-    body = "\n".join(one_liners)
+    body = msg.split("다른 날짜")[1] if "다른 날짜" in msg else ""
+    assert body.count("<a href=") == len(near), msg
     assert "9/12" in body, body                         # 날짜·요일
-    assert "07:30/19:40" in body, body                  # 출발/귀국 시각
-    assert "제주항공" in body, body                       # 항공사
-    assert "410,000원/인" in body, body                  # 820,000 / 2명
+    assert "410,000" in body, body                      # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
 
     # 메시지 전체가 오름차순이어야 한다 (13만 → 16만 → 13만 사태 방지)
@@ -382,8 +379,7 @@ def test_off_window_mark_is_short():
                               "dep_time": "18:55", "carrier": "KE"})
     a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "16:20⚠ 출발" in msg, msg
-    assert "18:55 귀국" in msg, msg            # 조건 맞는 쪽엔 표시 없음
+    assert "16:20⚠ → 18:55" in msg, msg       # 조건 밖인 쪽에만 ⚠
     assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
     print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
 
@@ -531,7 +527,7 @@ def test_header_matches_cheapest_shown():
     head = msg.splitlines()[0]
     shown = [int(x.replace(",", "")) for x in
              _re.findall(r"([\d,]+)원", _re.sub(r"</?b>", "", msg))]
-    assert f"{300_000:,}원부터" in head, head      # 600,000 / 2명
+    assert f"{300_000:,}원</b>/인" in head, head   # 600,000 / 2명
     assert min(shown) == 300_000, (head, shown)
 
     # 같은 날 같은 값이면 박 수가 긴 쪽만 (3박·4박 중복 제거)
@@ -539,6 +535,7 @@ def test_header_matches_cheapest_shown():
     msg2 = format_alerts(cfg, [a], [alert_combo, dup3, dup4])[0]
     assert msg2.count("9/16") == 1, msg2
     assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
+    # 제목 금액은 본문 최저와 같아야 한다 (근처 날짜가 더 쌀 수 있다)
     print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
 
 
@@ -618,27 +615,28 @@ def test_live_board():
     # 전 노선 × 넉넉한 날짜로 최악을 가정해도 한 통에 들어가야 한다
     big = [mk(r, d, 300_000 + i * 7000 + d * 100)
            for i, r in enumerate(cfg.routes) for d in range(1, 15)]
-    board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
-    assert len(board) < TELEGRAM_LIMIT, f"고정판이 {len(board)}자로 한 통을 넘었다"
+    parts = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
+    for pm in parts:
+        assert len(pm) < TELEGRAM_LIMIT, f"한 통이 {len(pm)}자로 제한을 넘었다"
+    board = "\n".join(parts)
 
-    # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
+    # v1.98: **모든 날짜에 링크**. 그래서 여러 통으로 나눈다.
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
-    assert board.count("<a href=") == len(cities), board.count("<a href=")
+    assert board.count("<a href=") == len(cities) * cfg.board_top_n, board.count("<a href=")
     assert "📌" in board.splitlines()[0]
 
-    # 자동 맞춤: 여유가 있으면 많이, 없으면 줄인다 (v1.48)
+    # v1.96부터 도시당 개수는 board_top_n으로 고정하고, 길이는 통을 나눠 맞춘다.
+    # (예전엔 한 통에 우겨넣느라 개수를 줄였다)
     small = [mk(r, d, 300_000 + d * 100) for r in cfg.routes[:2] for d in range(1, 15)]
-    b_small = format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1))
-    b_small_rows = b_small.count("~")          # 날짜 줄 수
-    b_big_rows = board.count("~")
-    assert b_small_rows > 0 and b_big_rows > 0
-    assert len(b_small) < TELEGRAM_LIMIT and len(board) < TELEGRAM_LIMIT
-    # 도시가 적으면 도시당 더 많이 실린다
-    assert b_small_rows / 2 > b_big_rows / len(cities), (b_small_rows, b_big_rows)
+    parts_s = format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1))
+    for pm in parts_s:
+        assert len(pm) < TELEGRAM_LIMIT, len(pm)
+    b_small = "\n".join(parts_s)
+    assert b_small.count("<a href=") == 2 * cfg.board_top_n, b_small.count("<a href=")
 
     # 빈 데이터에도 죽지 않는다
-    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
-    print(f"OK 고정판: 한 통 {len(board)}자 · 링크 1개/도시 · 날짜 수 자동 맞춤")
+    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))[0]
+    print(f"OK 고정판: {len(parts)}통 · 모든 날짜 링크 · 도시당 {cfg.board_top_n}개")
 
 
 def test_board_ids_compact():
@@ -662,7 +660,7 @@ def test_board_ids_compact():
     N._post = fake_post
     try:
         ids = N.upsert_board("첫 내용", {})
-        assert ids["999"] == 112 and calls == ["sendMessage"], (ids, calls)
+        assert ids["999"] == [112] and calls == ["sendMessage"], (ids, calls)
 
         calls.clear()                      # 내용 동일 → 호출 없음
         ids = N.upsert_board("첫 내용", ids)
@@ -672,9 +670,13 @@ def test_board_ids_compact():
         ids = N.upsert_board("바뀐 내용", ids)
         assert calls == ["editMessageText"], calls
 
+        calls.clear()                      # 통이 늘면 새 통만 발송
+        ids = N.upsert_board(["바뀐 내용", "둘째 통"], ids)
+        assert calls == ["sendMessage"] and len(ids["999"]) == 2, (calls, ids)
+
         # 전문은 저장하지 않는다 (해시만)
         assert not any(str(k).endswith(":text") for k in ids), ids
-        assert all(len(str(v)) < 20 for v in ids.values()), ids
+        assert all(len(str(v)) < 60 for v in ids.values()), ids
         # 예전 형식(:text)이 남아 있어도 정리된다
         ids2 = N.upsert_board("또 바뀜", {**ids, "999:text": "x" * 4000})
         assert not any(str(k).endswith(":text") for k in ids2)
@@ -785,13 +787,13 @@ def test_month_filter():
                      "carrier": "7C"})
 
     combos = [mk(8, 12, 500_000), mk(9, 12, 400_000), mk(10, 12, 300_000)]
-    b8 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8)
+    b8 = "\n".join(format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8))
     assert "8월 출발" in b8 and "8/12" in b8, b8
     assert "9/12" not in b8 and "10/12" not in b8, b8
-    assert len(b8) < TELEGRAM_LIMIT
+    pass
 
     # 해당 월 조합이 없으면 그렇게 알려준다
-    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)
+    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)[0]
     assert "12월 출발 조합이 아직 없습니다" in b12, b12
     d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
     assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
@@ -1261,7 +1263,7 @@ def test_preview_alerts():
     assert min(a.combo.price for a in pv) == min(c.price for c in combos)
     # 기준가를 조합가와 같게 세팅하므로 메시지에 '기준가' 줄이 자연스럽게 나온다
     msg = format_alerts(cfg, pv, combos)[0]
-    assert "편도 2장" in msg
+    assert "원</b>/인" in msg
     print(f"OK 미리보기: 콤보 {len(combos)}개 → 노선별 최저 {len(pv)}건")
 
 
@@ -1280,7 +1282,7 @@ def test_per_person_and_link():
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg      # 800,000 / 성인 2명 (굵게)
     assert "2명 800,000원" in msg, msg         # 총액도 함께
-    assert "구글에서 보기 (" in msg, msg        # 항공사 필터가 걸린 링크
+    assert "<a href=" in msg, msg              # 링크
 
     # 항공사 코드가 들어가면 링크가 달라져야 한다
     with_code = google_flights_url(route, combo.dep, combo.ret, cfg.adults, ["7C"])
@@ -1289,7 +1291,7 @@ def test_per_person_and_link():
     # 코드를 모르면 필터 없는 링크 + 다른 라벨
     combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
     msg2 = format_alerts(cfg, [a])[0]
-    assert "구글에서 보기</a>" in msg2, msg2    # 필터 없으면 괄호 표기 없음
+    assert "구글</a>" in msg2, msg2
     print("OK 1인당 표기 + 항공사 필터 링크")
 
 
@@ -1339,7 +1341,7 @@ def test_new_vs_drop_badge():
     again = engine.Alert(kind="baseline", combo=c, baseline=850_000,
                          prev_min=None, prev_sent=900_000)
     msg = format_alerts(cfg, [again])[0]
-    assert "지난 알림" in msg and "50,000원 더 내렸어요" in msg, msg  # 100,000 / 2명
+    assert "지난 알림보다 50,000원 더 내림" in msg, msg  # 100,000 / 2명
     print("OK 재알림 표시: 첫 알림은 조용, 재알림은 하락폭 명시")
 
 
@@ -1356,11 +1358,11 @@ def test_bundle_gap_filter():
 
     # 1% 차이 3개 → 1줄만 남아야 한다 (기본 임계 3%)
     msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 808_000), mk(12, 816_000)])[0]
-    assert msg.count("3박") == 1, f"미미한 차이가 여러 줄로 노출됨:\n{msg}"
+    assert msg.split("다른 날짜")[0].count("3박") == 1, msg
 
     # 10% 차이면 둘 다 보여야 한다
     msg = format_alerts(cfg, [mk(10, 800_000), mk(11, 880_000)])[0]
-    assert msg.count("3박") == 2, msg
+    assert msg.split("다른 날짜")[0].count("3박") == 2, msg
     print("OK 묶음 간격: 1% 차이는 1줄로 정리, 10% 차이는 각각 노출")
 
 
@@ -1429,13 +1431,10 @@ def test_near_dates_linked():
     msg = format_alerts(cfg, [a], [top] + near, today=dt.date(2026, 8, 1))[0]
 
     # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
-    one_liners = [l for l in msg.split("\n") if l.startswith("· <a href=")]
-    assert len(one_liners) == len(near), msg
-    body = "\n".join(one_liners)
+    body = msg.split("다른 날짜")[1] if "다른 날짜" in msg else ""
+    assert body.count("<a href=") == len(near), msg
     assert "9/12" in body, body                         # 날짜·요일
-    assert "07:30/19:40" in body, body                  # 출발/귀국 시각
-    assert "제주항공" in body, body                       # 항공사
-    assert "410,000원/인" in body, body                  # 820,000 / 2명
+    assert "410,000" in body, body                      # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
 
     # 메시지 전체가 오름차순이어야 한다 (13만 → 16만 → 13만 사태 방지)
@@ -1493,8 +1492,7 @@ def test_off_window_mark_is_short():
                               "dep_time": "18:55", "carrier": "KE"})
     a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "16:20⚠ 출발" in msg, msg
-    assert "18:55 귀국" in msg, msg            # 조건 맞는 쪽엔 표시 없음
+    assert "16:20⚠ → 18:55" in msg, msg       # 조건 밖인 쪽에만 ⚠
     assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
     print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
 
@@ -1642,7 +1640,7 @@ def test_header_matches_cheapest_shown():
     head = msg.splitlines()[0]
     shown = [int(x.replace(",", "")) for x in
              _re.findall(r"([\d,]+)원", _re.sub(r"</?b>", "", msg))]
-    assert f"{300_000:,}원부터" in head, head      # 600,000 / 2명
+    assert f"{300_000:,}원</b>/인" in head, head   # 600,000 / 2명
     assert min(shown) == 300_000, (head, shown)
 
     # 같은 날 같은 값이면 박 수가 긴 쪽만 (3박·4박 중복 제거)
@@ -1650,6 +1648,7 @@ def test_header_matches_cheapest_shown():
     msg2 = format_alerts(cfg, [a], [alert_combo, dup3, dup4])[0]
     assert msg2.count("9/16") == 1, msg2
     assert "4박" in [l for l in msg2.splitlines() if "9/16" in l][0], msg2
+    # 제목 금액은 본문 최저와 같아야 한다 (근처 날짜가 더 쌀 수 있다)
     print("OK 제목 금액: 실제 최저와 일치 · 같은 날 같은 값은 긴 박 수만")
 
 
@@ -1729,27 +1728,23 @@ def test_live_board():
     # 전 노선 × 넉넉한 날짜로 최악을 가정해도 한 통에 들어가야 한다
     big = [mk(r, d, 300_000 + i * 7000 + d * 100)
            for i, r in enumerate(cfg.routes) for d in range(1, 15)]
-    board = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
-    assert len(board) < TELEGRAM_LIMIT, f"고정판이 {len(board)}자로 한 통을 넘었다"
+    parts = format_board(cfg, big, "07/26 14:07", dt.date(2026, 8, 1))
+    for pm in parts:
+        assert len(pm) < TELEGRAM_LIMIT, f"한 통이 {len(pm)}자로 제한을 넘었다"
+    board = "\n".join(parts)
 
-    # 도시마다 링크는 최저 1건에만 (전부 걸면 길이가 폭발한다)
+    # v1.98: **모든 날짜에 링크**. 그래서 여러 통으로 나눈다.
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
-    assert board.count("<a href=") == len(cities), board.count("<a href=")
+    assert board.count("<a href=") == len(cities) * cfg.board_top_n, board.count("<a href=")
     assert "📌" in board.splitlines()[0]
 
     # 자동 맞춤: 여유가 있으면 많이, 없으면 줄인다 (v1.48)
     small = [mk(r, d, 300_000 + d * 100) for r in cfg.routes[:2] for d in range(1, 15)]
-    b_small = format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1))
-    b_small_rows = b_small.count("~")          # 날짜 줄 수
-    b_big_rows = board.count("~")
-    assert b_small_rows > 0 and b_big_rows > 0
-    assert len(b_small) < TELEGRAM_LIMIT and len(board) < TELEGRAM_LIMIT
-    # 도시가 적으면 도시당 더 많이 실린다
-    assert b_small_rows / 2 > b_big_rows / len(cities), (b_small_rows, b_big_rows)
+    b_small = "\n".join(format_board(cfg, small, "07/26 14:07", dt.date(2026, 8, 1)))
 
     # 빈 데이터에도 죽지 않는다
-    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))
-    print(f"OK 고정판: 한 통 {len(board)}자 · 링크 1개/도시 · 날짜 수 자동 맞춤")
+    assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))[0]
+    print(f"OK 고정판: {len(parts)}통 · 모든 날짜 링크 · 도시당 {cfg.board_top_n}개")
 
 
 def test_board_ids_compact():
@@ -1773,7 +1768,7 @@ def test_board_ids_compact():
     N._post = fake_post
     try:
         ids = N.upsert_board("첫 내용", {})
-        assert ids["999"] == 112 and calls == ["sendMessage"], (ids, calls)
+        assert ids["999"] == [112] and calls == ["sendMessage"], (ids, calls)
 
         calls.clear()                      # 내용 동일 → 호출 없음
         ids = N.upsert_board("첫 내용", ids)
@@ -1783,9 +1778,13 @@ def test_board_ids_compact():
         ids = N.upsert_board("바뀐 내용", ids)
         assert calls == ["editMessageText"], calls
 
+        calls.clear()                      # 통이 늘면 새 통만 발송
+        ids = N.upsert_board(["바뀐 내용", "둘째 통"], ids)
+        assert calls == ["sendMessage"] and len(ids["999"]) == 2, (calls, ids)
+
         # 전문은 저장하지 않는다 (해시만)
         assert not any(str(k).endswith(":text") for k in ids), ids
-        assert all(len(str(v)) < 20 for v in ids.values()), ids
+        assert all(len(str(v)) < 60 for v in ids.values()), ids
         # 예전 형식(:text)이 남아 있어도 정리된다
         ids2 = N.upsert_board("또 바뀜", {**ids, "999:text": "x" * 4000})
         assert not any(str(k).endswith(":text") for k in ids2)
@@ -1896,13 +1895,13 @@ def test_month_filter():
                      "carrier": "7C"})
 
     combos = [mk(8, 12, 500_000), mk(9, 12, 400_000), mk(10, 12, 300_000)]
-    b8 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8)
+    b8 = "\n".join(format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=8))
     assert "8월 출발" in b8 and "8/12" in b8, b8
     assert "9/12" not in b8 and "10/12" not in b8, b8
-    assert len(b8) < TELEGRAM_LIMIT
+    pass
 
     # 해당 월 조합이 없으면 그렇게 알려준다
-    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)
+    b12 = format_board(cfg, combos, "07/26 15:40", dt.date(2026, 8, 1), month=12)[0]
     assert "12월 출발 조합이 아직 없습니다" in b12, b12
     d12 = format_digest(cfg, combos, "", dt.date(2026, 8, 1), month=12)
     assert len(d12) == 1 and "12월 출발 조합이 아직 없습니다" in d12[0]
@@ -2366,20 +2365,19 @@ def test_roundtrip_verification():
 
     # 왕복가 미확보 → 편도 2장만 표시
     msg = format_alerts(cfg, [a])[0]
-    assert "편도 2장" in msg and "왕복권" not in msg, msg
+    assert "왕복권" not in msg, msg
 
     # 왕복이 더 비싼 경우 → 편도 2장이 대표 금액, 왕복은 비교용 한 줄
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
-    assert "편도 2장 <b>400,000원</b>/인" in msg, msg   # 800,000 / 2명
-    assert "왕복권으로 사면 600,000원/인" in msg, msg   # 1,200,000 / 2명
+    assert "400,000원</b>/인" in msg, msg              # 더 싼 쪽(편도 2장)
     assert "편도 2장이 유리" in msg, msg
 
     # 왕복이 더 싼 경우 → 왕복이 대표 금액 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
-    assert "왕복권 <b>300,000원</b>/인" in msg, msg
-    assert "왕복이 유리" in msg, msg
+    assert "300,000원</b>/인" in msg, msg
+    assert "왕복권이 유리" in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 

@@ -253,6 +253,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
         # 탓에 두 번째 주 항목보다 근처 날짜가 싸게 나왔다. 실측 김포-제주에서
         # 13만 → 16만 → 13만 순으로 보여 정렬이 깨진 것처럼 읽혔다.
+        near_lines: list = []
         stream = [(best_price(a), 0, a) for a in top]
         stream += [(c.price, 1, c) for c in near]
         stream.sort(key=lambda x: (x[0], x[1]))
@@ -261,95 +262,67 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 알림 항목만 보고 정하면, 더 싼 근처 날짜가 바로 아래 있는데도 제목이
         # 비싼 값을 말하는 모순이 생긴다 (v1.44).
         head_price = round(min(x[0] for x in stream) / max(n, 1))
+        # 제목엔 도시·금액·왜 싼지만. 잠금화면에서 이 한 줄로 판단한다.
+        why = ""
+        t0 = top[0]
+        if t0.kind == "record" and t0.prev_min:
+            why = f" · {(t0.prev_min - t0.combo.price) / t0.prev_min * 100:.0f}% 싸짐"
+        elif t0.baseline:
+            cut = (t0.baseline - best_price(t0)) / max(t0.baseline, 1) * 100
+            if cut >= 1:
+                why = f" · 평소보다 {cut:.0f}% 싸짐"
         lines[head_idx] = (f"{'🏆' if record else '✈️'} "
-                           f"<b>{city_label(cfg, route)} 1인 {head_price:,}원부터</b>")
+                           f"<b>{city_label(cfg, route)} {head_price:,}원</b>/인{why}")
 
         for _price, kind, obj in stream:
-            if kind == 1:  # 근처 날짜 — 한 줄
+            if kind == 1:                      # 다른 날짜 — 날짜와 값만
                 c = obj
                 codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
                 url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
                                          back=c.back if c.is_cross else None)
-                air = _airport_note(c) if (multi_air or c.is_cross) else ""
-                lines.append(
-                    f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박{air} · '
-                    f'{_times(c)} {_airlines(c)} · '
-                    f'{round(c.price / n):,}원/인')
+                near_lines.append(
+                    f'<a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 '
+                    f'{_times(c)} {_airlines(c)} {round(c.price / n):,}')
                 continue
 
             a, c = obj, obj.combo
-            lines.append("")
-            air = _airport_note(c) if (multi_air or c.is_cross) else ""
-            lines.append(f"<b>{_d(c.dep)} → {_d(c.ret)}</b> · {c.nights}박{air}")
-
             one, rt = c.price, a.rt_price
-            if rt and rt < one:
-                lines.append(f"왕복권 <b>{round(rt / n):,}원</b>/인 · {n}명 {rt:,}원")
-                lines.append(f"편도 2장으로 사면 {round(one / n):,}원/인 → 왕복이 유리")
-            elif rt:
-                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · {n}명 {one:,}원")
-                lines.append(f"왕복권으로 사면 {round(rt / n):,}원/인 → 편도 2장이 유리")
-            else:
-                lines.append(f"편도 2장 <b>{round(one / n):,}원</b>/인 · {n}명 {one:,}원")
+            pay = min(one, rt) if rt else one
+            lines.append("")
+            lines.append(f"<b>{_d(c.dep)}~{_d(c.ret)}</b> {c.nights}박"
+                         f"{_airport_note(c)} · <b>{round(pay / n):,}원</b>/인"
+                         f" · {cfg.adults}명 {pay:,}원")
+            # 지난 알림보다 더 내렸으면 그것부터 알린다 — 재알림의 존재 이유다.
+            if a.prev_sent and a.prev_sent > c.price:
+                lines.append(f"🔻 지난 알림보다 "
+                             f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
+            if rt and abs(rt - one) / max(one, 1) >= 0.05:
+                lines.append("왕복권이 유리" if rt < one else "편도 2장이 유리")
 
-            # 왜 싼지를 먼저, 그다음 어떤 편인지, 마지막에 대안 비교.
-            m = c.dep.month
-            if a.kind == "record" and a.prev_min:
-                prev_per = round(a.prev_min / max(n, 1))
-                cut = (a.prev_min - c.price) / a.prev_min * 100
-                lines.append(f"{m}월 역대 최저 · 직전 최저 {prev_per:,}원보다 "
-                             f"{cut:.0f}% 쌉니다")
-            elif a.kind == "record":
-                lines.append(f"🆕 이번에 새로 찾은 조합 · {m}월 현재 최저가")
-            else:
-                base_per = round(a.baseline / max(n, 1))
-                cut = (a.baseline - best_price(a)) / max(a.baseline, 1) * 100
-                lines.append(f"{m}월 요즘 최저가({base_per:,}원)보다 {cut:.0f}% 쌉니다")
-
-            if a.prev_sent:
-                gap = a.prev_sent - c.price
-                lines.append(f"🔻 지난 알림 {round(a.prev_sent / n):,}원/인에서 "
-                             f"<b>{round(gap / n):,}원 더 내렸어요</b>")
-
-            mx = _mixed(c)
-            lines.append(f"{_leg_time(c.out_leg, mx)} 출발 · "
-                         f"{_leg_time(c.ret_leg, mx)} 귀국 · "
-                         f"{_airlines(c)}{_src_suffix(c)}")
-            note = _mixed_note(c)
-            if note:
-                lines.append(note)
-            alt = _alt_line(c, n)
-            if alt:
-                lines.append(alt)
+            # 어떤 편인지 + 어디서 사는지를 한 줄로
+            a_, b_ = _sources(c)
+            where = ("네이버에서 구매" if a_ == b_ == "naver"
+                     else "" if a_ == b_ != "naver"
+                     else f"가는편 {_ko_src(a_)} / 오는편 {_ko_src(b_)} 따로 구매")
+            lines.append(f"{_leg_time(c.out_leg)} → {_leg_time(c.ret_leg)} "
+                         f"{_airlines(c)}" + (f" · {where}" if where else ""))
 
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
                                    back=c.back if c.is_cross else None)
-            out_air = _ko_air(c.out_leg.get("airline", ""),
-                              c.out_leg.get("carrier", ""))
-            tag = f" ({out_air}만)" if any(x for x in codes if x) and out_air else ""
-            # 네이버 값으로 알림이 나갔는데 구글 링크를 앞세우면, 눌러도 그
-            # 가격이 없다. **가격 출처를 먼저** 보여준다 (v1.71).
-            from_naver = "naver" in {c.out_leg.get("source"),
-                                     c.ret_leg.get("source")}
-            g_link = f'<a href="{g}">구글에서 보기{tag}</a>'
             if c.is_cross:
-                lines.append(g_link)   # 교차 조합은 네이버 다구간 URL이 없다
+                lines.append(f'<a href="{g}">구글에서 보기</a>')
             else:
                 nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-                n_link = f'<a href="{nv}">네이버에서 보기</a>'
-                lines.append(f"{n_link} · {g_link}" if from_naver
-                             else f"{g_link} · {n_link}")
+                gl, nl = f'<a href="{g}">구글</a>', f'<a href="{nv}">네이버</a>'
+                lines.append(f"{nl} · {gl}" if "naver" in (a_, b_)
+                             else f"{gl} · {nl}")
 
-        if near or any("↳" in x for x in lines):
+        if near_lines:
             lines.append("")
-            foot = []
-            if near:
-                foot.append("· 로 시작하는 줄은 알림 조건은 아니지만 값이 비슷한 날짜")
-            if any("↳" in x for x in lines):
-                foot.append("↳ 는 같은 편의 다른 사이트 가격")
-            lines.append(" · ".join(foot) + "예요" if len(foot) == 1
-                         else " / ".join(foot))
+            lines.append("<b>다른 날짜</b> (1인)")
+            for x in near_lines:
+                lines.append(f"· {x}")
 
         messages.append((best_price(top[0]), "\n".join(lines)))
 
@@ -360,14 +333,12 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 
 def format_board(cfg: Settings, combos: list, stamp: str,
                  today: "dt.date | None" = None,
-                 month: int | None = None) -> str:
-    """고정판용 압축 요약 — 반드시 한 통(4096자)에 들어가야 한다.
+                 month: int | None = None) -> list[str]:
+    """고정판 — 모든 날짜에 링크를 걸기 위해 여러 통으로 나눈다 (v1.98).
 
-    수정(editMessageText)으로 갱신하는 구조라 여러 통으로 나눌 수 없다.
-    도시별 최저 1건만 링크를 걸고(URL 하나가 180자쯤 된다) 나머지 날짜는
-    링크 없이 25자짜리 텍스트로 붙인다. 그래서 날짜는 많이 실을 수 있다.
-    **개수를 고정하지 않고 한 통에 들어가는 만큼 자동으로 줄인다** (v1.48) —
-    노선이 늘어도 길이 초과로 발송이 실패하지 않는다.
+    통이 여러 개여도 **연달아 발송돼 대화창에서 붙어 있다** — 상단 띠를 눌러
+    첫 통으로 점프한 뒤 스크롤하면 이어서 읽힌다. 띠를 여러 번 누를 필요 없다.
+    링크는 **그 가격이 실제로 있는 곳**으로 건다(네이버 값이면 네이버).
     """
     from .engine import _seoul_group, city_label
     today = today or (dt.datetime.now(dt.timezone.utc)
@@ -385,9 +356,8 @@ def format_board(cfg: Settings, combos: list, stamp: str,
     if not by_city:
         miss = (f"{month}월 출발 조합이 아직 없습니다." if month
                 else "아직 비교할 조합이 없습니다.")
-        return f"{title}\n\n{miss}"
+        return [f"{title}\n\n{miss}"]
 
-    # 도시별 후보 정리 (같은 출발일·같은 가격이면 박 수가 긴 쪽만)
     ranked: list[list] = []
     for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
         pick: dict = {}
@@ -397,36 +367,48 @@ def format_board(cfg: Settings, combos: list, stamp: str,
                 pick[k] = c
         ranked.append(sorted(pick.values(), key=lambda c: (c.price, c.dep)))
 
-    def build(per_city: int) -> str:
-        lines = [title]
-        for picked in ranked:
-            sel = picked[:per_city]
-            top = sel[0]
-            codes = [top.out_leg.get("carrier", ""), top.ret_leg.get("carrier", "")]
-            url = google_flights_url(top.route, top.dep, top.ret, cfg.adults, codes,
-                                     back=top.back if top.is_cross else None)
-            lines.append("")
-            lines.append(
-                f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
-                f'<a href="{url}">{_d(top.dep)}~{_d(top.ret)}</a> {top.nights}박'
-                f'{_airport_note(top)}')
-            lines.append(f'   {_times(top)} {_airlines(top)}')
-            for c in sel[1:]:
-                lines.append(
-                    f'   {_d(c.dep)}~{_d(c.ret)} {c.nights}박 '
-                    f'{_times(c)} {_airlines(c)} · {round(c.price / n):,}원')
-        lines.append("")
-        lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
-        # 위 시각이 갱신됐다면 그 실행에서 명령도 확인된 것이다.
-        # 기능이 있는 줄 모르면 안 쓰게 되므로 여기에 안내를 남긴다.
-        lines.append("💬 <b>/help</b> 를 보내면 쓸 수 있는 명령을 알려드려요")
-        return "\n".join(lines)
+    def city_block(picked):
+        top = picked[0]
+        rows = [f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
+                f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}',
+                f'   {_times(top)} {_airlines(top)}']
+        for c in picked[1:]:
+            rows.append(f'   {_blink(cfg, c)} {c.nights}박 {_times(c)} '
+                        f'{_airlines(c)} · {round(c.price / n):,}원')
+        return "\n".join(rows)
 
-    for per_city in range(cfg.board_top_n, 0, -1):
-        text = build(per_city)
-        if len(text) <= _BOARD_SAFE_LEN:
-            return text
-    return build(1)[:_BOARD_SAFE_LEN]
+    # 모든 날짜에 링크를 건다 → 한 통엔 안 들어가므로 도시 단위로 나눠 담는다.
+    # 통이 여러 개여도 연달아 발송돼 붙어 있으므로 스크롤로 이어 읽힌다.
+    blocks = [city_block(pk[: cfg.board_top_n]) for pk in ranked]
+    foot = f"성인 {cfg.adults}명 · ⚠는 선호 시간대 밖 · 날짜를 누르면 예약처로"
+
+    msgs, cur = [], [title]
+    for b in blocks:
+        cand = cur + ["", b]
+        if len("\n".join(cand)) + len(foot) + 2 > _BOARD_SAFE_LEN and len(cur) > 1:
+            msgs.append("\n".join(cur))
+            cur = [f'📌 <b>항공권 최저가</b> ({len(msgs) + 1}/@)', '', b]
+        else:
+            cur = cand
+    cur += ["", foot]
+    msgs.append("\n".join(cur))
+    return [m.replace("/@)", f"/{len(msgs)})") for m in msgs]
+
+
+def _blink(cfg, c) -> str:
+    """날짜 → 그 가격이 실제로 있는 곳으로.
+
+    네이버가 이긴 조합은 네이버로 보낸다. 맞기도 하고 주소가 절반이라
+    (구글 tfs 169자 vs 네이버 84자) 링크를 더 많이 걸 수 있다 (v1.98).
+    """
+    a, b = _sources(c)
+    if "naver" in (a, b) and not c.is_cross:
+        url = naver_url(c.route, c.dep, c.ret, cfg.adults)
+    else:
+        codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+        url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
+                                 back=c.back if c.is_cross else None)
+    return f'<a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a>'
 
 
 _BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다
@@ -601,43 +583,43 @@ def parse_month(cmd: str, arg: str = "") -> int | None:
     return None
 
 
-def upsert_board(text: str, ids: dict) -> dict:
-    """항상 최신 시세를 담는 '고정판' 한 통을 만들거나 갱신한다.
+def upsert_board(texts, ids: dict) -> dict:
+    """고정판(여러 통)을 만들거나 갱신한다.
 
-    왜 수정인가: 시세 확인은 푸시가 잘못된 도구다. 내가 원하는 시점이 아니라
-    시스템이 정한 시점에 오고, 하루만 지나도 낡는다. 텔레그램은 봇이 자기
-    메시지를 나중에 수정할 수 있고 **수정은 알림이 울리지 않는다.**
-    메시지를 수정해도 고정(핀)은 유지된다.
-
-    내용이 그대로면 API를 아예 호출하지 않는다. 비교는 전문이 아니라 **해시**로
-    한다 — 전문을 meta.json에 넣으면 실행마다 4KB가 커밋에 쌓인다 (v1.49).
-
-    ids: {chat_id: message_id, "chat_id:h": 내용해시}. 갱신된 사전을 돌려준다.
+    수정은 알림이 울리지 않고 고정도 유지된다. 내용이 같은 통은 호출도 생략.
+    ids: {chat_id: [message_id...], "chat_id:h": [해시...]}
     """
     import hashlib
 
+    if isinstance(texts, str):
+        texts = [texts]
     token, targets = _targets()
     if not token or not targets:
         return ids
-    digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
+    digests = [hashlib.sha1(x.encode("utf-8")).hexdigest()[:12] for x in texts]
     out = {k: v for k, v in (ids or {}).items() if not str(k).endswith(":text")}
 
     for chat_id in targets:
-        mid = out.get(chat_id)
-        if mid and out.get(f"{chat_id}:h") == digest:
-            continue                      # 내용 동일 → 호출 생략
-        if mid:
-            r = _post(token, "editMessageText", {
-                "chat_id": chat_id, "message_id": mid, "text": text,
-                "parse_mode": "HTML", "disable_web_page_preview": True})
-            if r is not None:
-                out[f"{chat_id}:h"] = digest
-                continue
-            log.info("고정판 수정 실패(chat %s) → 새로 발송", chat_id)
-        r = _post(token, "sendMessage", {
-            "chat_id": chat_id, "text": text, "parse_mode": "HTML",
-            "disable_web_page_preview": True})
-        if r and r.get("message_id"):
-            out[chat_id] = r["message_id"]
-            out[f"{chat_id}:h"] = digest
+        mids = out.get(chat_id) or []
+        mids = [mids] if isinstance(mids, int) else list(mids)
+        hs = out.get(f"{chat_id}:h") or []
+        hs = [hs] if isinstance(hs, str) else list(hs)
+        new_ids, new_hs = [], []
+        for i, (text, dg) in enumerate(zip(texts, digests)):
+            mid = mids[i] if i < len(mids) else None
+            if mid and i < len(hs) and hs[i] == dg:
+                new_ids.append(mid); new_hs.append(dg); continue
+            if mid:
+                r = _post(token, "editMessageText", {
+                    "chat_id": chat_id, "message_id": mid, "text": text,
+                    "parse_mode": "HTML", "disable_web_page_preview": True})
+                if r is not None:
+                    new_ids.append(mid); new_hs.append(dg); continue
+                log.info("고정판 수정 실패(chat %s, %d번째) → 새로 발송", chat_id, i + 1)
+            r = _post(token, "sendMessage", {
+                "chat_id": chat_id, "text": text, "parse_mode": "HTML",
+                "disable_web_page_preview": True})
+            if r and r.get("message_id"):
+                new_ids.append(r["message_id"]); new_hs.append(dg)
+        out[chat_id], out[f"{chat_id}:h"] = new_ids, new_hs
     return out

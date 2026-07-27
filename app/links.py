@@ -19,7 +19,7 @@ from .settings import Route
 
 def google_flights_url(route: Route, dep: dt.date, ret: dt.date,
                        adults: int = 1, carriers: list[str] | None = None,
-                       back: Route | None = None) -> str:
+                       back: Route | None = None, short: bool = False) -> str:
     """왕복(또는 교차 시 다구간) 검색 결과로 랜딩.
 
     back을 주면 오는 편 노선이 다른 교차 조합으로 보고 multi-city 쿼리를 만든다
@@ -29,6 +29,14 @@ def google_flights_url(route: Route, dep: dt.date, ret: dt.date,
     cross = back is not None and back.key != route.key
     ret_from = (back or route).destination
     ret_to = (back or route).origin
+    if short:
+        # tfs 프로토버프는 169자라 여러 개 걸면 텔레그램 4096자를 넘긴다.
+        # 자연어 질의는 119자 — 항공사 필터는 못 걸지만 노선·날짜·직항은
+        # 그대로 전달된다. 고정판처럼 링크를 많이 넣는 곳에서 쓴다 (v1.96).
+        q = (f"Flights from {route.origin} to {route.destination} "
+             f"on {dep.isoformat()} through {ret.isoformat()} nonstop")
+        return (f"https://www.google.com/travel/flights?q={quote_plus(q)}"
+                f"&curr=KRW&hl=ko")
     try:
         from fast_flights import FlightQuery, Passengers, create_query
         q = create_query(

@@ -503,7 +503,8 @@ def main() -> int:
     if brief:
         stamp = (dt.datetime.now(dt.timezone.utc)
                  + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
-        notify.send(notify.format_board(cfg, combos, stamp, today, manual_month))
+        for _m in notify.format_board(cfg, combos, stamp, today, manual_month):
+            notify.send(_m)
         log.info("월 요약 전송 (%s월) · 상태 저장하지 않음", manual_month)
         return 0
 
@@ -511,7 +512,8 @@ def main() -> int:
     if wants_brief and not digest:
         stamp = (dt.datetime.now(dt.timezone.utc)
                  + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
-        notify.send(notify.format_board(cfg, combos, stamp, today, digest_month))
+        for _m in notify.format_board(cfg, combos, stamp, today, digest_month):
+            notify.send(_m)
         log.info("텔레그램 월 요약 처리 완료 (%s월)", digest_month)
 
     if wants_digest and not digest:
