@@ -111,10 +111,37 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
         ctx.add_init_script(probe_mod._STEALTH)
         page = ctx.new_page()
 
+        def fresh_page():
+            """세션을 새로 연다. 연속 검색이 막히면 이걸로 푼다."""
+            nonlocal ctx, page
+            try:
+                ctx.close()
+            except Exception:  # noqa: BLE001
+                pass
+            ctx = browser.new_context(
+                locale="ko-KR", timezone_id="Asia/Seoul",
+                viewport={"width": 1400, "height": 1000},
+                user_agent=("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/139.0.0.0 Safari/537.36"))
+            ctx.add_init_script(probe_mod._STEALTH)
+            page = ctx.new_page()
+
         visited = 0
+        fails = 0
+        import random as _rnd
         for o, d, direction, route_key, day in jobs:
             if time.time() - started >= budget_sec:
                 break
+            if fails >= stop_after_fail:
+                log.info("연속 실패 %d회 → 이번 실행은 여기서 중단 "
+                         "(차단으로 보임, 다음 실행이 이어받음)", fails)
+                break
+            if visited and visited % reset_every == 0:
+                fresh_page()
+                log.info("세션 재시작 (%d건마다)", reset_every)
+            if visited:
+                time.sleep(_rnd.uniform(delay[0], delay[1]))
             visited += 1
             rows, used = [], ""
             for form, url in _urls(o, d, day, adults):
@@ -145,6 +172,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             best = NV.pick_best(rows, domestic=True,
                                 out_window=windows.get((route_key, direction)))
             done += 1
+            fails = 0 if rows else fails + 1
             stat = seen_stat.setdefault(direction, [0, 0, 0])
             stat[0] += 1                 # 조회
             stat[1] += len(rows)         # 읽은 행

@@ -276,7 +276,10 @@ def main() -> int:
                 got, remain, total, dstat = NVC.collect(
                     pairs, dates_by, cfg.adults, windows,
                     budget_sec=cfg.naver_budget_min * 60,
-                    known=state.naver_legs)
+                    known=state.naver_legs,
+                    delay=cfg.naver_delay_sec,
+                    reset_every=cfg.naver_reset_every,
+                    stop_after_fail=cfg.naver_stop_after_fail)
                 if got:
                     state.naver_legs.update(got)
                 state.meta["naver_remain"] = remain
