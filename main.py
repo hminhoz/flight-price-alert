@@ -327,7 +327,9 @@ def main() -> int:
         ds = state.meta.get("naver_dstat") or {}
         for d_, v in sorted(ds.items()):
             q, rws, ok_ = (list(v) + [0, 0, 0])[:3]
-            if "·" in d_:          # URL 형식별 성적 (어느 형식이 통하는지)
+            if d_.startswith("세션"):
+                msg.append(f"{d_}: {q}건 중 {ok_}건 성공")
+            elif "·" in d_:        # URL 형식별 성적 (어느 형식이 통하는지)
                 msg.append(f"[{d_.replace('out', '가는편').replace('ret', '오는편')}] "
                            f"시도 {q} · 읽은 행 평균 {rws / max(q, 1):.0f}")
             else:

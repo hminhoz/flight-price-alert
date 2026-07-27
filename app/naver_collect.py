@@ -129,6 +129,9 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
 
         visited = 0
         fails = 0
+        # 세션 구간별 성공률을 잰다. 재시작 직후에 되살아나면 '세션 상태' 문제,
+        # 재시작해도 안 되면 '서버가 막는' 것 — 원인을 구분하기 위한 계측.
+        seg: list = [[0, 0]]     # [(시도, 성공)] 세션 구간마다 하나
         import random as _rnd
         for o, d, direction, route_key, day in jobs:
             if time.time() - started >= budget_sec:
@@ -139,6 +142,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
                 break
             if visited and visited % reset_every == 0:
                 fresh_page()
+                seg.append([0, 0])
                 log.info("세션 재시작 (%d건마다)", reset_every)
             if visited:
                 time.sleep(_rnd.uniform(delay[0], delay[1]))
@@ -172,6 +176,9 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             best = NV.pick_best(rows, domestic=True,
                                 out_window=windows.get((route_key, direction)))
             done += 1
+            seg[-1][0] += 1
+            if rows:
+                seg[-1][1] += 1
             fails = 0 if rows else fails + 1
             stat = seen_stat.setdefault(direction, [0, 0, 0])
             stat[0] += 1                 # 조회
@@ -202,6 +209,11 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     still = max(0, missing - newly)
     log.info("네이버 수집: %d/%d건 조회 · %d건 확보 · 미수집 %d건 남음 (%.0f분)",
              done, total, len(out), still, (time.time() - started) / 60)
+    # 세션 구간별 성공률 (원인 구분용)
+    for i, (q, ok_) in enumerate(seg):
+        if q:
+            merged_key = f"세션{i + 1}"
+            seen_stat[merged_key] = [q, ok_ * 100, ok_]   # 두번째 칸은 표시용
     merged = dict(seen_stat)
     for (d_, f_), (q, rws) in form_stat.items():
         merged[f"{d_}·{f_}"] = [q, rws, 0]
