@@ -425,26 +425,25 @@ def main() -> int:
                 break
         # 오는 편(CJU→GMP)이 왜 0행인지 **페이지를 직접 본 적이 없다.**
         # 숫자만 보고 다섯 번을 고쳤다. 실패하는 방향을 탐침에 명시적으로 넣는다.
+        # 오는 편이 8월만 되고 9월부터 전멸한다. 원인 불명 → **추측하지 말고
+        # 성공 날짜와 실패 날짜를 나란히 열어 차이를 본다** (v1.85).
         cases = []
         dom_route = next((r for r in cfg.routes
                           if getattr(r, "domestic", False)), None)
         if dom_route:
-            d0 = max(cfg.period_start, today + dt.timedelta(days=14))
-            cases.append({
-                "origin": dom_route.destination, "dest": dom_route.origin,
-                "dep": d0.strftime("%Y%m%d"),
-                "ret": (d0 + dt.timedelta(days=3)).strftime("%Y%m%d"),
-                "domestic": True, "google_price": 0,
-                "label": f"{dom_route.destination}→{dom_route.origin} (실패 방향)",
-            })
-            cases.append({
-                "origin": dom_route.origin, "dest": dom_route.destination,
-                "dep": d0.strftime("%Y%m%d"),
-                "ret": (d0 + dt.timedelta(days=3)).strftime("%Y%m%d"),
-                "domestic": True, "google_price": 0,
-                "label": f"{dom_route.origin}→{dom_route.destination} (성공 방향)",
-            })
-        for c in picked[:1]:
+            o, d = dom_route.origin, dom_route.destination
+            for day, tag in ((dt.date(2026, 8, 12), "8월(성공하던 날짜)"),
+                             (dt.date(2026, 9, 16), "9월(실패하는 날짜)"),
+                             (dt.date(2026, 10, 14), "10월(실패하는 날짜)")):
+                cases.append({
+                    "origin": d, "dest": o,          # 오는 편 방향 (CJU→GMP)
+                    "dep": day.strftime("%Y%m%d"),
+                    "ret": (day + dt.timedelta(days=3)).strftime("%Y%m%d"),
+                    "domestic": True, "google_price": 0,
+                    "label": f"{d}→{o} {tag}",
+                })
+        for c in []:
+
             cases.append({
                 "origin": c.route.origin, "dest": c.route.destination,
                 "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
