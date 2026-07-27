@@ -1,12 +1,20 @@
 {
  "board_ids": {
-  "495657895": 112,
-  "495657895:h": "5b15b6f5c5fc"
+  "495657895": [
+   112,
+   166,
+   167
+  ],
+  "495657895:h": [
+   "0d02b140d123",
+   "c64f7d26cd1a",
+   "bc0e7eab106b"
+  ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-07-27T12:44:21+00:00",
+ "cycle_started_at": "2026-07-27T14:04:51+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-07-27T12:44:21+00:00",
+ "last_cycle_done_at": "2026-07-27T14:04:51+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "naver_cursor": 63,
@@ -74,11 +82,6 @@
  "naver_total": 145,
  "recent_runs": [
   {
-   "at": "2026-07-26T14:26:02+00:00",
-   "attempted": 0,
-   "failed": 0
-  },
-  {
    "at": "2026-07-26T20:07:52+00:00",
    "attempted": 652,
    "failed": 0
@@ -122,9 +125,14 @@
    "at": "2026-07-27T12:59:20+00:00",
    "attempted": 1130,
    "failed": 0
+  },
+  {
+   "at": "2026-07-27T14:32:10+00:00",
+   "attempted": 1130,
+   "failed": 47
   }
  ],
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159565
+ "tg_offset": 74159566
 }
