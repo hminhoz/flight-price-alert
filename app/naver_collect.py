@@ -34,11 +34,13 @@ log = logging.getLogger(__name__)
 # 수집기는 그걸 빠뜨리고 있었다. 가는 편은 그래도 됐지만 오는 편은 다를 수
 # 있어 동일하게 맞춘다 (v1.82).
 _Q = "adult={n}&isDirect=true&fareType=Y"
-_FORMS = (
-    ("왕복형", "https://flight.naver.com/flights/domestic/"
-               "{o}-{d}-{ymd}/{d}-{o}-{ymd2}?" + _Q),
-    ("편도형", "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?" + _Q),
-)
+_RT = ("https://flight.naver.com/flights/domestic/"
+       "{o}-{d}-{ymd}/{d}-{o}-{ymd2}?" + _Q)
+# 편도형은 실측에서 **항상 0행**이었다(out 1회·ret 23회 모두). 빈손일 때마다
+# 그쪽으로 재시도하느라 페이지 로딩만 버렸다. 대신 **같은 왕복형을 한 번 더,
+# 더 오래 기다려서** 시도한다 — 왕복형은 31회 중 8회만 성공해 실패가 대체로
+# 로딩 타이밍 문제로 보인다 (v1.84).
+_FORMS = (("왕복형", _RT), ("왕복형(재시도)", _RT))
 _MIN_ROWS = 8      # 이보다 적게 읽히면 실패로 보고 다른 형식을 시도
 
 
