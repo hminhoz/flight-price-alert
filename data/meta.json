@@ -1,12 +1,12 @@
 {
  "board_ids": {
   "495657895": 112,
-  "495657895:h": "de956a739aaa"
+  "495657895:h": "5b15b6f5c5fc"
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-07-27T10:09:27+00:00",
+ "cycle_started_at": "2026-07-27T12:44:21+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-07-27T10:47:45+00:00",
+ "last_cycle_done_at": "2026-07-27T12:44:21+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "naver_cursor": 63,
@@ -74,11 +74,6 @@
  "naver_total": 145,
  "recent_runs": [
   {
-   "at": "2026-07-26T13:54:06+00:00",
-   "attempted": 0,
-   "failed": 0
-  },
-  {
    "at": "2026-07-26T14:26:02+00:00",
    "attempted": 0,
    "failed": 0
@@ -122,9 +117,14 @@
    "at": "2026-07-27T10:47:45+00:00",
    "attempted": 0,
    "failed": 0
+  },
+  {
+   "at": "2026-07-27T12:59:20+00:00",
+   "attempted": 1130,
+   "failed": 0
   }
  ],
- "shard_cursor": 1,
+ "shard_cursor": 0,
  "startup_sent": true,
  "tg_offset": 74159565
 }
