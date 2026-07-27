@@ -61,14 +61,10 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
     한 번만 적는 게 짧고 읽기 쉽다 — `06:00(네이버)/21:15(네이버)`는
     같은 말을 두 번 하는 셈이었다 (v1.91).
     """
+    # 출처는 여기 쓰지 않는다. 줄 끝 링크가 `가는편 네이버 / 오는편 구글`로
+    # 어느 편을 어디서 사는지 알려주므로 시각 옆 표기는 중복이다 (v2.05).
     mark = "⚠" if leg.get("off_window") else ""
-    src = ""
-    if mark_src:
-        # 한 글자로. 줄 끝 링크가 이미 [네이버][구글]로 나오므로 여기서
-        # 같은 말을 길게 반복하면 줄만 길어진다 (v2.04).
-        src = "네" if leg.get("source") == "naver" else "구"
-        src = f"({src})"
-    return f"{leg.get('dep_time', '?')}{mark}{src}"
+    return f"{leg.get('dep_time', '?')}{mark}"
 
 
 def _times(c) -> str:
@@ -280,8 +276,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             if kind == 1:                      # 다른 날짜 — 날짜와 값만
                 c = obj
                 near_lines.append(
-                    f'<b>{round(c.price / n):,}</b> {_blink(cfg, c)} '
-                    f'{c.nights}박 {_times(c)} {_airlines(c)}'
+                    f'<b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
+                    f'{c.nights}박\n    {_times(c)} {_airlines(c)}'
                     f'{_sites(cfg, c)}')
                 continue
 
@@ -372,10 +368,10 @@ def format_board(cfg: Settings, combos: list, stamp: str,
         rows = [f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
                 f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}'
                 f'{_sites(cfg, top)}',
-                f'   {_times(top)} {_airlines(top)}']
+                f'    {_times(top)} {_airlines(top)}']
         for c in picked[1:]:
-            rows.append(f'   <b>{round(c.price / n):,}</b> {_blink(cfg, c)} '
-                        f'{c.nights}박 {_times(c)} {_airlines(c)}'
+            rows.append(f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
+                        f'{c.nights}박\n    {_times(c)} {_airlines(c)}'
                         f'{_sites(cfg, c)}')
         return "\n".join(rows)
 
@@ -439,7 +435,11 @@ def _sites(cfg, c) -> str:
     nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
     codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
     g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes)
-    return f' <a href="{nv}">네이버</a>·<a href="{g}">구글</a>'
+    a_, b_ = _sources(c)
+    n_lbl = "가는편" if a_ == "naver" else "오는편"
+    g_lbl = "오는편" if a_ == "naver" else "가는편"
+    return (f' · {n_lbl} <a href="{nv}">네이버</a>'
+            f' {g_lbl} <a href="{g}">구글</a>')
 
 
 _BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다
@@ -500,8 +500,8 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
         for c in picked:
             air = "" if head_air else _airport_note(c)
             rows.append(
-                f'· <b>{round(c.price / n):,}</b> {_blink(cfg, c)} {c.nights}박'
-                f'{air} · {_times(c)} {_airlines(c)}{_sites(cfg, c)}')
+                f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} {c.nights}박{air}\n'
+                f'    {_times(c)} {_airlines(c)}{_sites(cfg, c)}')
         blocks.append("\n".join(rows))
 
     # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다
