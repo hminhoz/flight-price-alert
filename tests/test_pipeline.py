@@ -1144,7 +1144,20 @@ def test_mixed_source_links():
     s = _sites(cfg, c)
     assert "flight.naver" in s and "google.com" in s, s
     assert s.count("<a href") == 2, s
-    print("OK 혼합 출처: 두 사이트 링크 · 단일 출처는 하나만")
+    # 알림·고정판·digest **세 곳 모두** 같은 규칙을 써야 한다
+    import datetime as _dt
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    mixed = mk("naver", None)
+    a = engine.Alert(kind="baseline", combo=mixed, baseline=250_000, prev_min=None)
+    from app.notify import format_board, format_digest
+    texts = (format_alerts(cfg, [a], [mixed])
+             + format_board(cfg, [mixed], "07/27 23:59", _dt.date(2026, 8, 1))
+             + format_digest(cfg, [mixed], "", _dt.date(2026, 8, 1)))
+    for m in texts:
+        assert "flight.naver" in m and "google.com" in m, m[:200]
+    print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
 
 
 def test_tolerant_parser():
@@ -2285,7 +2298,20 @@ def test_mixed_source_links():
     s = _sites(cfg, c)
     assert "flight.naver" in s and "google.com" in s, s
     assert s.count("<a href") == 2, s
-    print("OK 혼합 출처: 두 사이트 링크 · 단일 출처는 하나만")
+    # 알림·고정판·digest **세 곳 모두** 같은 규칙을 써야 한다
+    import datetime as _dt
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    mixed = mk("naver", None)
+    a = engine.Alert(kind="baseline", combo=mixed, baseline=250_000, prev_min=None)
+    from app.notify import format_board, format_digest
+    texts = (format_alerts(cfg, [a], [mixed])
+             + format_board(cfg, [mixed], "07/27 23:59", _dt.date(2026, 8, 1))
+             + format_digest(cfg, [mixed], "", _dt.date(2026, 8, 1)))
+    for m in texts:
+        assert "flight.naver" in m and "google.com" in m, m[:200]
+    print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
 
 
 def test_tolerant_parser():

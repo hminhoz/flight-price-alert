@@ -277,12 +277,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         for _price, kind, obj in stream:
             if kind == 1:                      # 다른 날짜 — 날짜와 값만
                 c = obj
-                codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-                url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
-                                         back=c.back if c.is_cross else None)
                 near_lines.append(
-                    f'<a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박 '
-                    f'{_times(c)} {_airlines(c)} {round(c.price / n):,}')
+                    f'{_blink(cfg, c)} {c.nights}박 '
+                    f'{_times(c)} {_airlines(c)} {round(c.price / n):,}'
+                    f'{_sites(cfg, c)}')
                 continue
 
             a, c = obj, obj.combo
@@ -494,13 +492,10 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
         rows = [f"<b>{city_label(cfg, top.route)} "
                 f"{round(top.price / n):,}원</b>/인부터"]
         for c in picked:
-            codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-            url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
-                                     back=c.back if c.is_cross else None)
             rows.append(
-                f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박'
+                f'· {_blink(cfg, c)} {c.nights}박'
                 f'{_airport_note(c)} · {_times(c)} '
-                f'{_airlines(c)} · {round(c.price / n):,}원')
+                f'{_airlines(c)} · {round(c.price / n):,}원{_sites(cfg, c)}')
         blocks.append("\n".join(rows))
 
     # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다
