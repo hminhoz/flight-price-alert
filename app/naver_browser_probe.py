@@ -274,6 +274,21 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
                 # 10차에서 가격을 담은 층을 확정했다:
                 #   국내선 domestic_inner · 국제선 combination_inner
                 # 그 층을 직접 겨냥해 최대 80행을 긁는다.
+                row["diag"] = page.evaluate("""() => {
+                    const cnt = s => document.querySelectorAll(s).length;
+                    const t = document.body.innerText || "";
+                    return {
+                      url: location.href,
+                      title: document.title.slice(0, 60),
+                      body_len: t.length,
+                      domestic_inner: cnt("[class*=domestic_inner]"),
+                      domestic_item: cnt("[class*=domestic_item]"),
+                      any_item: cnt("[class*=_item__]"),
+                      has_won: t.indexOf("원") !== -1,
+                      head: t.slice(0, 300).replace(/\\s+/g, " "),
+                      tail: t.slice(-300).replace(/\\s+/g, " ")
+                    };
+                }""")
                 row["rows"] = page.evaluate('async () => {  const NL = String.fromCharCode(10);  const sels = ["[class*=combination_inner]", "[class*=domestic_inner]"];  const sleep = ms => new Promise(r => setTimeout(r, ms));  const clean = e => (e.innerText || "").split(NL)      .map(x => x.trim()).filter(Boolean).join(" | ").slice(0, 460);  for (let a = 0; a < 8; a++) {    for (const s of sels) {      const els = Array.from(document.querySelectorAll(s))        .filter(e => (e.innerText || "").indexOf("원") !== -1);      if (els.length) {        return {sel: s, n: els.length,                texts: els.slice(0, 80).map(clean)};      }    }    await sleep(1200);  }  return {sel: "", n: 0, texts: []};}')
                 text = page.inner_text("body")
                 row["body_len"] = len(text)

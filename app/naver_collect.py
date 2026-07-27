@@ -30,10 +30,14 @@ log = logging.getLogger(__name__)
 #   왕복 형식은 탐침에서 101행이 나왔지만 그건 **가는 편을 앞 구간에 둔 경우**뿐,
 #   오는 편을 앞에 둔 형식은 시험한 적이 없다.
 # → 추론으로 하나를 고르지 말고 **둘 다 시도하고 어느 쪽이 통했는지 기록**한다.
+# 탐침이 성공했던 URL에는 `&isDirect=true&fareType=Y`가 붙어 있었는데
+# 수집기는 그걸 빠뜨리고 있었다. 가는 편은 그래도 됐지만 오는 편은 다를 수
+# 있어 동일하게 맞춘다 (v1.82).
+_Q = "adult={n}&isDirect=true&fareType=Y"
 _FORMS = (
     ("왕복형", "https://flight.naver.com/flights/domestic/"
-               "{o}-{d}-{ymd}/{d}-{o}-{ymd2}?adult={n}"),
-    ("편도형", "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?adult={n}"),
+               "{o}-{d}-{ymd}/{d}-{o}-{ymd2}?" + _Q),
+    ("편도형", "https://flight.naver.com/flights/domestic/{o}-{d}-{ymd}?" + _Q),
 )
 _MIN_ROWS = 8      # 이보다 적게 읽히면 실패로 보고 다른 형식을 시도
 
@@ -130,12 +134,12 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
                              o, d, day, form, str(e)[:80])
                     rows = []
                 used = form
+                # 마지막 형식만 기록하면 중간 결과가 사라진다. 매번 남긴다.
+                form_stat.setdefault((direction, form), [0, 0])
+                form_stat[(direction, form)][0] += 1
+                form_stat[(direction, form)][1] += len(rows)
                 if len(rows) >= _MIN_ROWS:
                     break     # 충분히 읽혔으면 다른 형식은 시도하지 않는다
-            form_stat.setdefault((direction, used), [0, 0])
-            form_stat[(direction, used)][0] += 1
-            form_stat[(direction, used)][1] += len(rows)
-
             best = NV.pick_best(rows, domestic=True,
                                 out_window=windows.get((route_key, direction)))
             done += 1

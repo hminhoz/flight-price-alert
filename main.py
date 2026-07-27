@@ -258,8 +258,10 @@ def main() -> int:
                     if route is None:
                         continue
                     o, d = route.origin, route.destination
-                    pairs.append((o, d, "out", rk))
-                    pairs.append((d, o, "ret", rk))
+                    if "out" in cfg.naver_directions:
+                        pairs.append((o, d, "out", rk))
+                    if "ret" in cfg.naver_directions:
+                        pairs.append((d, o, "ret", rk))
                     windows[(rk, "out")] = cfg.window_for(rk, "out")
                     windows[(rk, "ret")] = cfg.window_for(rk, "ret")
                     outs, rets = [], []
@@ -421,8 +423,28 @@ def main() -> int:
             picked.append(c)
             if len(picked) >= 5:
                 break
+        # 오는 편(CJU→GMP)이 왜 0행인지 **페이지를 직접 본 적이 없다.**
+        # 숫자만 보고 다섯 번을 고쳤다. 실패하는 방향을 탐침에 명시적으로 넣는다.
         cases = []
-        for c in picked:
+        dom_route = next((r for r in cfg.routes
+                          if getattr(r, "domestic", False)), None)
+        if dom_route:
+            d0 = max(cfg.period_start, today + dt.timedelta(days=14))
+            cases.append({
+                "origin": dom_route.destination, "dest": dom_route.origin,
+                "dep": d0.strftime("%Y%m%d"),
+                "ret": (d0 + dt.timedelta(days=3)).strftime("%Y%m%d"),
+                "domestic": True, "google_price": 0,
+                "label": f"{dom_route.destination}→{dom_route.origin} (실패 방향)",
+            })
+            cases.append({
+                "origin": dom_route.origin, "dest": dom_route.destination,
+                "dep": d0.strftime("%Y%m%d"),
+                "ret": (d0 + dt.timedelta(days=3)).strftime("%Y%m%d"),
+                "domestic": True, "google_price": 0,
+                "label": f"{dom_route.origin}→{dom_route.destination} (성공 방향)",
+            })
+        for c in picked[:1]:
             cases.append({
                 "origin": c.route.origin, "dest": c.route.destination,
                 "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
