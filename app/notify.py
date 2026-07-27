@@ -370,11 +370,13 @@ def format_board(cfg: Settings, combos: list, stamp: str,
     def city_block(picked):
         top = picked[0]
         rows = [f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
-                f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}',
+                f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}'
+                f'{_sites(cfg, top)}',
                 f'   {_times(top)} {_airlines(top)}']
         for c in picked[1:]:
             rows.append(f'   {_blink(cfg, c)} {c.nights}박 {_times(c)} '
-                        f'{_airlines(c)} · {round(c.price / n):,}원')
+                        f'{_airlines(c)} · {round(c.price / n):,}원'
+                        f'{_sites(cfg, c)}')
         return "\n".join(rows)
 
     # 모든 날짜에 링크를 건다 → 한 통엔 안 들어가므로 도시 단위로 나눠 담는다.
@@ -406,17 +408,38 @@ def format_board(cfg: Settings, combos: list, stamp: str,
 def _blink(cfg, c) -> str:
     """날짜 → 그 가격이 실제로 있는 곳으로.
 
-    네이버가 이긴 조합은 네이버로 보낸다. 맞기도 하고 주소가 절반이라
-    (구글 tfs 169자 vs 네이버 84자) 링크를 더 많이 걸 수 있다 (v1.98).
+    · 둘 다 네이버면 네이버 하나 (주소가 84자로 구글 169자의 절반이다)
+    · 둘 다 구글이면 구글 하나
+    · **섞이면 둘 다** — 가는 편과 오는 편을 다른 사이트에서 따로 사야 하므로
+      한쪽만 걸면 나머지 편 가격이 그곳에 없다 (v2.02).
     """
     a, b = _sources(c)
-    if "naver" in (a, b) and not c.is_cross:
-        url = naver_url(c.route, c.dep, c.ret, cfg.adults)
-    else:
-        codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-        url = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
-                                 back=c.back if c.is_cross else None)
-    return f'<a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a>'
+    label = f"{_d(c.dep)}~{_d(c.ret)}"
+    g_codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+
+    def g():
+        return google_flights_url(c.route, c.dep, c.ret, cfg.adults, g_codes,
+                                  back=c.back if c.is_cross else None)
+
+    if c.is_cross:                       # 교차 조합은 네이버 다구간 URL이 없다
+        return f'<a href="{g()}">{label}</a>'
+    if a == b == "naver":
+        return f'<a href="{naver_url(c.route, c.dep, c.ret, cfg.adults)}">{label}</a>'
+    if a == b:
+        return f'<a href="{g()}">{label}</a>'
+    # 혼합: 날짜는 글자로 두고, 사이트 링크는 줄 끝에 붙인다(_sites)
+    return label
+
+
+def _sites(cfg, c) -> str:
+    """혼합 조합일 때 줄 끝에 붙일 두 사이트 링크. 아니면 빈 문자열."""
+    a, b = _sources(c)
+    if a == b or c.is_cross:
+        return ""
+    nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+    codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+    g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes)
+    return f' <a href="{nv}">네이버</a>·<a href="{g}">구글</a>'
 
 
 _BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다

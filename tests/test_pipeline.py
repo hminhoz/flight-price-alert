@@ -126,6 +126,7 @@ def main():
     test_naver_schedule()
     test_naver_job_order()
     test_call_signatures()
+    test_mixed_source_links()
     test_baseline_unstick()
     test_new_vs_drop_badge()
     test_near_dates_linked()
@@ -1111,6 +1112,39 @@ def test_baseline_unstick():
     engine.process(cfg, st, [combo(260_000)], today)
     assert st.baselines[unit]["baseline"] <= 250_000, "닿았는데도 올렸다"
     print(f"OK 기준가 잠금 해제: 최근 {n}일 미달성 시 상향 · 닿으면 유지")
+
+
+def test_mixed_source_links():
+    """출처가 섞이면 **두 사이트 링크를 다 준다** (v2.02).
+
+    가는 편과 오는 편을 다른 사이트에서 따로 사야 하는데 한쪽만 걸면
+    나머지 편 가격이 그곳에 없다. 실측 조합 796개 중 52개가 혼합이다.
+    """
+    from app.notify import _blink, _sites
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+
+    def mk(src_out, src_ret):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=200_000,
+            out_leg={"price": 100_000, "dep_time": "06:00", "airline": "A",
+                     "carrier": "7C", **({"source": src_out} if src_out else {})},
+            ret_leg={"price": 100_000, "dep_time": "21:00", "airline": "B",
+                     "carrier": "LJ", **({"source": src_ret} if src_ret else {})})
+
+    # 둘 다 네이버 → 네이버 하나 (주소가 짧다)
+    c = mk("naver", "naver")
+    assert "flight.naver" in _blink(cfg, c) and _sites(cfg, c) == ""
+    # 둘 다 구글 → 구글 하나
+    c = mk(None, None)
+    assert "google.com" in _blink(cfg, c) and _sites(cfg, c) == ""
+    # 섞이면 → 날짜는 글자, 줄 끝에 두 링크
+    c = mk("naver", None)
+    assert "<a href" not in _blink(cfg, c), _blink(cfg, c)
+    s = _sites(cfg, c)
+    assert "flight.naver" in s and "google.com" in s, s
+    assert s.count("<a href") == 2, s
+    print("OK 혼합 출처: 두 사이트 링크 · 단일 출처는 하나만")
 
 
 def test_tolerant_parser():
@@ -2219,6 +2253,39 @@ def test_baseline_unstick():
     engine.process(cfg, st, [combo(260_000)], today)
     assert st.baselines[unit]["baseline"] <= 250_000, "닿았는데도 올렸다"
     print(f"OK 기준가 잠금 해제: 최근 {n}일 미달성 시 상향 · 닿으면 유지")
+
+
+def test_mixed_source_links():
+    """출처가 섞이면 **두 사이트 링크를 다 준다** (v2.02).
+
+    가는 편과 오는 편을 다른 사이트에서 따로 사야 하는데 한쪽만 걸면
+    나머지 편 가격이 그곳에 없다. 실측 조합 796개 중 52개가 혼합이다.
+    """
+    from app.notify import _blink, _sites
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+
+    def mk(src_out, src_ret):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=200_000,
+            out_leg={"price": 100_000, "dep_time": "06:00", "airline": "A",
+                     "carrier": "7C", **({"source": src_out} if src_out else {})},
+            ret_leg={"price": 100_000, "dep_time": "21:00", "airline": "B",
+                     "carrier": "LJ", **({"source": src_ret} if src_ret else {})})
+
+    # 둘 다 네이버 → 네이버 하나 (주소가 짧다)
+    c = mk("naver", "naver")
+    assert "flight.naver" in _blink(cfg, c) and _sites(cfg, c) == ""
+    # 둘 다 구글 → 구글 하나
+    c = mk(None, None)
+    assert "google.com" in _blink(cfg, c) and _sites(cfg, c) == ""
+    # 섞이면 → 날짜는 글자, 줄 끝에 두 링크
+    c = mk("naver", None)
+    assert "<a href" not in _blink(cfg, c), _blink(cfg, c)
+    s = _sites(cfg, c)
+    assert "flight.naver" in s and "google.com" in s, s
+    assert s.count("<a href") == 2, s
+    print("OK 혼합 출처: 두 사이트 링크 · 단일 출처는 하나만")
 
 
 def test_tolerant_parser():
