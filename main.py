@@ -246,6 +246,7 @@ def main() -> int:
     # ---- 네이버 보조 수집 (하루 1회, 예산 안에서) ----
     # 국내선에서만 이득이 확인돼 제주만 대상. 브라우저를 띄워야 해 무겁다.
     # 실패해도 구글 파이프라인은 그대로 간다.
+    naver_ran = False
     if cfg.naver_routes and not dry and not (brief or digest or naver_probe):
         from app import naver_collect as NVC
         kst_hour = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=9)).hour
@@ -282,6 +283,7 @@ def main() -> int:
                     stop_after_fail=cfg.naver_stop_after_fail)
                 if got:
                     state.naver_legs.update(got)
+                naver_ran = True
                 state.meta["naver_remain"] = remain
                 state.meta["naver_dstat"] = {k: list(v) for k, v in dstat.items()}
                 state.meta["naver_total"] = total
@@ -313,9 +315,15 @@ def main() -> int:
                 gaps.append(g["price"] - v["price"])
             else:
                 lose += 1
+        if not naver_ran:
+            # 왜 안 돌았는지 바로 알 수 있게. 조용히 끝나면 "돌렸는데 왜?"가 된다.
+            msg.append(f"모드가 naver-run이 아니거나 노선 설정이 비어 있습니다 "
+                       f"(오늘 자동 수집 {state.meta.get('naver_runs', 0)}/"
+                       f"{cfg.naver_runs_per_day}회 사용)")
         rem = int(state.meta.get("naver_remain", 0))
         tot = int(state.meta.get("naver_total", 0)) or 145
-        msg = ["🧪 <b>네이버 수집 완료</b>",
+        msg = ["🧪 <b>네이버 수집</b>" if naver_ran
+               else "🧪 <b>네이버 수집 — 이번엔 실행되지 않았습니다</b>",
                f"가는 편 {by_dir.get('out', 0)}건 · 오는 편 {by_dir.get('ret', 0)}건 "
                f"(누적 {len(nvl)}건)"]
         if rem:
