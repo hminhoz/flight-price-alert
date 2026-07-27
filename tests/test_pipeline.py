@@ -563,13 +563,13 @@ def test_digest():
     msg = "\n".join(msgs)
 
     # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
-    assert msg.count("원</b>/인부터") == 2, msg
+    assert msg.count("원~") == 2, msg
     i2 = msg.index(engine.city_label(cfg, r2))
     i1 = msg.index(engine.city_label(cfg, r1))
     assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
-    assert "250,000원</b>/인부터" in msg, msg      # 500,000 / 2명
-    assert "350,000원</b>/인부터" in msg, msg      # 700,000 / 2명
-    assert "450,000원" in msg, "도시 안에서는 여러 날짜를 보여준다"
+    assert "250,000원~" in msg, msg      # 500,000 / 2명
+    assert "350,000원~" in msg, msg      # 700,000 / 2명
+    assert "450,000" in msg, "도시 안에서는 여러 날짜를 보여준다"
     assert msg.count("<a href=") == 3, "날짜마다 링크"
 
     # 도시별 표시 개수는 설정을 따른다
@@ -588,7 +588,7 @@ def test_digest():
     # 도시가 통째로 한 통 안에 있어야 한다 (블록이 쪼개지면 안 됨)
     joined = "\n".join(parts)
     for r in cfg.routes:
-        assert joined.count(f"{engine.city_label(cfg, r)} ") >= 1
+        assert engine.city_label(cfg, r) in joined
 
     # 콤보가 없어도 죽지 않는다
     empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))
@@ -1722,13 +1722,13 @@ def test_digest():
     msg = "\n".join(msgs)
 
     # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
-    assert msg.count("원</b>/인부터") == 2, msg
+    assert msg.count("원~") == 2, msg
     i2 = msg.index(engine.city_label(cfg, r2))
     i1 = msg.index(engine.city_label(cfg, r1))
     assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
-    assert "250,000원</b>/인부터" in msg, msg      # 500,000 / 2명
-    assert "350,000원</b>/인부터" in msg, msg      # 700,000 / 2명
-    assert "450,000원" in msg, "도시 안에서는 여러 날짜를 보여준다"
+    assert "250,000원~" in msg, msg      # 500,000 / 2명
+    assert "350,000원~" in msg, msg      # 700,000 / 2명
+    assert "450,000" in msg, "도시 안에서는 여러 날짜를 보여준다"
     assert msg.count("<a href=") == 3, "날짜마다 링크"
 
     # 도시별 표시 개수는 설정을 따른다
@@ -1747,7 +1747,7 @@ def test_digest():
     # 도시가 통째로 한 통 안에 있어야 한다 (블록이 쪼개지면 안 됨)
     joined = "\n".join(parts)
     for r in cfg.routes:
-        assert joined.count(f"{engine.city_label(cfg, r)} ") >= 1
+        assert engine.city_label(cfg, r) in joined
 
     # 콤보가 없어도 죽지 않는다
     empty = format_digest(cfg, [], "", dt.date(2026, 8, 1))

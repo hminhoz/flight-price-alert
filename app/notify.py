@@ -64,7 +64,9 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
     mark = "⚠" if leg.get("off_window") else ""
     src = ""
     if mark_src:
-        src = "네이버" if leg.get("source") == "naver" else "구글"
+        # 한 글자로. 줄 끝 링크가 이미 [네이버][구글]로 나오므로 여기서
+        # 같은 말을 길게 반복하면 줄만 길어진다 (v2.04).
+        src = "네" if leg.get("source") == "naver" else "구"
         src = f"({src})"
     return f"{leg.get('dep_time', '?')}{mark}{src}"
 
@@ -278,8 +280,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             if kind == 1:                      # 다른 날짜 — 날짜와 값만
                 c = obj
                 near_lines.append(
-                    f'{_blink(cfg, c)} {c.nights}박 '
-                    f'{_times(c)} {_airlines(c)} {round(c.price / n):,}'
+                    f'<b>{round(c.price / n):,}</b> {_blink(cfg, c)} '
+                    f'{c.nights}박 {_times(c)} {_airlines(c)}'
                     f'{_sites(cfg, c)}')
                 continue
 
@@ -372,8 +374,8 @@ def format_board(cfg: Settings, combos: list, stamp: str,
                 f'{_sites(cfg, top)}',
                 f'   {_times(top)} {_airlines(top)}']
         for c in picked[1:]:
-            rows.append(f'   {_blink(cfg, c)} {c.nights}박 {_times(c)} '
-                        f'{_airlines(c)} · {round(c.price / n):,}원'
+            rows.append(f'   <b>{round(c.price / n):,}</b> {_blink(cfg, c)} '
+                        f'{c.nights}박 {_times(c)} {_airlines(c)}'
                         f'{_sites(cfg, c)}')
         return "\n".join(rows)
 
@@ -489,13 +491,17 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
                 pick[k] = c
         picked = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.digest_top_n]
         top = picked[0]
-        rows = [f"<b>{city_label(cfg, top.route)} "
-                f"{round(top.price / n):,}원</b>/인부터"]
+        # 가격을 맨 앞에 두어 세로로 비교되게. 공항 정보가 모두 같으면
+        # 도시 헤더로 올려 매 줄 반복을 없앤다 (v2.04).
+        notes = {_airport_note(c) for c in picked}
+        head_air = notes.pop() if len(notes) == 1 else ""
+        rows = [f"<b>{city_label(cfg, top.route)}</b>"
+                f"{head_air}  {round(top.price / n):,}원~"]
         for c in picked:
+            air = "" if head_air else _airport_note(c)
             rows.append(
-                f'· {_blink(cfg, c)} {c.nights}박'
-                f'{_airport_note(c)} · {_times(c)} '
-                f'{_airlines(c)} · {round(c.price / n):,}원{_sites(cfg, c)}')
+                f'· <b>{round(c.price / n):,}</b> {_blink(cfg, c)} {c.nights}박'
+                f'{air} · {_times(c)} {_airlines(c)}{_sites(cfg, c)}')
         blocks.append("\n".join(rows))
 
     # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다
