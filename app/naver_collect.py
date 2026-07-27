@@ -118,7 +118,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             for form, url in _urls(o, d, day, adults):
                 try:
                     page.goto(url, wait_until="domcontentloaded", timeout=40000)
-                    page.wait_for_timeout(2500)
+                    page.wait_for_timeout(5000)   # 탐침과 동일하게
                     for sel in ("[class*=searchBox_btn_search]",
                                 "button[class*=btn_search]"):
                         try:
