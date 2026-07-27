@@ -192,6 +192,11 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
     combos: list[Combo] = []
     excluded = set(cfg.exclude_airlines or ())
     nv = getattr(state, "naver_legs", None) or {}
+    # 구글 leg는 leg_freshness_days가 지나면 무시되는데 네이버는 검사가 없어
+    # 한 번 모으면 영원히 쓰였다. 수집이 며칠 실패하면 사라진 가격으로 알림이
+    # 나간다 → 같은 방식으로 만료시킨다 (v1.91).
+    _nv_cutoff = (dt.datetime.now(dt.timezone.utc)
+                  - dt.timedelta(days=cfg.naver_freshness_days)).isoformat()
 
     def cheaper(key: str, leg: dict | None) -> dict | None:
         """같은 다리에 구글·네이버가 다 있으면 싼 쪽을 쓰되, **진 쪽 가격도
@@ -201,6 +206,8 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
         n = nv.get(key)
         if not n or not n.get("price"):
             return leg
+        if (n.get("at") or "") < _nv_cutoff:
+            return leg          # 오래된 네이버 값은 쓰지 않는다
         if not leg or not leg.get("price"):
             out = dict(n)
             out.setdefault("source", "naver")
@@ -337,7 +344,10 @@ def process(cfg: Settings, state: State, combos: list[Combo],
             b["alltime_min_at"] = now_iso
 
         # 기준가: 관측기간엔 관측 최저로 수렴, 이후엔
-        # 최근 14일 daily_min의 중앙값이 더 낮을 때만 하향 (상향 없음)
+        # 기준가는 최근 daily_min 중앙값으로 내려간다. 다만 **영영 도달 불가능한
+        # 값에 갇히면 알림이 조용해진다** — 예: 네이버가 만든 낮은 값에 기준가가
+        # 박힌 뒤 네이버 수집이 끊기면 그 단위는 다시 울리지 않는다.
+        # → 최근 창 전체가 기준가를 한 번도 못 건드렸으면 중앙값까지 올린다 (v1.92).
         if observing or "baseline" not in b:
             b["baseline"] = min(b.get("baseline", price), price)
         else:
@@ -346,6 +356,12 @@ def process(cfg: Settings, state: State, combos: list[Combo],
                 candidate = int(statistics.median(recent))
                 if candidate < b["baseline"]:
                     b["baseline"] = candidate
+                elif (len(recent) >= cfg.baseline_unstick_days
+                      and min(recent) > b["baseline"]):
+                    # 창 안의 어느 날도 기준가에 못 닿았다 → 시세가 올라간 것
+                    b["baseline"] = candidate
+                    b["unstuck_at"] = dt.datetime.now(
+                        dt.timezone.utc).isoformat(timespec="seconds")
 
     if observing:
         return []

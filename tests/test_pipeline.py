@@ -126,6 +126,7 @@ def main():
     test_naver_schedule()
     test_naver_job_order()
     test_call_signatures()
+    test_baseline_unstick()
     test_new_vs_drop_badge()
     test_near_dates_linked()
     test_time_histogram()
@@ -266,11 +267,17 @@ def test_cycle_progress():
         assert done == (i == cfg.shards - 1), (i, done)
     assert st.meta["cycle_shards"] == [], "완주 후에는 진행도가 초기화돼야 한다"
 
-    # 같은 샤드가 반복돼도 완주로 오인하지 않는다 (실행 중복 대비)
-    st.meta["cycle_shards"] = []
-    for _ in range(cfg.shards + 2):
+    # 샤드가 여러 개면, 같은 샤드가 반복돼도 완주로 오인하지 않는다
+    # (샤드가 1이면 매 실행이 곧 완주이므로 이 검사는 해당 없음)
+    if cfg.shards > 1:
+        st.meta["cycle_shards"] = []
+        for _ in range(cfg.shards + 2):
+            _, _, done = engine.note_shard(cfg, st, 0)
+            assert not done, "같은 샤드 반복은 완주가 아니다"
+    else:
+        st.meta["cycle_shards"] = []
         _, _, done = engine.note_shard(cfg, st, 0)
-        assert not done, "같은 샤드 반복은 완주가 아니다"
+        assert done, "샤드가 1이면 한 번 실행이 곧 완주여야 한다"
 
     # 보고 정책 (v1.47부터 기본은 off — 고정판이 그 역할을 대신한다)
     import copy
@@ -913,10 +920,12 @@ def test_naver_leg_merge():
                   price=300_000, airline="구글편", dep_time="19:00",
                   carrier="7C", now=now)
 
+    fresh_at = now.isoformat(timespec="seconds")
+
     # 네이버가 더 비싸면 무시
     st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
                      {"price": 400_000, "airline": "네이버편",
-                      "dep_time": "07:30", "source": "naver"}}
+                      "dep_time": "07:30", "source": "naver", "at": fresh_at}}
     c = [x for x in engine.build_combos(cfg, st, today)
          if x.dep == dep and x.nights == 3][0]
     assert c.out_leg["airline"] == "구글편", c.out_leg
@@ -924,7 +933,7 @@ def test_naver_leg_merge():
     # 네이버가 더 싸면 채택하고 출처를 남긴다
     st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
                      {"price": 200_000, "airline": "네이버편",
-                      "dep_time": "07:30", "source": "naver"}}
+                      "dep_time": "07:30", "source": "naver", "at": fresh_at}}
     c = [x for x in engine.build_combos(cfg, st, today)
          if x.dep == dep and x.nights == 3][0]
     assert c.out_leg["airline"] == "네이버편" and c.out_leg["source"] == "naver"
@@ -932,7 +941,29 @@ def test_naver_leg_merge():
     # 원본 구글 데이터는 그대로 남아 있어야 한다
     g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
     assert g["price"] == 300_000 and "source" not in g, g
-    print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
+
+    # 오래된 네이버 값은 쓰지 않는다 (v1.91).
+    # 구글 leg는 만료되는데 네이버만 영원히 살아 있으면, 수집이 며칠 실패했을 때
+    # 사라진 가격으로 알림이 나간다.
+    old = (now - dt.timedelta(days=cfg.naver_freshness_days + 1)
+           ).isoformat(timespec="seconds")
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 100_000, "airline": "묵은네이버",
+                      "dep_time": "07:30", "source": "naver", "at": old}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", "만료된 네이버 값이 쓰였다"
+    # 수집 시각이 아예 없는 값도 신뢰하지 않는다
+    st.naver_legs[State.leg_key("GMP-CJU", "out", dep.isoformat())].pop("at")
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", "시각 없는 네이버 값이 쓰였다"
+
+    # 지난 날짜는 네이버 쪽도 정리된다
+    st.naver_legs["GMP-CJU|out|2026-01-01"] = {"price": 1, "at": fresh_at}
+    st.prune_past_legs(today)
+    assert "GMP-CJU|out|2026-01-01" not in st.naver_legs, "과거 네이버 데이터가 남았다"
+    print("OK 네이버 병합: 더 쌀 때만 채택 · 만료·과거 정리 · 구글 원본 보존")
 
 
 def test_naver_schedule():
@@ -1035,6 +1066,49 @@ def test_call_signatures():
             assert "-> tuple[dict, int, int, dict]" in doc and n == 4, (
                 f"collect 반환값 {n}개로 받는데 정의와 다르다")
     print(f"OK 호출 시그니처: collect 인자 {len(used)}개·반환 4개 일치")
+
+
+def test_baseline_unstick():
+    """도달 불가능해진 기준가는 다시 올라간다 (v1.92).
+
+    네이버가 만든 낮은 값에 기준가가 박힌 뒤 수집이 끊기면, 그 노선·월은
+    영영 알림이 안 나간다. 최근 창 전체가 기준가를 못 건드렸으면 풀어준다.
+    """
+    cfg = load()
+    n = cfg.baseline_unstick_days
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    st.meta["first_run"] = "2026-07-01"
+    today = dt.date(2026, 8, 20)
+    route = cfg.routes[0]
+
+    def combo(price, day=10):
+        return engine.Combo(route=route, dep=dt.date(2026, 9, day), nights=3,
+                            price=price,
+                            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+
+    unit = combo(1).unit
+    # 기준가는 250,000인데 최근 N일 내내 300,000대만 나왔다
+    hist = {(today - dt.timedelta(days=i)).isoformat(): 300_000 + i * 100
+            for i in range(1, n + 1)}
+    st.baselines[unit] = {"daily_min": dict(hist), "baseline": 250_000,
+                          "alltime_min": 250_000,
+                          "alltime_min_at": "2026-07-01T00:00:00"}
+    engine.process(cfg, st, [combo(305_000)], today)
+    b = st.baselines[unit]
+    assert b["baseline"] > 250_000, f"갇힌 기준가가 안 풀렸다: {b['baseline']}"
+    assert "unstuck_at" in b
+
+    # 창 안에서 한 번이라도 닿았으면 올리지 않는다
+    st.baselines[unit] = {"daily_min": {**hist,
+                                        today.isoformat(): 240_000},
+                          "baseline": 250_000, "alltime_min": 240_000,
+                          "alltime_min_at": "2026-07-01T00:00:00"}
+    engine.process(cfg, st, [combo(260_000)], today)
+    assert st.baselines[unit]["baseline"] <= 250_000, "닿았는데도 올렸다"
+    print(f"OK 기준가 잠금 해제: 최근 {n}일 미달성 시 상향 · 닿으면 유지")
 
 
 def test_tolerant_parser():
@@ -1304,11 +1378,17 @@ def test_cycle_progress():
         assert done == (i == cfg.shards - 1), (i, done)
     assert st.meta["cycle_shards"] == [], "완주 후에는 진행도가 초기화돼야 한다"
 
-    # 같은 샤드가 반복돼도 완주로 오인하지 않는다 (실행 중복 대비)
-    st.meta["cycle_shards"] = []
-    for _ in range(cfg.shards + 2):
+    # 샤드가 여러 개면, 같은 샤드가 반복돼도 완주로 오인하지 않는다
+    # (샤드가 1이면 매 실행이 곧 완주이므로 이 검사는 해당 없음)
+    if cfg.shards > 1:
+        st.meta["cycle_shards"] = []
+        for _ in range(cfg.shards + 2):
+            _, _, done = engine.note_shard(cfg, st, 0)
+            assert not done, "같은 샤드 반복은 완주가 아니다"
+    else:
+        st.meta["cycle_shards"] = []
         _, _, done = engine.note_shard(cfg, st, 0)
-        assert not done, "같은 샤드 반복은 완주가 아니다"
+        assert done, "샤드가 1이면 한 번 실행이 곧 완주여야 한다"
 
     # 보고 정책 (v1.47부터 기본은 off — 고정판이 그 역할을 대신한다)
     import copy
@@ -1951,10 +2031,12 @@ def test_naver_leg_merge():
                   price=300_000, airline="구글편", dep_time="19:00",
                   carrier="7C", now=now)
 
+    fresh_at = now.isoformat(timespec="seconds")
+
     # 네이버가 더 비싸면 무시
     st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
                      {"price": 400_000, "airline": "네이버편",
-                      "dep_time": "07:30", "source": "naver"}}
+                      "dep_time": "07:30", "source": "naver", "at": fresh_at}}
     c = [x for x in engine.build_combos(cfg, st, today)
          if x.dep == dep and x.nights == 3][0]
     assert c.out_leg["airline"] == "구글편", c.out_leg
@@ -1962,7 +2044,7 @@ def test_naver_leg_merge():
     # 네이버가 더 싸면 채택하고 출처를 남긴다
     st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
                      {"price": 200_000, "airline": "네이버편",
-                      "dep_time": "07:30", "source": "naver"}}
+                      "dep_time": "07:30", "source": "naver", "at": fresh_at}}
     c = [x for x in engine.build_combos(cfg, st, today)
          if x.dep == dep and x.nights == 3][0]
     assert c.out_leg["airline"] == "네이버편" and c.out_leg["source"] == "naver"
@@ -1970,7 +2052,29 @@ def test_naver_leg_merge():
     # 원본 구글 데이터는 그대로 남아 있어야 한다
     g = st.legs[State.leg_key("GMP-CJU", "out", dep.isoformat())]
     assert g["price"] == 300_000 and "source" not in g, g
-    print("OK 네이버 병합: 더 쌀 때만 채택 · 출처 기록 · 구글 원본 보존")
+
+    # 오래된 네이버 값은 쓰지 않는다 (v1.91).
+    # 구글 leg는 만료되는데 네이버만 영원히 살아 있으면, 수집이 며칠 실패했을 때
+    # 사라진 가격으로 알림이 나간다.
+    old = (now - dt.timedelta(days=cfg.naver_freshness_days + 1)
+           ).isoformat(timespec="seconds")
+    st.naver_legs = {State.leg_key("GMP-CJU", "out", dep.isoformat()):
+                     {"price": 100_000, "airline": "묵은네이버",
+                      "dep_time": "07:30", "source": "naver", "at": old}}
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", "만료된 네이버 값이 쓰였다"
+    # 수집 시각이 아예 없는 값도 신뢰하지 않는다
+    st.naver_legs[State.leg_key("GMP-CJU", "out", dep.isoformat())].pop("at")
+    c = [x for x in engine.build_combos(cfg, st, today)
+         if x.dep == dep and x.nights == 3][0]
+    assert c.out_leg["airline"] == "구글편", "시각 없는 네이버 값이 쓰였다"
+
+    # 지난 날짜는 네이버 쪽도 정리된다
+    st.naver_legs["GMP-CJU|out|2026-01-01"] = {"price": 1, "at": fresh_at}
+    st.prune_past_legs(today)
+    assert "GMP-CJU|out|2026-01-01" not in st.naver_legs, "과거 네이버 데이터가 남았다"
+    print("OK 네이버 병합: 더 쌀 때만 채택 · 만료·과거 정리 · 구글 원본 보존")
 
 
 def test_naver_schedule():
@@ -2073,6 +2177,49 @@ def test_call_signatures():
             assert "-> tuple[dict, int, int, dict]" in doc and n == 4, (
                 f"collect 반환값 {n}개로 받는데 정의와 다르다")
     print(f"OK 호출 시그니처: collect 인자 {len(used)}개·반환 4개 일치")
+
+
+def test_baseline_unstick():
+    """도달 불가능해진 기준가는 다시 올라간다 (v1.92).
+
+    네이버가 만든 낮은 값에 기준가가 박힌 뒤 수집이 끊기면, 그 노선·월은
+    영영 알림이 안 나간다. 최근 창 전체가 기준가를 못 건드렸으면 풀어준다.
+    """
+    cfg = load()
+    n = cfg.baseline_unstick_days
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    st.meta["first_run"] = "2026-07-01"
+    today = dt.date(2026, 8, 20)
+    route = cfg.routes[0]
+
+    def combo(price, day=10):
+        return engine.Combo(route=route, dep=dt.date(2026, 9, day), nights=3,
+                            price=price,
+                            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+                            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
+
+    unit = combo(1).unit
+    # 기준가는 250,000인데 최근 N일 내내 300,000대만 나왔다
+    hist = {(today - dt.timedelta(days=i)).isoformat(): 300_000 + i * 100
+            for i in range(1, n + 1)}
+    st.baselines[unit] = {"daily_min": dict(hist), "baseline": 250_000,
+                          "alltime_min": 250_000,
+                          "alltime_min_at": "2026-07-01T00:00:00"}
+    engine.process(cfg, st, [combo(305_000)], today)
+    b = st.baselines[unit]
+    assert b["baseline"] > 250_000, f"갇힌 기준가가 안 풀렸다: {b['baseline']}"
+    assert "unstuck_at" in b
+
+    # 창 안에서 한 번이라도 닿았으면 올리지 않는다
+    st.baselines[unit] = {"daily_min": {**hist,
+                                        today.isoformat(): 240_000},
+                          "baseline": 250_000, "alltime_min": 240_000,
+                          "alltime_min_at": "2026-07-01T00:00:00"}
+    engine.process(cfg, st, [combo(260_000)], today)
+    assert st.baselines[unit]["baseline"] <= 250_000, "닿았는데도 올렸다"
+    print(f"OK 기준가 잠금 해제: 최근 {n}일 미달성 시 상향 · 닿으면 유지")
 
 
 def test_tolerant_parser():

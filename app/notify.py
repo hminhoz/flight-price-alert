@@ -43,15 +43,59 @@ def _airport_note(c) -> str:
             f"{'' if b.destination == c.route.destination else f' ({_ko(c.route.destination)} 입 / {_ko(b.destination)} 출)'}")
 
 
-def _leg_time(leg: dict) -> str:
-    """출발 시각. 선호 시간대 밖이면 ⚠, 네이버 값이면 (네이버).
+def _sources(c) -> tuple:
+    """(가는 편 출처, 오는 편 출처). 'naver' 또는 'google'."""
+    return (c.out_leg.get("source") or "google",
+            c.ret_leg.get("source") or "google")
 
-    출처를 항목 끝에 한 번만 적으면 어느 편이 네이버인지 알 수 없다.
-    공항을 헷갈리면 비행기를 놓치듯, 사이트를 헷갈리면 그 가격이 없다 (v1.71).
+
+def _mixed(c) -> bool:
+    a, b = _sources(c)
+    return a != b
+
+
+def _leg_time(leg: dict, mark_src: bool = False) -> str:
+    """출발 시각. 선호 시간대 밖이면 ⚠.
+
+    출처는 **두 편이 서로 다를 때만** 시각 옆에 붙인다. 같으면 항목 끝에
+    한 번만 적는 게 짧고 읽기 쉽다 — `06:00(네이버)/21:15(네이버)`는
+    같은 말을 두 번 하는 셈이었다 (v1.91).
     """
     mark = "⚠" if leg.get("off_window") else ""
-    src = "(네이버)" if leg.get("source") == "naver" else ""
+    src = ""
+    if mark_src:
+        src = "네이버" if leg.get("source") == "naver" else "구글"
+        src = f"({src})"
     return f"{leg.get('dep_time', '?')}{mark}{src}"
+
+
+def _times(c) -> str:
+    """`06:00/21:15` + 출처. 알림·고정판·근처날짜·digest가 같은 규칙을 쓴다.
+
+    고정판과 근처 날짜에는 출처 표시가 아예 빠져 있었다(v1.71에서 알림만
+    고치고 나머지를 놓쳤다). 어디서 사야 하는지 모르면 가격만 보여주는 셈이다.
+    """
+    a, b = _sources(c)
+    mx = a != b
+    s = f"{_leg_time(c.out_leg, mx)}/{_leg_time(c.ret_leg, mx)}"
+    return s + (" 네이버" if a == b == "naver" else "")
+
+
+def _src_suffix(c) -> str:
+    """두 편이 같은 출처일 때 항목 끝에 붙일 표시."""
+    a, b = _sources(c)
+    return " · 네이버" if a == b == "naver" else ""
+
+
+def _mixed_note(c) -> str:
+    """출처가 섞이면 **각각 다른 곳에서 발권**해야 한다는 걸 반드시 알린다.
+    링크만 둘 다 걸어두면 한 곳에서 다 살 수 있다고 오해한다 (v1.91)."""
+    if not _mixed(c):
+        return ""
+    a, b = _sources(c)
+    ko = {"naver": "네이버", "google": "구글"}
+    return (f"⚠️ 가는 편은 {ko[a]}, 오는 편은 {ko[b]}에서 "
+            f"<b>각각 따로</b> 발권해야 해요")
 
 
 # 항공사명은 **IATA 코드 기준**으로 매핑한다. 이름은 사명 변경에 흔들린다 —
@@ -229,7 +273,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 air = _airport_note(c) if (multi_air or c.is_cross) else ""
                 lines.append(
                     f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박{air} · '
-                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} {_airlines(c)} · '
+                    f'{_times(c)} {_airlines(c)} · '
                     f'{round(c.price / n):,}원/인')
                 continue
 
@@ -267,8 +311,13 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 lines.append(f"🔻 지난 알림 {round(a.prev_sent / n):,}원/인에서 "
                              f"<b>{round(gap / n):,}원 더 내렸어요</b>")
 
-            lines.append(f"{_leg_time(c.out_leg)} 출발 · "
-                         f"{_leg_time(c.ret_leg)} 귀국 · {_airlines(c)}")
+            mx = _mixed(c)
+            lines.append(f"{_leg_time(c.out_leg, mx)} 출발 · "
+                         f"{_leg_time(c.ret_leg, mx)} 귀국 · "
+                         f"{_airlines(c)}{_src_suffix(c)}")
+            note = _mixed_note(c)
+            if note:
+                lines.append(note)
             alt = _alt_line(c, n)
             if alt:
                 lines.append(alt)
@@ -361,13 +410,11 @@ def format_board(cfg: Settings, combos: list, stamp: str,
                 f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
                 f'<a href="{url}">{_d(top.dep)}~{_d(top.ret)}</a> {top.nights}박'
                 f'{_airport_note(top)}')
-            lines.append(f'   {_leg_time(top.out_leg)}/{_leg_time(top.ret_leg)} '
-                         f'{_airlines(top)}')
+            lines.append(f'   {_times(top)} {_airlines(top)}')
             for c in sel[1:]:
                 lines.append(
                     f'   {_d(c.dep)}~{_d(c.ret)} {c.nights}박 '
-                    f'{_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} '
-                    f'{_airlines(c)} · {round(c.price / n):,}원')
+                    f'{_times(c)} {_airlines(c)} · {round(c.price / n):,}원')
         lines.append("")
         lines.append(f"성인 {cfg.adults}명 · 편도 2장 합산 · ⚠는 선호 시간대 밖")
         # 위 시각이 갱신됐다면 그 실행에서 명령도 확인된 것이다.
@@ -439,7 +486,7 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
                                      back=c.back if c.is_cross else None)
             rows.append(
                 f'· <a href="{url}">{_d(c.dep)}~{_d(c.ret)}</a> {c.nights}박'
-                f'{_airport_note(c)} · {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} '
+                f'{_airport_note(c)} · {_times(c)} '
                 f'{_airlines(c)} · {round(c.price / n):,}원')
         blocks.append("\n".join(rows))
 

@@ -84,8 +84,12 @@ class State:
         return e
 
     def prune_past_legs(self, today: dt.date) -> None:
+        keep = today.isoformat()
         self.legs = {k: v for k, v in self.legs.items()
-                     if k.split("|")[2] >= today.isoformat()}
+                     if k.split("|")[2] >= keep}
+        # 네이버 수집분도 같이 정리한다. 안 하면 지난 날짜가 계속 쌓인다 (v1.91).
+        self.naver_legs = {k: v for k, v in self.naver_legs.items()
+                           if k.split("|")[2] >= keep}
 
     # ---------- meta ----------
     def first_run_date(self, today: dt.date) -> dt.date:
