@@ -1,4 +1,5 @@
 {
+ "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
    112,
@@ -6,15 +7,15 @@
    167
   ],
   "495657895:h": [
-   "b1083058ae42",
-   "23eda3323f73",
-   "5513b6f1aee6"
+   "55c3894c2677",
+   "496bd303d4a4",
+   "70a733cd4ac0"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-07-29T13:20:30+00:00",
+ "cycle_started_at": "2026-07-29T13:56:37+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-07-29T13:20:30+00:00",
+ "last_cycle_done_at": "2026-07-29T13:56:37+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "naver_cursor": 63,
@@ -82,11 +83,6 @@
  "naver_total": 145,
  "recent_runs": [
   {
-   "at": "2026-07-27T12:59:20+00:00",
-   "attempted": 1130,
-   "failed": 0
-  },
-  {
    "at": "2026-07-27T14:32:10+00:00",
    "attempted": 1130,
    "failed": 47
@@ -130,8 +126,18 @@
    "at": "2026-07-29T13:20:30+00:00",
    "attempted": 0,
    "failed": 0
+  },
+  {
+   "at": "2026-07-29T14:10:33+00:00",
+   "attempted": 1130,
+   "failed": 0
   }
  ],
+ "rt_shape": {
+  "legs1": 3439,
+  "legs2": 0,
+  "other": 0
+ },
  "shard_cursor": 0,
  "startup_sent": true,
  "tg_offset": 74159571
