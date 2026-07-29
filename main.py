@@ -57,6 +57,7 @@ def main() -> int:
     preview = _mode == "preview"
     digest = _mode == "digest"
     naver_probe = _mode == "naver"
+    tfs_probe = _mode == "tfs"        # 시간 필터 필드 의미 확인 (일회성 진단)
     # 하이픈·공백·대소문자 어떻게 넣어도 받는다 (입력 실수로 조용히 평범한
     # 실행이 돼버리는 일이 있었다)
     naver_run = _mode.replace("_", "-") in ("naver-run", "naverrun", "naverrun")        or _raw.replace(" ", "-").replace("_", "-") == "naver-run"
@@ -123,7 +124,7 @@ def main() -> int:
     # 보기 전용 모드(digest / 월 요약)는 **검색을 건너뛴다** (v1.56).
     # 이미 저장된 데이터를 다르게 그려줄 뿐이라 새로 뒤질 이유가 없다.
     # 예전엔 663건을 8분간 검색하고 그 결과를 저장도 안 한 채 버렸다.
-    if brief or digest or naver_probe or naver_run:
+    if brief or digest or naver_probe or naver_run or tfs_probe:
         legs = []
         log.info("보기 전용 모드 → 검색 건너뜀 (저장된 데이터로 즉시 응답)")
 
@@ -423,7 +424,13 @@ def main() -> int:
                  sum(1 for c in targets if c.rt_price and c.rt_price < c.price),
                  sh["legs1"], sh["legs1"] / tot * 100,
                  sh["legs2"], sh["legs2"] / tot * 100, sh["other"])
+        cheaper = sum(1 for c in targets if c.rt_price and c.rt_price < c.price)
         state.meta["rt_shape"] = sh
+        state.meta["rt_stats"] = {
+            "targets": len(targets), "ok": ok, "cheaper": cheaper,
+            "gain_sum": sum((c.price - c.rt_price) for c in targets
+                            if c.rt_price and c.rt_price < c.price),
+        }
         return ok
 
     # 왕복 실가를 **판정 전에** 붙인다. 편도 합산만으로 줄을 세우면 오는 편
@@ -437,6 +444,46 @@ def main() -> int:
         for a in alerts_ or []:
             a.rt_price = a.combo.rt_price
 
+
+    # ---- tfs 시간 필터 필드 의미 확인 (DRY_RUN=tfs) ----
+    # 구글 UI URL에서 FlightData 안에 8·9·10·11 네 칸이 시간 관련임을 확인했다.
+    # 어느 칸이 출발이고 어느 칸이 도착인지는 **쏴 보고** 정한다.
+    if tfs_probe:
+        from app import tfs as TFS
+        from app.search import fetch_by_tfs, parse_time
+        cases = [
+            ("필터 없음", None),
+            ("8·9 = 6,13", (6, 13, None, None)),
+            ("10·11 = 6,13", (None, None, 6, 13)),
+            ("8·9 = 18,23", (18, 23, None, None)),
+        ]
+        lines = ["🧪 <b>tfs 시간 필터 진단</b>", "인천→오사카 편도 2026-09-17"]
+        for label, times in cases:
+            q = TFS.build_tfs(
+                [TFS.flight_data("2026-09-17", "ICN", "KIX", times=times)],
+                adults=cfg.adults, trip=2)
+            try:
+                res = fetch_by_tfs(q, cfg.currency) or []
+            except Exception as e:  # noqa: BLE001
+                lines.append(f"· {label}: 실패 {str(e)[:60]}")
+                continue
+            deps, arrs = [], []
+            for it in res:
+                fl = (getattr(it, "flights", None) or [None])[0]
+                if not fl:
+                    continue
+                d = parse_time(getattr(getattr(fl, "departure", None), "time", None))
+                a = parse_time(getattr(getattr(fl, "arrival", None), "time", None))
+                if d:
+                    deps.append(d.hour)
+                if a:
+                    arrs.append(a.hour)
+            rng = lambda v: f"{min(v)}~{max(v)}시" if v else "없음"
+            lines.append(f"· <b>{label}</b> {len(res)}편 · "
+                         f"출발 {rng(deps)} · 도착 {rng(arrs)}")
+        notify.send("\n".join(lines))
+        log.info("tfs 진단 전송 완료")
+        return 0
 
     # ---- 네이버 브라우저 탐침 (DRY_RUN=naver) ----
     # 구글 가격이 이미 있는 날짜쌍으로 시험해야 "뚫리나"와 "다른 게 있나"를

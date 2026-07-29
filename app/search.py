@@ -222,6 +222,23 @@ def _run_query(q, korea_market=False):
     return _parse_both(html)
 
 
+def fetch_by_tfs(tfs: str, currency: str = "KRW", korea: bool = True):
+    """직접 만든 tfs로 조회한다 (라이브러리가 못 만드는 필터를 심을 때).
+
+    시간 필터 필드는 fast_flights 스키마에 없어 tfs를 손으로 만든다.
+    응답 파싱은 기존 경로를 그대로 쓴다 (app/tfs.py 참고).
+    """
+    from primp import Client
+    client = Client(impersonate="chrome_145", impersonate_os="macos",
+                    referer=True, cookie_store=True)
+    params = {"tfs": tfs, "curr": currency, "hl": "ko"}
+    if korea:
+        params["gl"] = "KR"
+    html = client.get("https://www.google.com/travel/flights",
+                      params=params).text
+    return _parse_both(html)
+
+
 def _parse_both(html):
     """같은 응답을 기본·관대 두 파서로 읽고 더 많이 건진 쪽을 쓴다 (v1.24).
 

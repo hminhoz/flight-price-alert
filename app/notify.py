@@ -300,8 +300,17 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             if a.prev_sent and a.prev_sent > c.price:
                 lines.append(f"🔻 지난 알림보다 "
                              f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
+            # 왕복 실가는 **귀국 시각을 확인할 수 없다** — 왕복 응답에 오는 편이
+            # 담기지 않는다(실측 3,439건 전부 legs=1, v2.12). 즉 그 가격이 새벽
+            # 귀국편의 것일 수 있다. 편도 2장은 양쪽 시간 조건을 다 검증했다.
             if rt and abs(rt - one) / max(one, 1) >= 0.05:
-                lines.append("왕복권이 유리" if rt < one else "편도 2장이 유리")
+                if rt < one:
+                    lines.append(
+                        f"왕복권이 {round((one - rt) / n):,}원 싸요 "
+                        f"(편도 2장 {round(one / n):,}원) "
+                        f"— <b>왕복권은 귀국 시각 미확인</b>")
+                else:
+                    lines.append(f"편도 2장이 유리 (왕복권 {round(rt / n):,}원)")
 
             # 어떤 편인지 + 어디서 사는지를 한 줄로
             a_, b_ = _sources(c)

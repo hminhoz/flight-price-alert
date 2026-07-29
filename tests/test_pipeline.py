@@ -2638,7 +2638,7 @@ def test_roundtrip_verification():
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
     assert "300,000원</b>/인" in msg, msg
-    assert "왕복권이 유리" in msg, msg
+    assert "왕복권이" in msg and "귀국 시각 미확인" in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 
