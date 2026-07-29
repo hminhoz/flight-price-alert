@@ -117,6 +117,7 @@ class Combo:
     out_leg: dict
     ret_leg: dict
     ret_route: Route | None = None   # 오는 편 노선. None이면 route와 동일(왕복)
+    city: str = ""                   # 기준가 단위용 도시 키 (build_combos가 채운다)
 
     @property
     def back(self) -> Route:
@@ -149,11 +150,15 @@ class Combo:
 
     @property
     def unit(self) -> str:
-        """기준가 단위. 교차 조합은 도시 단위로 묶어 같은 잣대로 비교한다."""
-        if not self.is_cross:
-            return f"{self.route.key}|{self.dep.strftime('%Y-%m')}"
-        return (f"X:{self.route.destination}-{self.back.origin}"
-                f"|{self.dep.strftime('%Y-%m')}")
+        """기준가 단위 = **도시 × 월**.
+
+        예전엔 노선·교차조합마다 따로 잡아 오사카 9월 하나에 단위가 4개였다
+        (인천왕복·김포왕복·교차 2종). 각자 기준가를 가지니 비싼 조합이
+        "그 단위 기준 13% 싸다"며 알림이 나갔고, 정작 더 싼 조합은 조용했다.
+        사용자는 '오사카'로 보는데 시스템이 넷으로 쪼개 본 것이다 (v2.07).
+        """
+        city = self.city or self.route.destination
+        return f"{city}|{self.dep.strftime('%Y-%m')}"
 
     @property
     def ret(self) -> dt.date:
@@ -263,6 +268,7 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
                         price=out_leg["price"] + ret_leg["price"],
                         out_leg=out_leg, ret_leg=ret_leg,
                         ret_route=None if same else ret_route,
+                        city=city,
                     ))
     return combos
 
@@ -331,7 +337,12 @@ def process(cfg: Settings, state: State, combos: list[Combo],
         todays_min[c.unit] = min(todays_min.get(c.unit, c.price), c.price)
 
     for unit, price in todays_min.items():
+        # 단위가 바뀌면(v2.07 도시 통합) 기준가가 전부 새로 생긴다. 그때 전부
+        # "새로 찾은 조합"으로 알리면 수십 통이 쏟아지므로 이번 실행은 심기만 한다.
+        fresh_unit = unit not in state.baselines
         b = state.baselines.setdefault(unit, {"daily_min": {}})
+        if fresh_unit:
+            b["_seeded"] = today.isoformat()
         dm = b["daily_min"]
         dm[today.isoformat()] = min(dm.get(today.isoformat(), price), price)
         cutoff = (today - dt.timedelta(days=cfg.baseline_recalc_window)).isoformat()
@@ -372,6 +383,8 @@ def process(cfg: Settings, state: State, combos: list[Combo],
         b = state.baselines.get(c.unit)
         if not b or "baseline" not in b:
             continue
+        if b.get("_seeded") == today.isoformat():
+            continue          # 오늘 처음 생긴 단위 — 비교 대상이 없다
         is_record = c.price <= b["alltime_min"] and b.get("alltime_min_at") == now_iso \
             and todays_min.get(c.unit) == c.price
         # 기준가와 같기만 해도 알리면 '특가 아닌 알림'이 대부분이 된다 (v1.42).

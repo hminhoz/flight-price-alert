@@ -59,7 +59,7 @@ def main():
         combos, alerts = run_day(state, day, 120_000, 130_000)
         assert combos, "콤보 생성 실패"
         assert alerts == [], f"관측 기간에 알림 발생: day{i+1}"
-    unit = "ICN-NGO|2026-09"
+    unit = "NGO|2026-09"      # v2.07: 기준가 단위는 도시×월
     assert state.baselines[unit]["baseline"] == 250_000
     print(f"OK 관측기간 {obs}일: 기준가 {state.baselines[unit]['baseline']:,}원, 알림 0건")
 
@@ -73,7 +73,7 @@ def main():
     assert alerts, "특가에 알림 미발생"
     assert all(a.kind == "record" for a in alerts)
     msgs = format_alerts(CFG, alerts, combos)
-    assert len(msgs) == 1 and "싸짐" in msgs[0] and "200,000" in msgs[0]
+    assert len(msgs) == 1 and "싸짐" in msgs[0] and "100,000" in msgs[0]
     engine.mark_sent(state, alerts)
     print(f"OK 특가: 알림 {len(alerts)}건 (묶음 1개 메시지)")
     print("\n----- 메시지 미리보기 -----")
@@ -127,6 +127,7 @@ def main():
     test_naver_job_order()
     test_call_signatures()
     test_mixed_source_links()
+    test_unit_is_city()
     test_baseline_unstick()
     test_new_vs_drop_badge()
     test_near_dates_linked()
@@ -169,7 +170,6 @@ def test_per_person_and_link():
     a = engine.Alert(kind="baseline", combo=combo, baseline=850_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg      # 800,000 / 성인 2명 (굵게)
-    assert "2명 800,000원" in msg, msg         # 총액도 함께
     assert "<a href=" in msg, msg              # 링크
 
     # 항공사 코드가 들어가면 링크가 달라져야 한다
@@ -448,7 +448,10 @@ def test_cross_airport_combos():
     same = pairs[(icn.key, icn.key)]
     assert cross.is_cross and not same.is_cross
     assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
-    assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
+    # 중복 억제용 key는 달라야 하지만, **기준가 단위는 같아야 한다**
+    # (v2.07: 같은 도시·같은 달이면 하나의 잣대로 비교한다)
+    assert cross.key != same.key, "중복 억제 키가 겹치면 안 된다"
+    assert cross.unit == same.unit, "같은 도시·달인데 기준가 단위가 갈렸다"
 
     # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
     a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
@@ -1160,6 +1163,45 @@ def test_mixed_source_links():
     print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
 
 
+def test_unit_is_city():
+    """기준가 단위는 **도시 × 월** 하나여야 한다 (v2.07).
+
+    예전엔 오사카 9월 하나에 단위가 4개였다(인천왕복·김포왕복·교차 2종).
+    각자 기준가를 가지니 **비싼 조합이 "그 단위 기준 13% 싸다"며 알림**이
+    나갔고 더 싼 조합은 조용했다. 사용자는 '오사카'로 보는데 시스템은
+    넷으로 쪼개 봤다.
+    """
+    cfg = load()
+    gmp = [r for r in cfg.routes if r.key == "GMP-KIX"][0]
+    icn = [r for r in cfg.routes if r.key == "ICN-KIX"][0]
+
+    def mk(route, back=None, price=500_000):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"},
+            ret_route=back,
+            city=engine._seoul_group(cfg, route))
+
+    units = {mk(icn).unit, mk(gmp).unit, mk(icn, gmp).unit, mk(gmp, icn).unit}
+    assert len(units) == 1, f"오사카 9월인데 단위가 {len(units)}개: {units}"
+    assert units.pop() == "KIX|2026-09"
+
+    # 도시가 다르면 단위도 다르다
+    ngo = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+    assert mk(ngo).unit != mk(icn).unit
+
+    # 새로 생긴 단위는 그날 알리지 않는다 (심기만 한다)
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    st.meta["first_run"] = "2026-07-01"
+    today = dt.date(2026, 8, 20)
+    assert engine.process(cfg, st, [mk(icn, price=100_000)], today) == [], "새 단위가 알렸다"
+    assert st.baselines[mk(icn).unit].get("_seeded") == today.isoformat()
+    print("OK 기준가 단위: 도시×월 하나 · 새 단위는 첫날 알리지 않음")
+
+
 def test_tolerant_parser():
     """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
 
@@ -1328,7 +1370,6 @@ def test_per_person_and_link():
     a = engine.Alert(kind="baseline", combo=combo, baseline=850_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg      # 800,000 / 성인 2명 (굵게)
-    assert "2명 800,000원" in msg, msg         # 총액도 함께
     assert "<a href=" in msg, msg              # 링크
 
     # 항공사 코드가 들어가면 링크가 달라져야 한다
@@ -1607,7 +1648,10 @@ def test_cross_airport_combos():
     same = pairs[(icn.key, icn.key)]
     assert cross.is_cross and not same.is_cross
     assert cross.price == 500_000 < same.price == 700_000, (cross.price, same.price)
-    assert cross.key != same.key and cross.unit != same.unit, "키가 겹치면 안 된다"
+    # 중복 억제용 key는 달라야 하지만, **기준가 단위는 같아야 한다**
+    # (v2.07: 같은 도시·같은 달이면 하나의 잣대로 비교한다)
+    assert cross.key != same.key, "중복 억제 키가 겹치면 안 된다"
+    assert cross.unit == same.unit, "같은 도시·달인데 기준가 단위가 갈렸다"
 
     # 메시지에 공항이 반드시 드러나야 한다 (엉뚱한 공항으로 가면 비행기를 놓친다)
     a = engine.Alert(kind="baseline", combo=cross, baseline=600_000, prev_min=None)
@@ -2312,6 +2356,45 @@ def test_mixed_source_links():
     for m in texts:
         assert "flight.naver" in m and "google.com" in m, m[:200]
     print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
+
+
+def test_unit_is_city():
+    """기준가 단위는 **도시 × 월** 하나여야 한다 (v2.07).
+
+    예전엔 오사카 9월 하나에 단위가 4개였다(인천왕복·김포왕복·교차 2종).
+    각자 기준가를 가지니 **비싼 조합이 "그 단위 기준 13% 싸다"며 알림**이
+    나갔고 더 싼 조합은 조용했다. 사용자는 '오사카'로 보는데 시스템은
+    넷으로 쪼개 봤다.
+    """
+    cfg = load()
+    gmp = [r for r in cfg.routes if r.key == "GMP-KIX"][0]
+    icn = [r for r in cfg.routes if r.key == "ICN-KIX"][0]
+
+    def mk(route, back=None, price=500_000):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"},
+            ret_route=back,
+            city=engine._seoul_group(cfg, route))
+
+    units = {mk(icn).unit, mk(gmp).unit, mk(icn, gmp).unit, mk(gmp, icn).unit}
+    assert len(units) == 1, f"오사카 9월인데 단위가 {len(units)}개: {units}"
+    assert units.pop() == "KIX|2026-09"
+
+    # 도시가 다르면 단위도 다르다
+    ngo = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+    assert mk(ngo).unit != mk(icn).unit
+
+    # 새로 생긴 단위는 그날 알리지 않는다 (심기만 한다)
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    st.meta["first_run"] = "2026-07-01"
+    today = dt.date(2026, 8, 20)
+    assert engine.process(cfg, st, [mk(icn, price=100_000)], today) == [], "새 단위가 알렸다"
+    assert st.baselines[mk(icn).unit].get("_seeded") == today.isoformat()
+    print("OK 기준가 단위: 도시×월 하나 · 새 단위는 첫날 알리지 않음")
 
 
 def test_tolerant_parser():

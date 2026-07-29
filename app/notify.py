@@ -285,9 +285,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             one, rt = c.price, a.rt_price
             pay = min(one, rt) if rt else one
             lines.append("")
+            # 모든 금액을 1인 기준으로 통일한다. 주 항목에만 총액을 붙이면
+            # '다른 날짜'와 잣대가 달라 보인다 (v2.07).
             lines.append(f"<b>{_d(c.dep)}~{_d(c.ret)}</b> {c.nights}박"
-                         f"{_airport_note(c)} · <b>{round(pay / n):,}원</b>/인"
-                         f" · {cfg.adults}명 {pay:,}원")
+                         f"{_airport_note(c)} · <b>{round(pay / n):,}원</b>/인")
             # 지난 알림보다 더 내렸으면 그것부터 알린다 — 재알림의 존재 이유다.
             if a.prev_sent and a.prev_sent > c.price:
                 lines.append(f"🔻 지난 알림보다 "
