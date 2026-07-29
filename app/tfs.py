@@ -12,9 +12,15 @@ fast_flights 라이브러리의 스키마에는 시간 필드가 없다. 그러�
     3.13  {1:1, 2:"ICN"} 출발 공항
     3.14  {1:3, 2:"/m/0dqyw"} 도착지
 
-네 칸의 의미(출발 범위 / 도착 범위)는 **쏴 보고 확인**한다. 편도 응답에는
-항공편 시각이 모두 들어 있으므로, 필터를 걸고 돌아온 편들의 시각을 보면
-어느 필드가 무엇인지 확정된다. `probe_semantics()`가 그 일을 한다.
+**2026-07-29 실측으로 의미 확정** (인천→오사카 편도, 필터별 결과):
+```
+필터 없음      27편 · 출발 6~20시 · 도착 9~22시
+8·9 = 6,13     13편 · 출발 6~13시 · 도착 9~15시   → 8·9 = 출발 범위
+10·11 = 6,13   12편 · 출발 6~10시 · 도착 9~13시   → 10·11 = 도착 범위
+8·9 = 18,23     3편 · 출발 18~19시 · 도착 20~21시
+```
+→ **왕복 요청은 FlightData가 둘이므로 가는 편·오는 편 각각 출발 시각을
+   걸 수 있다.** 이걸로 "왕복은 귀국 시각을 못 건다"는 제약이 사라졌다.
 """
 from __future__ import annotations
 
@@ -57,8 +63,15 @@ def _airport(code: str, kind: int = 1) -> bytes:
 
 
 def flight_data(date: str, frm: str, to: str, *, max_stops: int | None = 0,
-                times: tuple | None = None) -> bytes:
-    """FlightData 하나. times=(f8, f9, f10, f11) 중 None인 칸은 생략."""
+                times: tuple | None = None,
+                dep_window: tuple | None = None) -> bytes:
+    """FlightData 하나.
+
+    dep_window=(lo_hour, hi_hour) 를 주면 **출발 시각**을 그 범위로 제한한다
+    (필드 8·9). times=(f8,f9,f10,f11)로 네 칸을 직접 줄 수도 있다.
+    """
+    if dep_window and not times:
+        times = (int(dep_window[0]), int(dep_window[1]), None, None)
     body = _str_field(2, date)
     if max_stops is not None:
         body += _int_field(5, max_stops)

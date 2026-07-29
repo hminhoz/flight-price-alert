@@ -458,6 +458,7 @@ def main() -> int:
             ("8·9 = 18,23", (18, 23, None, None)),
         ]
         lines = ["🧪 <b>tfs 시간 필터 진단</b>", "인천→오사카 편도 2026-09-17"]
+        probe_rows = []
         for label, times in cases:
             q = TFS.build_tfs(
                 [TFS.flight_data("2026-09-17", "ICN", "KIX", times=times)],
@@ -465,6 +466,8 @@ def main() -> int:
             try:
                 res = fetch_by_tfs(q, cfg.currency) or []
             except Exception as e:  # noqa: BLE001
+                probe_rows.append({"label": label, "times": times,
+                                   "error": str(e)[:200]})
                 lines.append(f"· {label}: 실패 {str(e)[:60]}")
                 continue
             deps, arrs = [], []
@@ -479,9 +482,28 @@ def main() -> int:
                 if a:
                     arrs.append(a.hour)
             rng = lambda v: f"{min(v)}~{max(v)}시" if v else "없음"
+            probe_rows.append({
+                "label": label, "times": times, "n": len(res),
+                "dep_min": min(deps) if deps else None,
+                "dep_max": max(deps) if deps else None,
+                "arr_min": min(arrs) if arrs else None,
+                "arr_max": max(arrs) if arrs else None,
+                "dep_hours": sorted(set(deps)), "arr_hours": sorted(set(arrs)),
+            })
             lines.append(f"· <b>{label}</b> {len(res)}편 · "
                          f"출발 {rng(deps)} · 도착 {rng(arrs)}")
         notify.send("\n".join(lines))
+        # 텔레그램으로만 보내면 내용을 옮겨 받기가 번번이 실패했다.
+        # 파일로도 남기면 저장소에서 바로 확인할 수 있다.
+        try:
+            import json as _json
+            from pathlib import Path as _P
+            _P("data").mkdir(exist_ok=True)
+            _P("data/tfs_probe.json").write_text(
+                _json.dumps(probe_rows, ensure_ascii=False, indent=1),
+                encoding="utf-8")
+        except Exception as e:  # noqa: BLE001
+            log.info("tfs 진단 파일 기록 실패: %s", str(e)[:120])
         log.info("tfs 진단 전송 완료")
         return 0
 

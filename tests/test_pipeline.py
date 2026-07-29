@@ -129,6 +129,7 @@ def main():
     test_mixed_source_links()
     test_unit_is_city()
     test_verify_targets_catch_skew()
+    test_tfs_time_filter()
     test_baseline_unstick()
     test_new_vs_drop_badge()
     test_near_dates_linked()
@@ -1243,6 +1244,56 @@ def test_verify_targets_catch_skew():
     skew.rt_price = 300_000
     assert skew.pay == 300_000, "왕복이 싼데 편도 합산을 쓰고 있다"
     print("OK 왕복 검증 대상: 싼 것 + 배율 큰 것 · pay는 싼 쪽을 따른다")
+
+
+def test_tfs_time_filter():
+    """tfs에 출발 시각 필터를 심는다 (v2.15).
+
+    2026-07-29 실측으로 필드 의미 확정:
+      8·9   = 출발 시각 범위   (6,13을 걸면 출발 6~13시만 옴)
+      10·11 = 도착 시각 범위   (6,13을 걸면 도착 9~13시만 옴)
+    왕복 요청은 FlightData가 둘이라 **가는 편·오는 편 각각** 걸 수 있다.
+    이걸로 "왕복은 귀국 시각을 못 건다"는 제약이 사라졌다.
+    """
+    import base64
+    from app import tfs as T
+
+    def fields(b64):
+        pad = b64 + "=" * (-len(b64) % 4)
+        raw = base64.urlsafe_b64decode(pad)
+        out, i = [], 0
+        def rv(bs, j):
+            v = s = 0
+            while True:
+                x = bs[j]; j += 1
+                v |= (x & 0x7F) << s
+                if not x & 0x80: return v, j
+                s += 7
+        while i < len(raw):
+            key, i = rv(raw, i)
+            fno, wt = key >> 3, key & 7
+            if wt == 0:
+                v, i = rv(raw, i)
+                out.append((fno, v))
+            elif wt == 2:
+                ln, i = rv(raw, i)
+                out.append((fno, raw[i:i + ln])); i += ln
+            else:
+                break
+        return out
+
+    legs = [T.flight_data("2026-09-17", "ICN", "KIX", dep_window=(6, 13)),
+            T.flight_data("2026-09-21", "KIX", "ICN", dep_window=(18, 23))]
+    q = T.build_tfs(legs, adults=2, trip=1)
+    top = fields(q)
+    datas = [v for f, v in top if f == 3]
+    assert len(datas) == 2, "왕복인데 FlightData가 2개가 아니다"
+    out_f = dict((f, v) for f, v in fields(base64.urlsafe_b64encode(datas[0]).decode()))
+    ret_f = dict((f, v) for f, v in fields(base64.urlsafe_b64encode(datas[1]).decode()))
+    assert out_f.get(8) == 6 and out_f.get(9) == 13, out_f
+    assert ret_f.get(8) == 18 and ret_f.get(9) == 23, ret_f
+    assert dict((f, v) for f, v in top).get(19) == 1, "왕복 표시가 아니다"
+    print("OK tfs 시간 필터: 가는 편 6~13 · 오는 편 18~23 심어짐")
 
 
 def test_tolerant_parser():
@@ -2482,6 +2533,56 @@ def test_verify_targets_catch_skew():
     print("OK 왕복 검증 대상: 싼 것 + 배율 큰 것 · pay는 싼 쪽을 따른다")
 
 
+def test_tfs_time_filter():
+    """tfs에 출발 시각 필터를 심는다 (v2.15).
+
+    2026-07-29 실측으로 필드 의미 확정:
+      8·9   = 출발 시각 범위   (6,13을 걸면 출발 6~13시만 옴)
+      10·11 = 도착 시각 범위   (6,13을 걸면 도착 9~13시만 옴)
+    왕복 요청은 FlightData가 둘이라 **가는 편·오는 편 각각** 걸 수 있다.
+    이걸로 "왕복은 귀국 시각을 못 건다"는 제약이 사라졌다.
+    """
+    import base64
+    from app import tfs as T
+
+    def fields(b64):
+        pad = b64 + "=" * (-len(b64) % 4)
+        raw = base64.urlsafe_b64decode(pad)
+        out, i = [], 0
+        def rv(bs, j):
+            v = s = 0
+            while True:
+                x = bs[j]; j += 1
+                v |= (x & 0x7F) << s
+                if not x & 0x80: return v, j
+                s += 7
+        while i < len(raw):
+            key, i = rv(raw, i)
+            fno, wt = key >> 3, key & 7
+            if wt == 0:
+                v, i = rv(raw, i)
+                out.append((fno, v))
+            elif wt == 2:
+                ln, i = rv(raw, i)
+                out.append((fno, raw[i:i + ln])); i += ln
+            else:
+                break
+        return out
+
+    legs = [T.flight_data("2026-09-17", "ICN", "KIX", dep_window=(6, 13)),
+            T.flight_data("2026-09-21", "KIX", "ICN", dep_window=(18, 23))]
+    q = T.build_tfs(legs, adults=2, trip=1)
+    top = fields(q)
+    datas = [v for f, v in top if f == 3]
+    assert len(datas) == 2, "왕복인데 FlightData가 2개가 아니다"
+    out_f = dict((f, v) for f, v in fields(base64.urlsafe_b64encode(datas[0]).decode()))
+    ret_f = dict((f, v) for f, v in fields(base64.urlsafe_b64encode(datas[1]).decode()))
+    assert out_f.get(8) == 6 and out_f.get(9) == 13, out_f
+    assert ret_f.get(8) == 18 and ret_f.get(9) == 23, ret_f
+    assert dict((f, v) for f, v in top).get(19) == 1, "왕복 표시가 아니다"
+    print("OK tfs 시간 필터: 가는 편 6~13 · 오는 편 18~23 심어짐")
+
+
 def test_tolerant_parser():
     """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
 
@@ -2638,7 +2739,7 @@ def test_roundtrip_verification():
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
     assert "300,000원</b>/인" in msg, msg
-    assert "왕복권이" in msg and "귀국 시각 미확인" in msg, msg
+    assert "왕복권이" in msg and "싸요" in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 

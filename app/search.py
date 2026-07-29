@@ -286,36 +286,25 @@ def _log_once(key: str, fmt: str, *args) -> None:
 
 
 def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,
-                 max_stops, korea_market=False):
-    """왕복 조회 1회. 반환 항목의 price는 왕복 총액이다."""
-    from fast_flights import FlightQuery, Passengers, create_query
-    q = create_query(
-        flights=[
-            FlightQuery(date=dep_date, from_airport=origin, to_airport=dest,
-                        max_stops=max_stops),
-            FlightQuery(date=ret_date, from_airport=dest, to_airport=origin,
-                        max_stops=max_stops),
-        ],
-        trip="round-trip",
-        passengers=Passengers(adults=adults),
-        language="ko" if korea_market else "en-US",
-        currency=currency,
-    )
-    return _run_query(q, korea_market)
+                 max_stops, korea_market=False, out_window=None, ret_window=None):
+    """왕복 조회 1회. 반환 항목의 price는 왕복 총액이다.
 
-
-_rt_shape: dict = {"legs1": 0, "legs2": 0, "other": 0}
-_rt_lock = threading.Lock()
-
-
-def roundtrip_shape() -> dict:
-    """왕복 응답이 가는 편만(legs=1) 왔는지, 오는 편까지(legs=2) 왔는지 집계.
-
-    legs=2가 대부분이면 귀국 시각을 걸 수 있으므로 **왕복 위주 구조로 바꿀 수
-    있다**. 지금은 그 비율을 몰라 편도 2회 + 왕복 보정으로 가고 있다 (v2.11).
+    **가는 편·오는 편 출발 시각을 요청에 심는다** (v2.15). 구글 tfs의
+    FlightData 필드 8·9가 출발 범위임을 2026-07-29 실측으로 확인했다.
+    예전에는 응답에 오는 편이 안 담겨(legs=1, 실측 3,439건 전부) 귀국 시각을
+    검증할 수 없었는데, 이제 **요청 단계에서 걸러진 결과만 받는다.**
     """
-    with _rt_lock:
-        return dict(_rt_shape)
+    from . import tfs as TFS
+    legs = [
+        TFS.flight_data(dep_date, origin, dest, max_stops=max_stops,
+                        dep_window=(out_window[0].hour, out_window[1].hour)
+                        if out_window else None),
+        TFS.flight_data(ret_date, dest, origin, max_stops=max_stops,
+                        dep_window=(ret_window[0].hour, ret_window[1].hour)
+                        if ret_window else None),
+    ]
+    q = TFS.build_tfs(legs, adults=adults, trip=1)
+    return fetch_by_tfs(q, currency, korea=korea_market)
 
 
 def search_roundtrip(
@@ -348,7 +337,8 @@ def search_roundtrip(
     for korea_market in (False, True):
         try:
             results = _do_fetch_rt(origin, dest, dep_date, ret_date,
-                                   adults, currency, stops, korea_market)
+                                   adults, currency, stops, korea_market,
+                                   out_window=out_window, ret_window=ret_window)
         except Exception as e:  # noqa: BLE001 - 검증 실패는 알림을 막지 않는다
             log.info("RTVERIFY %s-%s %s/%s 실패(korea=%s): %s",
                      origin, dest, dep_date, ret_date, korea_market, str(e)[:120])
@@ -379,9 +369,8 @@ def search_roundtrip(
                 price = parse_price(getattr(item, "price", None))
                 if not price or price <= 0:
                     continue
-                # 오는 편이 함께 담긴 응답(legs==2)이면 귀국 시각도 검증한다.
-                # 예전엔 이걸 안 봐서, 우리 조건 밖 시간대의 싼 왕복가를
-                # 그대로 채택할 수 있었다 (v2.10).
+                # 시간 조건은 **요청 단계에서 이미 걸렸다**(tfs 필드 8·9, v2.15).
+                # 아래는 응답에 오는 편이 담긴 드문 경우의 보조 확인이다.
                 if ret_window is not None and len(legs) == 2:
                     rt_t = parse_time(
                         getattr(getattr(legs[1], "departure", None), "time", None))
