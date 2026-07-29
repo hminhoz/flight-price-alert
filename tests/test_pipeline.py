@@ -128,6 +128,7 @@ def main():
     test_call_signatures()
     test_mixed_source_links()
     test_unit_is_city()
+    test_verify_targets_catch_skew()
     test_baseline_unstick()
     test_new_vs_drop_badge()
     test_near_dates_linked()
@@ -473,6 +474,7 @@ def test_weak_alert_suppressed():
     st = State.__new__(State)
     st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
     st.meta["first_run"] = "2026-07-01"          # 관측 기간 종료 상태
+    st.meta["baseline_metric"] = engine._METRIC
     today = dt.date(2026, 8, 1)
     route = cfg.routes[0]
 
@@ -882,16 +884,23 @@ def test_naver_parser():
             "11:00ICN | 직항, 02시간 00분 | 성인/하나카드(이용실적 충족시) | "
             "왕복 | 192,300 | 원~ | 로그인 후 특가확인")
     assert NV.has_spend_condition(cond)
-    assert NV.parse_intl(cond) is None, "실적 조건부 가격이 통과됐다"
-    # 카드로 결제만 하면 되는 건 통과
+    # v2.08: 조건부도 받되 표시를 남긴다. 끄면 예전처럼 버린다.
+    NV.set_allow_card_condition(False)
+    assert NV.parse_intl(cond) is None, "끈 상태인데 조건부가 통과됐다"
+    NV.set_allow_card_condition(True)
+    r = NV.parse_intl(cond)
+    assert r and r["card_cond"] is True, "조건부 표시가 안 붙었다"
+    # 카드로 결제만 하면 되는 건 조건이 아니다
     ok = cond.replace("(이용실적 충족시)", "")
-    assert NV.parse_intl(ok) is not None, "단순 카드 결제까지 막혔다"
+    r2 = NV.parse_intl(ok)
+    assert r2 and r2["card_cond"] is False, r2
 
     # ── 시간창·직항 필터 ──
+    NV.set_allow_card_condition(False)
     rows = [
         intl,                                             # 07:10 출발 / 09:00 귀국
         intl.replace("07:10ICN", "15:20ICN").replace("192,300", "150,000"),
-        cond.replace("192,300", "100,000"),               # 더 싸도 실적 조건이면 제외
+        cond.replace("192,300", "100,000"),               # 조건부 — 끈 상태이므로 제외
     ]
     best = NV.pick_best(rows, domestic=False,
                         out_window=(_dt.time(6, 0), _dt.time(13, 0)),
@@ -903,7 +912,8 @@ def test_naver_parser():
     bd = NV.pick_best(rows_d, domestic=True,
                       out_window=(_dt.time(6, 0), _dt.time(13, 0)))
     assert bd and bd["price"] == 51_200, bd
-    print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
+    NV.set_allow_card_condition(load().naver_card_condition)   # 설정값으로 복구
+    print("OK 네이버 파서: 실물 파싱·카드조건 표시/제외 전환·시간창 필터")
 
 
 def test_naver_leg_merge():
@@ -1086,6 +1096,7 @@ def test_baseline_unstick():
     st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
     st.time_hist, st.naver_legs = {}, {}
     st.meta["first_run"] = "2026-07-01"
+    st.meta["baseline_metric"] = engine._METRIC   # 지표 초기화 방지
     today = dt.date(2026, 8, 20)
     route = cfg.routes[0]
 
@@ -1196,10 +1207,42 @@ def test_unit_is_city():
     st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
     st.time_hist, st.naver_legs = {}, {}
     st.meta["first_run"] = "2026-07-01"
+    st.meta["baseline_metric"] = engine._METRIC
     today = dt.date(2026, 8, 20)
     assert engine.process(cfg, st, [mk(icn, price=100_000)], today) == [], "새 단위가 알렸다"
     assert st.baselines[mk(icn).unit].get("_seeded") == today.isoformat()
     print("OK 기준가 단위: 도시×월 하나 · 새 단위는 첫날 알리지 않음")
+
+
+def test_verify_targets_catch_skew():
+    """왕복 검증 대상에 **배율이 큰 조합**이 들어가야 한다 (v2.09).
+
+    편도 합산 순위만 보면, 오는 편 편도가 폭등한 조합은 뒤로 밀려 후보에도
+    못 오른다. 실측: 나고야 8/8~8/12는 편도합산 1인 52만이라 60개 중 한참
+    뒤였지만 구글 왕복으로는 18만이었다.
+    """
+    cfg = load()
+    route = cfg.routes[0]
+
+    def mk(day, out_p, ret_p):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3,
+            price=out_p + ret_p,
+            out_leg={"price": out_p, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": ret_p, "dep_time": "19:40", "airline": "X"},
+            city=engine._seoul_group(cfg, route))
+
+    cheap = [mk(d, 100_000, 120_000) for d in range(1, 6)]      # 합산 220,000
+    skew = mk(10, 100_000, 900_000)                              # 합산 1,000,000
+    targets = engine.verify_targets(cfg, cheap + [skew])
+    assert skew in targets, "배율 큰 조합이 검증 대상에서 빠졌다"
+    assert any(c in targets for c in cheap), "싼 조합도 함께 봐야 한다"
+
+    # 왕복 실가가 붙으면 '실제 낼 금액'이 그걸 따른다
+    assert skew.pay == 1_000_000
+    skew.rt_price = 300_000
+    assert skew.pay == 300_000, "왕복이 싼데 편도 합산을 쓰고 있다"
+    print("OK 왕복 검증 대상: 싼 것 + 배율 큰 것 · pay는 싼 쪽을 따른다")
 
 
 def test_tolerant_parser():
@@ -1673,6 +1716,7 @@ def test_weak_alert_suppressed():
     st = State.__new__(State)
     st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
     st.meta["first_run"] = "2026-07-01"          # 관측 기간 종료 상태
+    st.meta["baseline_metric"] = engine._METRIC
     today = dt.date(2026, 8, 1)
     route = cfg.routes[0]
 
@@ -2077,16 +2121,23 @@ def test_naver_parser():
             "11:00ICN | 직항, 02시간 00분 | 성인/하나카드(이용실적 충족시) | "
             "왕복 | 192,300 | 원~ | 로그인 후 특가확인")
     assert NV.has_spend_condition(cond)
-    assert NV.parse_intl(cond) is None, "실적 조건부 가격이 통과됐다"
-    # 카드로 결제만 하면 되는 건 통과
+    # v2.08: 조건부도 받되 표시를 남긴다. 끄면 예전처럼 버린다.
+    NV.set_allow_card_condition(False)
+    assert NV.parse_intl(cond) is None, "끈 상태인데 조건부가 통과됐다"
+    NV.set_allow_card_condition(True)
+    r = NV.parse_intl(cond)
+    assert r and r["card_cond"] is True, "조건부 표시가 안 붙었다"
+    # 카드로 결제만 하면 되는 건 조건이 아니다
     ok = cond.replace("(이용실적 충족시)", "")
-    assert NV.parse_intl(ok) is not None, "단순 카드 결제까지 막혔다"
+    r2 = NV.parse_intl(ok)
+    assert r2 and r2["card_cond"] is False, r2
 
     # ── 시간창·직항 필터 ──
+    NV.set_allow_card_condition(False)
     rows = [
         intl,                                             # 07:10 출발 / 09:00 귀국
         intl.replace("07:10ICN", "15:20ICN").replace("192,300", "150,000"),
-        cond.replace("192,300", "100,000"),               # 더 싸도 실적 조건이면 제외
+        cond.replace("192,300", "100,000"),               # 조건부 — 끈 상태이므로 제외
     ]
     best = NV.pick_best(rows, domestic=False,
                         out_window=(_dt.time(6, 0), _dt.time(13, 0)),
@@ -2098,7 +2149,8 @@ def test_naver_parser():
     bd = NV.pick_best(rows_d, domestic=True,
                       out_window=(_dt.time(6, 0), _dt.time(13, 0)))
     assert bd and bd["price"] == 51_200, bd
-    print("OK 네이버 파서: 실물 파싱·실적 조건 제외·시간창/직항 필터")
+    NV.set_allow_card_condition(load().naver_card_condition)   # 설정값으로 복구
+    print("OK 네이버 파서: 실물 파싱·카드조건 표시/제외 전환·시간창 필터")
 
 
 def test_naver_leg_merge():
@@ -2281,6 +2333,7 @@ def test_baseline_unstick():
     st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
     st.time_hist, st.naver_legs = {}, {}
     st.meta["first_run"] = "2026-07-01"
+    st.meta["baseline_metric"] = engine._METRIC   # 지표 초기화 방지
     today = dt.date(2026, 8, 20)
     route = cfg.routes[0]
 
@@ -2391,10 +2444,42 @@ def test_unit_is_city():
     st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
     st.time_hist, st.naver_legs = {}, {}
     st.meta["first_run"] = "2026-07-01"
+    st.meta["baseline_metric"] = engine._METRIC
     today = dt.date(2026, 8, 20)
     assert engine.process(cfg, st, [mk(icn, price=100_000)], today) == [], "새 단위가 알렸다"
     assert st.baselines[mk(icn).unit].get("_seeded") == today.isoformat()
     print("OK 기준가 단위: 도시×월 하나 · 새 단위는 첫날 알리지 않음")
+
+
+def test_verify_targets_catch_skew():
+    """왕복 검증 대상에 **배율이 큰 조합**이 들어가야 한다 (v2.09).
+
+    편도 합산 순위만 보면, 오는 편 편도가 폭등한 조합은 뒤로 밀려 후보에도
+    못 오른다. 실측: 나고야 8/8~8/12는 편도합산 1인 52만이라 60개 중 한참
+    뒤였지만 구글 왕복으로는 18만이었다.
+    """
+    cfg = load()
+    route = cfg.routes[0]
+
+    def mk(day, out_p, ret_p):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3,
+            price=out_p + ret_p,
+            out_leg={"price": out_p, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": ret_p, "dep_time": "19:40", "airline": "X"},
+            city=engine._seoul_group(cfg, route))
+
+    cheap = [mk(d, 100_000, 120_000) for d in range(1, 6)]      # 합산 220,000
+    skew = mk(10, 100_000, 900_000)                              # 합산 1,000,000
+    targets = engine.verify_targets(cfg, cheap + [skew])
+    assert skew in targets, "배율 큰 조합이 검증 대상에서 빠졌다"
+    assert any(c in targets for c in cheap), "싼 조합도 함께 봐야 한다"
+
+    # 왕복 실가가 붙으면 '실제 낼 금액'이 그걸 따른다
+    assert skew.pay == 1_000_000
+    skew.rt_price = 300_000
+    assert skew.pay == 300_000, "왕복이 싼데 편도 합산을 쓰고 있다"
+    print("OK 왕복 검증 대상: 싼 것 + 배율 큰 것 · pay는 싼 쪽을 따른다")
 
 
 def test_tolerant_parser():

@@ -194,6 +194,7 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
                 "airline": best["airline"],
                 "dep_time": best["dep"].strftime("%H:%M") if best["dep"] else "",
                 "seat": best.get("seat", ""),
+                "card_cond": bool(best.get("card_cond")),
                 "source": "naver",
                 "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             }

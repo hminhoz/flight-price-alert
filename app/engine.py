@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import logging
 import statistics
 from dataclasses import dataclass
 
 from .settings import Route, Settings
+
+log = logging.getLogger(__name__)
 from .state import State
 
 
@@ -118,6 +121,17 @@ class Combo:
     ret_leg: dict
     ret_route: Route | None = None   # 오는 편 노선. None이면 route와 동일(왕복)
     city: str = ""                   # 기준가 단위용 도시 키 (build_combos가 채운다)
+    rt_price: int | None = None      # 왕복 실가 (확인된 조합만)
+
+    @property
+    def pay(self) -> int:
+        """실제로 낼 금액 = 편도 2장과 왕복권 중 싼 쪽.
+
+        일본발 편도는 현지 시장가라 왕복보다 훨씬 비싸다(실측 중앙값 1.4배,
+        최대 13배). 편도 합산만 보면 표시가가 실구매가와 크게 벌어지고,
+        **왕복이 싼 조합은 순위에서 밀려 후보에도 못 오른다** (v2.09).
+        """
+        return min(self.price, self.rt_price) if self.rt_price else self.price
 
     @property
     def back(self) -> Route:
@@ -307,6 +321,40 @@ def preview_alerts(cfg: Settings, combos: list[Combo]) -> list[Alert]:
     return out
 
 
+def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
+    """왕복 실가를 확인할 조합.
+
+    편도 합산 순위만 보면 안 된다 — 오는 편 편도가 폭등한 조합은 합산이 커서
+    뒤로 밀리지만 **왕복으로는 가장 쌀 수 있다**(실측: 나고야 8/8 편도합산
+    1인 52만 vs 구글 왕복 18만). 두 갈래로 뽑는다:
+      · **배율(오는편/가는편)이 임계 이상인 것 전부** — 왜곡이 실재하는 조합
+      · 도시별 편도합산 최저 몇 개 — 이미 후보인 조합의 실가 확인
+    배율 분포 실측: 1.5배↑ 45% · 2배↑ 21% · 3배↑ 7% (전체 833건 기준)
+    """
+    from collections import defaultdict
+
+    def ratio(c: Combo) -> float:
+        o = c.out_leg.get("price") or 1
+        return (c.ret_leg.get("price") or 0) / o
+
+    pool = [c for c in combos if not c.is_cross]
+    picked: dict[int, Combo] = {}
+
+    for c in pool:
+        if ratio(c) >= cfg.verify_skew_ratio:
+            picked[id(c)] = c
+
+    by_city: dict[str, list[Combo]] = defaultdict(list)
+    for c in pool:
+        by_city[c.unit.split("|")[0]].append(c)
+    for items in by_city.values():
+        for c in sorted(items, key=lambda x: x.price)[: cfg.verify_per_city]:
+            picked[id(c)] = c
+
+    out = sorted(picked.values(), key=lambda c: -ratio(c))
+    return out[: cfg.verify_max_queries]
+
+
 def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
     """알림 메시지 본문에 실제로 노출될 알림들 (노선별 저가 top N).
 
@@ -324,6 +372,9 @@ def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
     return picked
 
 
+_METRIC = "pay-v2"   # 기준가가 어떤 금액 기준인지. 바뀌면 전부 다시 심는다.
+
+
 def process(cfg: Settings, state: State, combos: list[Combo],
             today: dt.date) -> list[Alert]:
     """기준가 갱신 + 알림 판정. 관측 기간에는 수집만 하고 빈 리스트 반환."""
@@ -332,9 +383,16 @@ def process(cfg: Settings, state: State, combos: list[Combo],
     now_iso = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
     # 1) unit별 오늘의 최저 콤보가격 기록
+    # 지표가 바뀌면(편도합산 → 실제 낼 금액) 기존 기준가는 잣대가 다르다.
+    # 그대로 두면 갑자기 전부 '싸졌다'가 되어 알림이 쏟아진다 (v2.09).
+    if state.meta.get("baseline_metric") != _METRIC:
+        state.baselines.clear()
+        state.meta["baseline_metric"] = _METRIC
+        log.info("기준가 지표 변경(%s) → 전부 새로 심는다", _METRIC)
+
     todays_min: dict[str, int] = {}
     for c in combos:
-        todays_min[c.unit] = min(todays_min.get(c.unit, c.price), c.price)
+        todays_min[c.unit] = min(todays_min.get(c.unit, c.pay), c.pay)
 
     for unit, price in todays_min.items():
         # 단위가 바뀌면(v2.07 도시 통합) 기준가가 전부 새로 생긴다. 그때 전부
@@ -385,11 +443,11 @@ def process(cfg: Settings, state: State, combos: list[Combo],
             continue
         if b.get("_seeded") == today.isoformat():
             continue          # 오늘 처음 생긴 단위 — 비교 대상이 없다
-        is_record = c.price <= b["alltime_min"] and b.get("alltime_min_at") == now_iso \
-            and todays_min.get(c.unit) == c.price
+        is_record = c.pay <= b["alltime_min"] and b.get("alltime_min_at") == now_iso \
+            and todays_min.get(c.unit) == c.pay
         # 기준가와 같기만 해도 알리면 '특가 아닌 알림'이 대부분이 된다 (v1.42).
         # 새로 생긴 unit은 기준가 = 자기 가격이라 특히 그렇다.
-        is_below_baseline = c.price <= b["baseline"] * (
+        is_below_baseline = c.pay <= b["baseline"] * (
             1 - cfg.min_below_baseline_pct / 100)
         if not (is_record or is_below_baseline):
             continue
@@ -398,7 +456,7 @@ def process(cfg: Settings, state: State, combos: list[Combo],
         sent = state.alerts_sent.get(c.key)
         if sent:
             need = sent["price"] * (1 - cfg.min_redrop_pct / 100)
-            if c.price > need:
+            if c.pay > need:
                 continue
         alerts.append(Alert(
             kind="record" if is_record else "baseline",
@@ -416,7 +474,7 @@ def process(cfg: Settings, state: State, combos: list[Combo],
 def mark_sent(state: State, alerts: list[Alert]) -> None:
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     for a in alerts:
-        state.alerts_sent[a.combo.key] = {"price": a.combo.price, "at": now}
+        state.alerts_sent[a.combo.key] = {"price": a.combo.pay, "at": now}
 
 
 # ---------------------------------------------------------------- 관측기간 리포트

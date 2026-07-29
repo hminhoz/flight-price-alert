@@ -59,6 +59,7 @@ class Settings:
     failure_alert_streak: int
     failure_alert_cooldown_hours: int
     naver_routes: tuple = ()
+    naver_card_condition: bool = True
     naver_directions: tuple = ("out",)
     naver_hour: int = 5
     naver_freshness_days: int = 3
@@ -84,6 +85,8 @@ class Settings:
     min_below_baseline_pct: float = 2.0
     min_redrop_pct: float = 2.0     # 재알림 최소 하락폭 (%)
     bundle_min_gap_pct: float = 3.0 # 묶음 항목 간 최소 가격 차이 (%)
+    verify_skew_ratio: float = 1.5
+    verify_per_city: int = 4
     verify_roundtrip: bool = True   # 알림 직전 왕복 실가 조회 (v1.12)
     verify_max_queries: int = 6     # 실행당 왕복 검증 쿼리 상한
 
@@ -183,6 +186,7 @@ def load(path: Path | None = None) -> Settings:
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
         naver_routes=tuple(s.get("naver_routes") or []),
+        naver_card_condition=bool(s.get("naver_card_condition", True)),
         naver_directions=tuple(s.get("naver_directions") or ["out"]),
         naver_hour=int(s.get("naver_hour", 5)),
         naver_freshness_days=max(1, int(s.get("naver_freshness_days", 3))),
@@ -207,6 +211,8 @@ def load(path: Path | None = None) -> Settings:
         min_below_baseline_pct=float(al.get("min_below_baseline_pct", 2)),
         min_redrop_pct=float(al.get("min_redrop_pct", 2)),
         bundle_min_gap_pct=float(al.get("bundle_min_gap_pct", 3)),
+        verify_skew_ratio=float(al.get("verify_skew_ratio", 1.5)),
+        verify_per_city=max(1, int(al.get("verify_per_city", 4))),
         verify_roundtrip=bool(al.get("verify_roundtrip", True)),
         verify_max_queries=int(al.get("verify_max_queries", 6)),
         shards=int(sch["shards"]),

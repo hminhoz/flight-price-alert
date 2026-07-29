@@ -155,6 +155,13 @@ def _ko_src(s: str | None) -> str:
     return {"naver": "네이버", "google": "구글"}.get(s or "", "구글")
 
 
+def _cond(c) -> str:
+    """카드 이용실적 등 조건부 가격이면 표시. 눌러보기 전에 알아야 한다."""
+    if c.out_leg.get("card_cond") or c.ret_leg.get("card_cond"):
+        return " · <b>카드조건</b>"
+    return ""
+
+
 def _airlines(c) -> str:
     """가는 편·오는 편 항공사. 같으면 한 번만. 이름은 한글로."""
     a = _ko_air(c.out_leg.get("airline", ""), c.out_leg.get("carrier", ""))
@@ -277,12 +284,12 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 c = obj
                 near_lines.append(
                     f'<b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
-                    f'{c.nights}박\n    {_times(c)} {_airlines(c)}'
+                    f'{c.nights}박\n    {_times(c)} {_airlines(c)}{_cond(c)}'
                     f'{_sites(cfg, c)}')
                 continue
 
             a, c = obj, obj.combo
-            one, rt = c.price, a.rt_price
+            one, rt = c.price, (c.rt_price or a.rt_price)
             pay = min(one, rt) if rt else one
             lines.append("")
             # 모든 금액을 1인 기준으로 통일한다. 주 항목에만 총액을 붙이면
@@ -302,7 +309,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                      else "" if a_ == b_ != "naver"
                      else f"가는편 {_ko_src(a_)} / 오는편 {_ko_src(b_)} 따로 구매")
             lines.append(f"{_leg_time(c.out_leg)} → {_leg_time(c.ret_leg)} "
-                         f"{_airlines(c)}" + (f" · {where}" if where else ""))
+                         f"{_airlines(c)}{_cond(c)}"
+                         + (f" · {where}" if where else ""))
 
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
@@ -369,10 +377,10 @@ def format_board(cfg: Settings, combos: list, stamp: str,
         rows = [f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
                 f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}'
                 f'{_sites(cfg, top)}',
-                f'    {_times(top)} {_airlines(top)}']
+                f'    {_times(top)} {_airlines(top)}{_cond(top)}']
         for c in picked[1:]:
             rows.append(f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
-                        f'{c.nights}박\n    {_times(c)} {_airlines(c)}'
+                        f'{c.nights}박\n    {_times(c)} {_airlines(c)}{_cond(c)}'
                         f'{_sites(cfg, c)}')
         return "\n".join(rows)
 
@@ -502,7 +510,7 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
             air = "" if head_air else _airport_note(c)
             rows.append(
                 f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} {c.nights}박{air}\n'
-                f'    {_times(c)} {_airlines(c)}{_sites(cfg, c)}')
+                f'    {_times(c)} {_airlines(c)}{_cond(c)}{_sites(cfg, c)}')
         blocks.append("\n".join(rows))
 
     # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다

@@ -115,6 +115,8 @@ def main() -> int:
 
     from app.search import set_excluded_airlines
     set_excluded_airlines(cfg.exclude_airlines)
+    from app import naver as _NV
+    _NV.set_allow_card_condition(cfg.naver_card_condition)
     if cfg.exclude_airlines:
         log.info("제외 항공사: %s", ", ".join(cfg.exclude_airlines))
 
@@ -354,8 +356,6 @@ def main() -> int:
 
     # ---- 판정 & 알림 ----
     combos = engine.build_combos(cfg, state, today)
-    alerts = engine.process(cfg, state, combos, today)
-    log.info("콤보 %d개, 알림 후보 %d건", len(combos), len(alerts))
 
     def dry_skip_network() -> bool:
         """DRY_RUN 중에도 왕복 검증은 실제로 돌려봐야 진단이 되므로 기본은 실행.
@@ -382,32 +382,61 @@ def main() -> int:
     # ---- 왕복 실가 검증 (v1.12) ----
     # 판정은 편도 합산 기준 그대로. 메시지에 노출될 조합만 왕복으로 재조회해
     # 표시 금액을 실구매가에 가깝게 만든다. 실패해도 알림은 그대로 나간다.
-    def verify_roundtrips(alerts_):
-        if not (alerts_ and cfg.verify_roundtrip) or dry_skip_network():
-            return
+    def verify_combos(cs):
+        """왕복 실가를 확인해 조합에 붙인다. **판정 전에** 해야 한다.
+
+        편도 합산만으로 순위를 매기면, 오는 편 편도가 폭등한 조합은 뒤로 밀려
+        후보에도 못 오른다. 실측: 나고야 8/8~8/12는 편도합산 1인 52만이라
+        60개 중 한참 뒤였지만 구글 왕복으로는 18만이었다 (v2.09).
+        """
+        if not (cs and cfg.verify_roundtrip) or dry_skip_network():
+            return 0
         # 교차 조합(김포 출발/인천 귀국 등)은 왕복 상품 자체가 없다.
-        # 가는 편 노선으로 왕복을 조회하면 실제 여정과 다른 가격이 붙는다 (v1.42).
-        targets = [a for a in engine.display_selection(cfg, alerts_)
-                   if not a.combo.is_cross][: cfg.verify_max_queries]
+        targets = [c for c in engine.verify_targets(cfg, cs) if not c.is_cross]
+
+        def one(c):
+            try:
+                return c, search_roundtrip(
+                    c.route.origin, c.route.destination,
+                    c.dep.isoformat(), c.ret.isoformat(),
+                    adults=cfg.adults,
+                    out_window=cfg.window_for(c.route.key, "out"),
+                    ret_window=cfg.window_for(c.route.key, "ret"),
+                    currency=cfg.currency, direct_only=cfg.direct_only,
+                )
+            except Exception:  # noqa: BLE001 - 검증 실패가 알림을 막지 않는다
+                return c, None
+
         ok = 0
-        for a in targets:
-            c = a.combo
-            a.rt_price = search_roundtrip(
-                c.route.origin, c.route.destination,
-                c.dep.isoformat(), c.ret.isoformat(),
-                adults=cfg.adults,
-                out_window=cfg.window_for(c.route.key, "out"),
-                currency=cfg.currency, direct_only=cfg.direct_only,
-            )
-            if a.rt_price:
-                ok += 1
-                # 부호 주의: 왕복이 비싸면 +, 싸면 -. 예전엔 반대로 계산해놓고
-                # "낮음"이라고 찍어 -59%가 '싸다'로 읽혔다 (v1.31 수정).
-                gap = (a.rt_price - c.price) / max(c.price, 1) * 100
-                log.info("RTVERIFY %s %s %d박: 편도2장 %d / 왕복티켓 %d (왕복이 %+.0f%%)",
-                         c.route.key, c.dep, c.nights, c.price, a.rt_price, gap)
-            polite_delay(cfg.request_delay_sec)
-        log.info("왕복 검증: %d건 중 %d건 확보", len(targets), ok)
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
+            for c, price in pool.map(one, targets):
+                c.rt_price = price
+                if price:
+                    ok += 1
+        from app.search import roundtrip_shape
+        sh = roundtrip_shape()
+        tot = sum(sh.values()) or 1
+        log.info("왕복 실가 확인: %d/%d건 · 편도합산보다 싼 것 %d건 · "
+                 "응답 구성 legs1 %d(%.0f%%) legs2 %d(%.0f%%) 기타 %d",
+                 ok, len(targets),
+                 sum(1 for c in targets if c.rt_price and c.rt_price < c.price),
+                 sh["legs1"], sh["legs1"] / tot * 100,
+                 sh["legs2"], sh["legs2"] / tot * 100, sh["other"])
+        state.meta["rt_shape"] = sh
+        return ok
+
+    # 왕복 실가를 **판정 전에** 붙인다. 편도 합산만으로 줄을 세우면 오는 편
+    # 편도가 폭등한 조합이 뒤로 밀려 후보에도 못 오른다 (v2.09).
+    verify_combos(combos)
+    alerts = engine.process(cfg, state, combos, today)
+    log.info("콤보 %d개, 알림 후보 %d건", len(combos), len(alerts))
+
+    def verify_roundtrips(alerts_):
+        """미리보기용 — 조합에 이미 붙은 왕복 실가를 알림 객체로 옮긴다."""
+        for a in alerts_ or []:
+            a.rt_price = a.combo.rt_price
+
 
     # ---- 네이버 브라우저 탐침 (DRY_RUN=naver) ----
     # 구글 가격이 이미 있는 날짜쌍으로 시험해야 "뚫리나"와 "다른 게 있나"를

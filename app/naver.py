@@ -37,6 +37,16 @@ def has_spend_condition(text: str) -> bool:
     return any(k in (text or "") for k in _SPEND_COND)
 
 
+# 조건부 가격을 버릴지, 받아서 표시할지. 버리면 못 사는 값을 안 보게 되지만
+# 살 수 있는데도 안 보이는 경우가 생긴다. 받아서 **표시**하는 쪽이 낫다 (v2.08).
+ALLOW_CARD_CONDITION = False
+
+
+def set_allow_card_condition(v: bool) -> None:
+    global ALLOW_CARD_CONDITION
+    ALLOW_CARD_CONDITION = bool(v)
+
+
 def _to_time(h: str, m: str) -> dt.time | None:
     try:
         return dt.time(int(h), int(m))
@@ -56,7 +66,10 @@ def _is_junk(text: str, legs) -> bool:
 
 def parse_domestic(text: str) -> dict | None:
     """국내선 편도 한 줄. 실패하면 None."""
-    if not text or has_spend_condition(text):
+    if not text:
+        return None
+    cond = has_spend_condition(text)
+    if cond and not ALLOW_CARD_CONDITION:
         return None
     legs = _LEG.findall(text)
     if len(legs) < 2 or _is_junk(text, legs):
@@ -74,13 +87,17 @@ def parse_domestic(text: str) -> dict | None:
         "dep": _to_time(dep_h, dep_m), "arr": _to_time(arr_h, arr_m),
         "seat": seat.group(1) if seat else "",
         "price": int(price_m.group(1).replace(",", "")),   # 1인 편도
+        "card_cond": cond,          # 카드 이용실적 등 조건부 가격인가
         "raw": text[:300],
     }
 
 
 def parse_intl(text: str) -> dict | None:
     """국제선 왕복 조합 한 줄. 실패하거나 실적 조건이면 None."""
-    if not text or has_spend_condition(text):
+    if not text:
+        return None
+    cond = has_spend_condition(text)
+    if cond and not ALLOW_CARD_CONDITION:
         return None
     legs = _LEG.findall(text)
     if len(legs) < 4 or _is_junk(text, legs):   # 가는 편 2개 + 오는 편 2개
@@ -98,6 +115,7 @@ def parse_intl(text: str) -> dict | None:
         "ret_dep": _to_time(r_dep[0], r_dep[1]),
         "direct": text.count("직항") >= 2,
         "price": int(price_m.group(1).replace(",", "")),   # 1인 왕복
+        "card_cond": cond,
         "raw": text[:300],
     }
 

@@ -287,6 +287,20 @@ def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,
     return _run_query(q, korea_market)
 
 
+_rt_shape: dict = {"legs1": 0, "legs2": 0, "other": 0}
+_rt_lock = threading.Lock()
+
+
+def roundtrip_shape() -> dict:
+    """왕복 응답이 가는 편만(legs=1) 왔는지, 오는 편까지(legs=2) 왔는지 집계.
+
+    legs=2가 대부분이면 귀국 시각을 걸 수 있으므로 **왕복 위주 구조로 바꿀 수
+    있다**. 지금은 그 비율을 몰라 편도 2회 + 왕복 보정으로 가고 있다 (v2.11).
+    """
+    with _rt_lock:
+        return dict(_rt_shape)
+
+
 def search_roundtrip(
     origin: str,
     dest: str,
@@ -295,6 +309,7 @@ def search_roundtrip(
     *,
     adults: int,
     out_window: tuple[dt.time, dt.time] | None = None,
+    ret_window: tuple[dt.time, dt.time] | None = None,
     currency: str = "KRW",
     direct_only: bool = True,
     diag: bool = False,
@@ -336,6 +351,10 @@ def search_roundtrip(
         for item in results or []:
             try:
                 legs = getattr(item, "flights", None) or []
+                with _rt_lock:
+                    k = "legs1" if len(legs) == 1 else (
+                        "legs2" if len(legs) == 2 else "other")
+                    _rt_shape[k] += 1
                 # 왕복 응답은 legs가 1(가는 편만) 또는 2(가는 편+오는 편)일 수 있다.
                 # 각 방향이 직항이면 되므로 2까지 허용한다.
                 if direct_only and len(legs) not in (1, 2):
@@ -343,6 +362,14 @@ def search_roundtrip(
                 price = parse_price(getattr(item, "price", None))
                 if not price or price <= 0:
                     continue
+                # 오는 편이 함께 담긴 응답(legs==2)이면 귀국 시각도 검증한다.
+                # 예전엔 이걸 안 봐서, 우리 조건 밖 시간대의 싼 왕복가를
+                # 그대로 채택할 수 있었다 (v2.10).
+                if ret_window is not None and len(legs) == 2:
+                    rt_t = parse_time(
+                        getattr(getattr(legs[1], "departure", None), "time", None))
+                    if rt_t is None or not (ret_window[0] <= rt_t <= ret_window[1]):
+                        continue
                 if out_window is not None:
                     t = parse_time(getattr(getattr(legs[0], "departure", None), "time", None))
                     if t is None or not (out_window[0] <= t <= out_window[1]):
