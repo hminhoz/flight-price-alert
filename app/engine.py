@@ -374,6 +374,12 @@ def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
 
 _METRIC = "pay-v2"   # 기준가가 어떤 금액 기준인지. 바뀌면 전부 다시 심는다.
 
+# 발송 기록이 오염된 시점을 표시한다. 이 값이 다르면 한 번 비운다.
+# v2.19 이전에는 **표시되지도 않은 알림 후보 전부**를 '보냄'으로 기록해,
+# 메시지에 안 나간 조합이 재알림 문턱에 걸려 조용히 억제됐다 (누적 216건 중
+# 대부분이 그런 기록이었다).
+_SENT_EPOCH = "v2.20-shown-only"
+
 
 def process(cfg: Settings, state: State, combos: list[Combo],
             today: dt.date) -> list[Alert]:
@@ -385,6 +391,13 @@ def process(cfg: Settings, state: State, combos: list[Combo],
     # 1) unit별 오늘의 최저 콤보가격 기록
     # 지표가 바뀌면(편도합산 → 실제 낼 금액) 기존 기준가는 잣대가 다르다.
     # 그대로 두면 갑자기 전부 '싸졌다'가 되어 알림이 쏟아진다 (v2.09).
+    if state.meta.get("sent_epoch") != _SENT_EPOCH:
+        n = len(state.alerts_sent)
+        state.alerts_sent.clear()
+        state.meta["sent_epoch"] = _SENT_EPOCH
+        log.info("발송 기록 초기화: 표시되지 않은 기록 %d건 폐기 (%s)",
+                 n, _SENT_EPOCH)
+
     if state.meta.get("baseline_metric") != _METRIC:
         state.baselines.clear()
         state.meta["baseline_metric"] = _METRIC

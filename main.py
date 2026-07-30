@@ -682,10 +682,15 @@ def main() -> int:
 
     if alerts:
         sent_ok = True
-        for msg in notify.format_alerts(cfg, alerts, combos):
-            sent_ok = deliver(msg) and sent_ok
+        # **표시된 것만** 보냄으로 기록한다. 예전엔 알림 후보 전부를 기록해,
+        # 메시지에 안 나간 조합까지 "이미 알렸다"고 억제됐다 (v2.19).
+        shown: list = []
+        sent_ok = True
+        for msg in notify.format_alerts(cfg, alerts, combos, used=shown):
+            if not notify.send(msg):
+                sent_ok = False
         if sent_ok:
-            engine.mark_sent(state, alerts)  # 전송 실패 시 다음 실행에서 재시도
+            engine.mark_sent(state, shown)  # 전송 실패 시 다음 실행에서 재시도
 
     # 관측 기간 중에는 하루 1회 형성 중인 기준가 요약 전송
     obs = engine.observation_report(cfg, state, today)

@@ -178,7 +178,8 @@ def _per(total: int, adults: int) -> str:
 
 def format_alerts(cfg: Settings, alerts: list[Alert],
                   all_combos: list | None = None,
-                  today: "dt.date | None" = None) -> list[str]:
+                  today: "dt.date | None" = None,
+                  used: list | None = None) -> list[str]:
     """노선별로 묶어 메시지 생성. 노선당 1개 메시지, 최저 top N 요약.
 
     all_combos를 주면 알림 조건 미충족이어도 '최저가 +N% 이내'인
@@ -197,15 +198,15 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         combos_by_route[_seoul_group(cfg, c.route)].append(c)
 
     def best_price(a) -> int:
-        """실제로 화면에 강조되는 금액 = 편도 2장과 왕복 티켓 중 싼 쪽.
+        """실제로 낼 금액 = 편도 2장과 왕복권 중 싼 쪽.
 
-        정렬은 이 값으로 해야 한다. 감지 지표(편도 2장)로 정렬하면 왕복이 더
-        싼 항목이 뒤로 밀려서 눈에 보이는 숫자가 뒤죽박죽이 된다 (v1.25).
+        제목·정렬 모두 이 값이어야 한다. 편도 합산으로 정렬하면 왕복이 더 싼
+        항목이 뒤로 밀려 눈에 보이는 숫자가 뒤죽박죽이 된다.
+        왕복 실가는 조합(`combo.rt_price`)에 붙는다 — 알림 객체만 보면
+        제목이 편도 합산으로 나온다 (v2.18에서 겪음).
         """
-        cands = [a.combo.price]
-        if a.rt_price:
-            cands.append(a.rt_price)
-        return min(cands)
+        return a.combo.pay if a.combo.rt_price else min(
+            x for x in (a.combo.price, a.rt_price) if x)
 
     messages: list[tuple[int, str]] = []
     for _key, items in by_route.items():
@@ -289,6 +290,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 continue
 
             a, c = obj, obj.combo
+            if used is not None:
+                used.append(a)      # 실제로 표시된 것만 '보냄'으로 기록해야 한다
             one, rt = c.price, (c.rt_price or a.rt_price)
             pay = min(one, rt) if rt else one
             lines.append("")
@@ -303,12 +306,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             # 왕복 실가도 **양쪽 시간 조건을 만족한다** — 요청 tfs에 가는 편·
             # 오는 편 출발 시각을 심는다(필드 8·9, v2.15). 예전의 '귀국 시각
             # 미확인' 단서는 더 필요 없다.
-            if rt and abs(rt - one) / max(one, 1) >= 0.05:
-                if rt < one:
-                    lines.append(f"왕복권이 {round((one - rt) / n):,}원 싸요 "
-                                 f"(편도 2장 {round(one / n):,}원)")
-                else:
-                    lines.append(f"편도 2장이 유리 (왕복권 {round(rt / n):,}원)")
+            # 어떤 방식으로 사야 하는지만 알린다. 안 사는 쪽 가격과 절감액은
+            # 판단에 쓰이지 않는 노이즈다 (v2.18).
+            if rt and rt < one:
+                lines.append("<b>왕복권으로 구매</b> (편도 2장보다 쌉니다)")
 
             # 어떤 편인지 + 어디서 사는지를 한 줄로
             a_, b_ = _sources(c)

@@ -127,6 +127,7 @@ def main():
     test_naver_job_order()
     test_call_signatures()
     test_all_imports_resolve()
+    test_mark_sent_only_shown()
     test_mixed_source_links()
     test_unit_is_city()
     test_verify_targets_catch_skew()
@@ -1325,6 +1326,57 @@ def test_all_imports_resolve():
                 missing.append(f"{node.module}.{alias.name}")
     assert not missing, f"main.py가 없는 이름을 가져온다: {missing}"
     print(f"OK import 대조: main.py의 app 참조 전부 존재")
+
+
+def test_mark_sent_only_shown():
+    """**표시된 알림만** 보냄으로 기록해야 한다 (v2.19).
+
+    예전엔 알림 후보 전부를 기록했다. 메시지엔 도시별 3개만 나가는데 후보
+    100건을 다 기록하니, 안 나간 85건이 "이미 알렸다"고 억제됐다. 나중에
+    진짜 최저가가 되어도 재알림 문턱이 이미 올라가 있었다.
+    실측 흔적: 김포-하네다 누적 36건인데 가격이 887k→933k→1010k로 널뛰었다.
+    """
+    cfg = load()
+    route = cfg.routes[0]
+
+    def mk(day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"},
+            city=engine._seoul_group(cfg, route))
+
+    # 후보를 bundle_top_n보다 많이 만든다 (가격 차이는 gap 필터를 넘도록 넉넉히)
+    n_cand = cfg.bundle_top_n + 4
+    alerts = [engine.Alert(kind="baseline", combo=mk(d + 1, 300_000 + d * 40_000),
+                           baseline=600_000, prev_min=None)
+              for d in range(n_cand)]
+    shown: list = []
+    msgs = format_alerts(cfg, alerts, [a.combo for a in alerts], used=shown)
+    assert msgs, "메시지가 없다"
+    assert len(shown) <= cfg.bundle_top_n, (len(shown), cfg.bundle_top_n)
+    assert len(shown) < len(alerts), "후보 전부가 표시됐다면 이 검사가 무의미하다"
+
+    # 기록은 표시분만
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    engine.mark_sent(st, shown)
+    assert len(st.alerts_sent) == len(shown), (len(st.alerts_sent), len(shown))
+    # 오염된 옛 기록은 한 번 자동으로 비워진다
+    st2 = State.__new__(State)
+    st2.legs, st2.baselines, st2.meta = {}, {}, {}
+    st2.time_hist, st2.naver_legs = {}, {}
+    st2.alerts_sent = {"낡은키|2026-09-10|3n": {"price": 1, "at": "2026-07-01"}}
+    st2.meta["first_run"] = "2026-07-01"
+    engine.process(cfg, st2, [mk(1, 300_000)], dt.date(2026, 8, 20))
+    assert st2.alerts_sent == {} or "낡은키|2026-09-10|3n" not in st2.alerts_sent
+    assert st2.meta.get("sent_epoch") == engine._SENT_EPOCH
+    # 두 번째 실행에서는 비우지 않는다
+    st2.alerts_sent["새키|2026-09-10|3n"] = {"price": 1, "at": "x"}
+    engine.process(cfg, st2, [mk(1, 300_000)], dt.date(2026, 8, 20))
+    assert "새키|2026-09-10|3n" in st2.alerts_sent, "정상 기록까지 지웠다"
+    print(f"OK 발송 기록: 후보 {len(alerts)}건 중 {len(shown)}건만 기록 · 옛 기록 1회 정리")
 
 
 def test_tolerant_parser():
@@ -2644,6 +2696,57 @@ def test_all_imports_resolve():
     print(f"OK import 대조: main.py의 app 참조 전부 존재")
 
 
+def test_mark_sent_only_shown():
+    """**표시된 알림만** 보냄으로 기록해야 한다 (v2.19).
+
+    예전엔 알림 후보 전부를 기록했다. 메시지엔 도시별 3개만 나가는데 후보
+    100건을 다 기록하니, 안 나간 85건이 "이미 알렸다"고 억제됐다. 나중에
+    진짜 최저가가 되어도 재알림 문턱이 이미 올라가 있었다.
+    실측 흔적: 김포-하네다 누적 36건인데 가격이 887k→933k→1010k로 널뛰었다.
+    """
+    cfg = load()
+    route = cfg.routes[0]
+
+    def mk(day, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=3, price=price,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"},
+            city=engine._seoul_group(cfg, route))
+
+    # 후보를 bundle_top_n보다 많이 만든다 (가격 차이는 gap 필터를 넘도록 넉넉히)
+    n_cand = cfg.bundle_top_n + 4
+    alerts = [engine.Alert(kind="baseline", combo=mk(d + 1, 300_000 + d * 40_000),
+                           baseline=600_000, prev_min=None)
+              for d in range(n_cand)]
+    shown: list = []
+    msgs = format_alerts(cfg, alerts, [a.combo for a in alerts], used=shown)
+    assert msgs, "메시지가 없다"
+    assert len(shown) <= cfg.bundle_top_n, (len(shown), cfg.bundle_top_n)
+    assert len(shown) < len(alerts), "후보 전부가 표시됐다면 이 검사가 무의미하다"
+
+    # 기록은 표시분만
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs = {}, {}
+    engine.mark_sent(st, shown)
+    assert len(st.alerts_sent) == len(shown), (len(st.alerts_sent), len(shown))
+    # 오염된 옛 기록은 한 번 자동으로 비워진다
+    st2 = State.__new__(State)
+    st2.legs, st2.baselines, st2.meta = {}, {}, {}
+    st2.time_hist, st2.naver_legs = {}, {}
+    st2.alerts_sent = {"낡은키|2026-09-10|3n": {"price": 1, "at": "2026-07-01"}}
+    st2.meta["first_run"] = "2026-07-01"
+    engine.process(cfg, st2, [mk(1, 300_000)], dt.date(2026, 8, 20))
+    assert st2.alerts_sent == {} or "낡은키|2026-09-10|3n" not in st2.alerts_sent
+    assert st2.meta.get("sent_epoch") == engine._SENT_EPOCH
+    # 두 번째 실행에서는 비우지 않는다
+    st2.alerts_sent["새키|2026-09-10|3n"] = {"price": 1, "at": "x"}
+    engine.process(cfg, st2, [mk(1, 300_000)], dt.date(2026, 8, 20))
+    assert "새키|2026-09-10|3n" in st2.alerts_sent, "정상 기록까지 지웠다"
+    print(f"OK 발송 기록: 후보 {len(alerts)}건 중 {len(shown)}건만 기록 · 옛 기록 1회 정리")
+
+
 def test_tolerant_parser():
     """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
 
@@ -2794,13 +2897,13 @@ def test_roundtrip_verification():
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg              # 더 싼 쪽(편도 2장)
-    assert "편도 2장이 유리" in msg, msg
+    assert "왕복권으로 구매" not in msg, msg   # 편도가 싸면 안내 없음
 
     # 왕복이 더 싼 경우 → 왕복이 대표 금액 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
     assert "300,000원</b>/인" in msg, msg
-    assert "왕복권이" in msg and "싸요" in msg, msg
+    assert "왕복권으로 구매" in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 
