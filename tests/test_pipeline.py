@@ -126,6 +126,7 @@ def main():
     test_naver_schedule()
     test_naver_job_order()
     test_call_signatures()
+    test_all_imports_resolve()
     test_mixed_source_links()
     test_unit_is_city()
     test_verify_targets_catch_skew()
@@ -1294,6 +1295,36 @@ def test_tfs_time_filter():
     assert ret_f.get(8) == 18 and ret_f.get(9) == 23, ret_f
     assert dict((f, v) for f, v in top).get(19) == 1, "왕복 표시가 아니다"
     print("OK tfs 시간 필터: 가는 편 6~13 · 오는 편 18~23 심어짐")
+
+
+def test_all_imports_resolve():
+    """main.py가 app에서 가져오는 이름이 **실제로 존재하는지** (v2.17).
+
+    2026-07-30: `app/search.py`의 코드 블록을 갈아끼울 때 `roundtrip_shape`를
+    함께 지웠는데 main.py는 계속 import했다. 함수 안쪽 import라 실행 도중에야
+    터져서, **40분을 다 쓴 뒤 맨 끝에서 ImportError**로 죽고 데이터가 하나도
+    남지 않았다. 문법 검사로는 못 잡는다 — 이름을 대조해야 한다.
+    """
+    import ast as _ast
+    import importlib
+
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    missing = []
+    for node in _ast.walk(_ast.parse(src)):
+        if not isinstance(node, _ast.ImportFrom) or not node.module:
+            continue
+        if not node.module.startswith("app"):
+            continue
+        mod = importlib.import_module(node.module)
+        for alias in node.names:
+            if hasattr(mod, alias.name):
+                continue
+            try:                     # `from app import tfs` 같은 하위 모듈
+                importlib.import_module(f"{node.module}.{alias.name}")
+            except ImportError:
+                missing.append(f"{node.module}.{alias.name}")
+    assert not missing, f"main.py가 없는 이름을 가져온다: {missing}"
+    print(f"OK import 대조: main.py의 app 참조 전부 존재")
 
 
 def test_tolerant_parser():
@@ -2581,6 +2612,36 @@ def test_tfs_time_filter():
     assert ret_f.get(8) == 18 and ret_f.get(9) == 23, ret_f
     assert dict((f, v) for f, v in top).get(19) == 1, "왕복 표시가 아니다"
     print("OK tfs 시간 필터: 가는 편 6~13 · 오는 편 18~23 심어짐")
+
+
+def test_all_imports_resolve():
+    """main.py가 app에서 가져오는 이름이 **실제로 존재하는지** (v2.17).
+
+    2026-07-30: `app/search.py`의 코드 블록을 갈아끼울 때 `roundtrip_shape`를
+    함께 지웠는데 main.py는 계속 import했다. 함수 안쪽 import라 실행 도중에야
+    터져서, **40분을 다 쓴 뒤 맨 끝에서 ImportError**로 죽고 데이터가 하나도
+    남지 않았다. 문법 검사로는 못 잡는다 — 이름을 대조해야 한다.
+    """
+    import ast as _ast
+    import importlib
+
+    src = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    missing = []
+    for node in _ast.walk(_ast.parse(src)):
+        if not isinstance(node, _ast.ImportFrom) or not node.module:
+            continue
+        if not node.module.startswith("app"):
+            continue
+        mod = importlib.import_module(node.module)
+        for alias in node.names:
+            if hasattr(mod, alias.name):
+                continue
+            try:                     # `from app import tfs` 같은 하위 모듈
+                importlib.import_module(f"{node.module}.{alias.name}")
+            except ImportError:
+                missing.append(f"{node.module}.{alias.name}")
+    assert not missing, f"main.py가 없는 이름을 가져온다: {missing}"
+    print(f"OK import 대조: main.py의 app 참조 전부 존재")
 
 
 def test_tolerant_parser():

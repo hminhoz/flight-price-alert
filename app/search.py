@@ -285,6 +285,25 @@ def _log_once(key: str, fmt: str, *args) -> None:
     log.info(fmt, *args)
 
 
+_rt_shape: dict = {"legs1": 0, "legs2": 0, "other": 0}
+_rt_lock = threading.Lock()
+
+
+def roundtrip_shape() -> dict:
+    """왕복 응답이 가는 편만(legs=1) 왔는지, 오는 편까지(legs=2) 왔는지 집계.
+
+    v2.15에서 _do_fetch_rt를 갈아끼울 때 이 함수가 함께 지워져 main.py의
+    import가 깨졌고, 40분을 다 쓴 뒤 맨 끝에서 ImportError로 죽었다 (v2.17).
+    """
+    with _rt_lock:
+        return dict(_rt_shape)
+
+
+def _note_rt_shape(n: int) -> None:
+    with _rt_lock:
+        _rt_shape["legs1" if n == 1 else ("legs2" if n == 2 else "other")] += 1
+
+
 def _do_fetch_rt(origin, dest, dep_date, ret_date, adults, currency,
                  max_stops, korea_market=False, out_window=None, ret_window=None):
     """왕복 조회 1회. 반환 항목의 price는 왕복 총액이다.

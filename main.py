@@ -410,33 +410,43 @@ def main() -> int:
             except Exception:  # noqa: BLE001 - 검증 실패가 알림을 막지 않는다
                 return c, None
 
-        # **시간 상한을 반드시 둔다.** 검증을 6건에서 391건으로 늘리면서
-        # 상한을 안 걸었더니 전체 실행이 75분 제한을 넘어 죽었다 (v2.16).
+        # **시간 상한을 반드시 둔다.** 상한 없이 391건을 돌렸다가 실행이
+        # 40분을 넘겼다. 주의: `with ThreadPoolExecutor`는 블록을 나갈 때
+        # 제출된 작업을 **모두 기다린다** — 그래서 future.cancel()로는 못 막는다.
+        # 마감이 지나면 **새로 제출하지 않는** 방식이어야 실제로 멈춘다 (v2.17).
         import time as _t
+        from concurrent.futures import (FIRST_COMPLETED, ThreadPoolExecutor,
+                                        wait as _wait)
         started = _t.monotonic()
         budget = cfg.verify_budget_min * 60
-        ok = skipped = 0
-        from concurrent.futures import ThreadPoolExecutor
+        ok = done_n = 0
+        it = iter(targets)
         with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
-            futures = {}
-            for c in targets:
-                futures[pool.submit(one, c)] = c
-            from concurrent.futures import as_completed
-            for fut in as_completed(futures):
-                if _t.monotonic() - started > budget:
-                    skipped += 1
-                    fut.cancel()
-                    continue
-                try:
-                    c, price = fut.result()
-                except Exception:  # noqa: BLE001
-                    continue
-                c.rt_price = price
-                if price:
-                    ok += 1
-        if skipped:
-            log.info("왕복 검증 예산(%d분) 초과 → %d건 생략",
-                     cfg.verify_budget_min, skipped)
+            inflight = {}
+            while True:
+                while (len(inflight) < cfg.concurrency
+                       and _t.monotonic() - started < budget):
+                    nxt = next(it, None)
+                    if nxt is None:
+                        break
+                    inflight[pool.submit(one, nxt)] = nxt
+                if not inflight:
+                    break
+                fin, _pending = _wait(list(inflight), return_when=FIRST_COMPLETED)
+                for fut in fin:
+                    inflight.pop(fut, None)
+                    done_n += 1
+                    try:
+                        c, price = fut.result()
+                    except Exception:  # noqa: BLE001
+                        continue
+                    c.rt_price = price
+                    if price:
+                        ok += 1
+        left = len(targets) - done_n
+        if left:
+            log.info("왕복 검증 예산(%d분) 소진 → %d건은 다음 실행으로",
+                     cfg.verify_budget_min, left)
         from app.search import roundtrip_shape
         sh = roundtrip_shape()
         tot = sum(sh.values()) or 1
