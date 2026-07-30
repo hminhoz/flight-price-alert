@@ -63,7 +63,9 @@ def main() -> int:
     naver_run = _mode.replace("_", "-") in ("naver-run", "naverrun", "naverrun")        or _raw.replace(" ", "-").replace("_", "-") == "naver-run"
     # 깃허브 입력에서도 월을 받는다. 텔레그램 /digest 8 과 같은 동작.
     #   "digest 8" → 8월만 자세히 · "8" 또는 "8월" → 8월만 가볍게 한 통
-    manual_month = notify.parse_month(_mode, _arg)
+    # `1`은 테스트 플래그이므로 월로 해석하지 않는다.
+    # 예전엔 DRY_RUN=1 이 '1월 요약'으로 빠져 테스트가 안 됐다 (v2.16).
+    manual_month = None if dry else notify.parse_month(_mode, _arg)
     brief = bool(manual_month) and not digest
 
     state.prune_past_legs(today)
@@ -408,13 +410,33 @@ def main() -> int:
             except Exception:  # noqa: BLE001 - 검증 실패가 알림을 막지 않는다
                 return c, None
 
-        ok = 0
+        # **시간 상한을 반드시 둔다.** 검증을 6건에서 391건으로 늘리면서
+        # 상한을 안 걸었더니 전체 실행이 75분 제한을 넘어 죽었다 (v2.16).
+        import time as _t
+        started = _t.monotonic()
+        budget = cfg.verify_budget_min * 60
+        ok = skipped = 0
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=cfg.concurrency) as pool:
-            for c, price in pool.map(one, targets):
+            futures = {}
+            for c in targets:
+                futures[pool.submit(one, c)] = c
+            from concurrent.futures import as_completed
+            for fut in as_completed(futures):
+                if _t.monotonic() - started > budget:
+                    skipped += 1
+                    fut.cancel()
+                    continue
+                try:
+                    c, price = fut.result()
+                except Exception:  # noqa: BLE001
+                    continue
                 c.rt_price = price
                 if price:
                     ok += 1
+        if skipped:
+            log.info("왕복 검증 예산(%d분) 초과 → %d건 생략",
+                     cfg.verify_budget_min, skipped)
         from app.search import roundtrip_shape
         sh = roundtrip_shape()
         tot = sum(sh.values()) or 1
