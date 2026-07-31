@@ -59,6 +59,7 @@ class Settings:
     failure_alert_streak: int
     failure_alert_cooldown_hours: int
     naver_routes: tuple = ()
+    verify_skip_domestic: bool = True
     naver_card_condition: bool = True
     naver_directions: tuple = ("out",)
     naver_hour: int = 5
@@ -188,6 +189,8 @@ def load(path: Path | None = None) -> Settings:
         adults=int(s["adults"]),
         currency=s.get("currency", "KRW"),
         naver_routes=tuple(s.get("naver_routes") or []),
+        verify_skip_domestic=bool(
+            (s.get("verify_skip_domestic", True))),
         naver_card_condition=bool(s.get("naver_card_condition", True)),
         naver_directions=tuple(s.get("naver_directions") or ["out"]),
         naver_hour=int(s.get("naver_hour", 5)),

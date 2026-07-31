@@ -138,6 +138,7 @@ def main():
     test_new_vs_drop_badge()
     test_fresh_rt_is_not_asked_again()
     test_naver_skips_fresh()
+    test_domestic_skips_roundtrip()
     test_rules_are_enforced_not_remembered()
     test_near_dates_linked()
     test_time_histogram()
@@ -603,6 +604,7 @@ def test_fresh_rt_is_not_asked_again():
     """
     import datetime as _dt
     cfg = load()
+    cfg.verify_skip_domestic = False     # 이 시험의 관심사는 신선도뿐
     route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
     now = _dt.datetime.now(_dt.timezone.utc)
 
@@ -672,6 +674,36 @@ def test_naver_skips_fresh():
                 probe_mod=FakeProbe, fresh_cut=cut)
     assert calls == ["launch"], "만료된 값을 다시 긁지 않았다"
     print("OK 네이버 수집: 신선한 것 건너뜀 · 만료된 것만 다시")
+
+
+
+def test_domestic_skips_roundtrip():
+    """**국내선은 왕복 실가를 묻지 않는다** (v2.39).
+
+    국내 LCC는 편도 단위로 팔아 왕복 = 편도 2장이다. 실측 김포-제주 40건 중
+    왕복이 싼 건 2건(5%)·평균 절감 1인 1,000원. 반면 일본 노선은 44~100%가
+    왕복이 싸고 절감이 1.5만~36만원이다. 조회 예산과 차단 위험을 그쪽에 몰아준다.
+    """
+    import datetime as _dt
+    cfg = load()
+    dom = [r for r in cfg.routes if r.domestic][0]
+    intl = [r for r in cfg.routes if not r.domestic][0]
+
+    def mk(route):
+        return engine.Combo(
+            route=route, dep=_dt.date(2026, 9, 10), nights=3, price=900_000,
+            out_leg={"price": 100_000, "dep_time": "07:00"},
+            ret_leg={"price": 800_000, "dep_time": "19:00"},
+            city=route.destination)
+
+    d, i = mk(dom), mk(intl)
+    got = engine.verify_pool(cfg, [d, i])
+    assert d not in got, "국내선에 왕복 조회 예산을 쓰고 있다"
+    assert i in got, "국제선은 반드시 물어야 한다"
+
+    cfg.verify_skip_domestic = False      # 되돌릴 수 있어야 한다
+    assert d in engine.verify_pool(cfg, [d, i])
+    print("OK 왕복 대상: 국내선 제외 · 스위치로 되돌릴 수 있음")
 
 
 def test_near_dates_linked():
@@ -1830,6 +1862,9 @@ def test_rt_price_persisted():
                            out_leg={"price": 100_000, "dep_time": "07:00"},
                            ret_leg={"price": 800_000, "dep_time": "19:00"},
                            city="CJU")
+    # 이 시험의 관심사는 **줄 세우기 순서**이지 국내선 정책이 아니다.
+    # v2.39부터 국내선은 왕복을 묻지 않으므로 스위치를 꺼서 분리한다.
+    cfg.verify_skip_domestic = False
     order = engine.verify_targets(cfg, [known, unknown])
     assert order and order[0] is unknown, "이미 아는 것을 먼저 물었다"
 

@@ -350,7 +350,13 @@ def verify_pool(cfg: Settings, combos: list[Combo]) -> list[Combo]:
         o = c.out_leg.get("price") or 1
         return (c.ret_leg.get("price") or 0) / o
 
-    pool = [c for c in combos if not c.is_cross]
+    # **국내선은 왕복을 묻지 않는다** (v2.39).
+    # 국내 LCC는 편도 단위로 팔아 왕복 = 편도 2장이다. 실측 김포-제주
+    # 40건 중 왕복이 싼 건 2건(5%)뿐이고 평균 절감이 1인 1,000원이었다.
+    # 반면 일본 노선은 44~100%가 왕복이 싸고 절감이 1.5만~36만원이다.
+    # 조회 예산과 차단 위험을 그쪽에 몰아준다.
+    pool = [c for c in combos if not c.is_cross
+            and not (cfg.verify_skip_domestic and c.route.domestic)]
     picked: dict[int, Combo] = {}
 
     for c in pool:
@@ -413,22 +419,33 @@ def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
     r = (state.meta.get("last_run") or {})
     m = state.meta
 
-    def frac(name, got, total, plus=0):
+    def frac(name, got, total, plus=None):
+        """`확보/대상 (+이번)`. **물어봤으면 0이어도 적는다.**
+
+        '실패는 0이어도 적는다'고 해놓고 (+N)은 0일 때 숨기고 있었다.
+        그래서 왕복 87건을 물어 전부 실패한 실행이 `왕복 525/603`으로만
+        보였다 — 아무 일도 안 한 것과 구분이 안 된다 (v2.38).
+        """
         s = f"{name} {got:,}/{total:,}" if total else f"{name} {got:,}"
-        return s + (f"(+{plus:,})" if plus else "")
+        return s + (f"(+{plus:,})" if plus is not None else "")
 
     parts = []
     if r.get("legs"):
         parts.append(frac("구글", r.get("legs_ok", 0), r["legs"]))
     nv_total = int(m.get("naver_total", 0))
     if nv_total:
+        # 네이버는 **이번 실행에서 실제로 돌았을 때만** (+N)을 붙인다.
+        # 건너뛴 실행에 (+0)을 달면 '실패했나?'로 읽힌다.
         parts.append(frac("네이버", len(getattr(state, "naver_legs", {}) or {}),
-                          nv_total, r.get("naver_new", 0))
+                          nv_total, r.get("naver_new"))
                      + f" {m.get('naver_runs', 0)}/{cfg.naver_runs_per_day}회")
     if r.get("rt_pool"):
         known = sum(1 for c in combos
                     if not c.is_cross and c.rt_price is not None)
-        parts.append(frac("왕복", known, r["rt_pool"], r.get("rt_ok", 0)))
+        # 물어본 게 있으면 결과가 0이어도 적는다 — 전부 실패한 실행이
+        # '아무것도 안 한 실행'처럼 보이면 안 된다.
+        got = r.get("rt_ok", 0) if r.get("rt_asked") else None
+        parts.append(frac("왕복", known, r["rt_pool"], got))
     # 실패는 **0이어도 적는다.** 0을 봐야 정상임이 확인된다.
     parts.append(f"실패 {r.get('failed', 0):,}")
     return "🔎 " + " · ".join(parts)
