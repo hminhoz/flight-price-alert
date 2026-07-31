@@ -42,7 +42,18 @@ jobs:
         run: |
           git config user.name "price-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/
+          # 루트에 남은 app/ 옛 사본을 지운다. 웹 UI 업로드는 파일을 지우지
+          # 않아 사본이 쌓였다(실제로 9개). import는 app/ 을 쓰므로 동작엔
+          # 영향이 없지만, 열어보면 어느 쪽이 진짜인지 헷갈린다.
+          # **루트 경로만** 지정한다 — app/ 안의 같은 이름 파일은 진짜다.
+          for f in engine.py gparse.py links.py notify.py search.py \
+                   settings.py state.py test_pipeline.py price-check.yml; do
+            if [ -f "$f" ]; then
+              git rm -q "$f"
+              echo "루트 옛 사본 삭제: $f"
+            fi
+          done
+          git add data/ .gitignore
           if git diff --cached --quiet; then
             echo "변경 없음"
           else
