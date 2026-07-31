@@ -64,7 +64,7 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
 
 
 def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
-                rt_cheaper: bool | None = None) -> list[str]:
+                rt_cheaper: bool | None = None, note: str = "") -> list[str]:
     """**알림·고정판·digest가 공유하는 항목 두 줄** (v2.25).
 
         123,400  [8/8(토)]~[8/12(수)] 4박 · 인천 왕복
@@ -81,29 +81,59 @@ def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
     ow = cfg.window_for(c.route.key, "out")
     rw = cfg.window_for(c.route.key, "ret")
 
-    if c.is_cross:
-        codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-        u = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
-                               back=c.back)
-        when = f'<a href="{u}">{_d(c.dep)}~{_d(c.ret)}</a>'
-    elif rt_cheaper:
-        u = google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
-                                 out_window=ow, ret_window=rw)
-        when = f'<a href="{u}">{_d(c.dep)}~{_d(c.ret)}</a>'
-    else:
-        u1 = google_oneway_url(c.route.origin, c.route.destination,
-                               c.dep, cfg.adults, window=ow)
-        u2 = google_oneway_url(c.route.destination, c.route.origin,
-                               c.ret, cfg.adults, window=rw)
-        when = (f'<a href="{u1}">{_d(c.dep)}</a>~'
-                f'<a href="{u2}">{_d(c.ret)}</a>')
+    when = _date_links(cfg, c, rt_cheaper)
 
     head = (f"<b>{round(price / n):,}</b>  {when} {c.nights}박"
             + (_airport_note(c) if airport else ""))
-    extra = _cond(c) + _naver_note(cfg, c)
     body = (f"    {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} "
-            f"{_airlines(c)}{extra}")
+            f"{_airlines(c)}{_cond(c)}{_buy_note(c)}{note}")
     return [head, body]
+
+
+def _date_links(cfg, c, rt_cheaper: bool) -> str:
+    """**날짜 = 그 편을 사는 곳으로 가는 링크.** 이 한 문장이 규칙 전부다.
+
+    예전엔 날짜는 늘 구글로 보내고, 값이 네이버에서 온 경우에만 줄 끝에
+    `네이버(가는편)` 같은 꼬리표를 따로 달았다. 그러면 "날짜가 링크"라는
+    규칙과 어긋나고(눌러도 그 가격이 없다), 꼬리표가 무슨 뜻인지도 알 수 없다.
+    이제 링크 자체가 예약처를 가리키므로 어느 편인지 적을 이유가 없다.
+    """
+    ow = cfg.window_for(c.route.key, "out")
+    rw = cfg.window_for(c.route.key, "ret")
+    so, sr = _sources(c)
+
+    def rng(u: str) -> str:
+        return f'<a href="{u}">{_d(c.dep)}~{_d(c.ret)}</a>'
+
+    if c.is_cross:      # 교차 조합은 다구간 검색 하나로
+        codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+        return rng(google_flights_url(c.route, c.dep, c.ret, cfg.adults,
+                                      codes, back=c.back))
+    if so == sr == "naver":
+        return rng(naver_url(c.route, c.dep, c.ret, cfg.adults))
+    if rt_cheaper and so == sr == "google":
+        return rng(google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
+                                        out_window=ow, ret_window=rw))
+    # 편도 2장 — 편마다 파는 곳이 다를 수 있으므로 날짜마다 따로 건다
+    def one(src, o, d, day, win) -> str:
+        if src == "naver":
+            return naver_url(c.route, c.dep, c.ret, cfg.adults)
+        return google_oneway_url(o, d, day, cfg.adults, window=win)
+    u1 = one(so, c.route.origin, c.route.destination, c.dep, ow)
+    u2 = one(sr, c.route.destination, c.route.origin, c.ret, rw)
+    return f'<a href="{u1}">{_d(c.dep)}</a>~<a href="{u2}">{_d(c.ret)}</a>'
+
+
+def _buy_note(c) -> str:
+    """구글이 아닌 곳에서 사야 할 때만. **어느 편인지는 링크가 말해준다.**"""
+    if c.is_cross:
+        return ""
+    so, sr = _sources(c)
+    if so == sr == "naver":
+        return " · 네이버"
+    if "naver" in (so, sr):
+        return " · 네이버·구글 따로 발권"     # 한 곳에서 다 살 수 있다는 오해 방지
+    return ""
 
 
 # ============================================================ 화면 조립 (공용)
@@ -195,18 +225,6 @@ def pack(cfg, title: str, blocks: list[str]) -> list[str]:
     return out
 
 
-def _naver_note(cfg, c) -> str:
-    """네이버 값이면 그 링크를 짧게. 어느 편인지도 함께.
-
-    예전엔 `오는편 [네이버] 가는편 [구글]`처럼 두 사이트를 다 적어 줄이 길었다.
-    구글은 이미 날짜에 걸려 있으므로 **네이버만** 덧붙이면 된다 (v2.25).
-    """
-    a, b = _sources(c)
-    if "naver" not in (a, b) or c.is_cross:
-        return ""
-    nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-    which = "" if a == b else ("(가는편)" if a == "naver" else "(오는편)")
-    return f' · <a href="{nv}">네이버{which}</a>'
 
 
 
@@ -276,10 +294,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                       + dt.timedelta(hours=9)).date()
     # 노선이 아니라 **도시** 단위로 묶는다 (v1.41). 같은 나고야인데 인천발·김포발·
     # 교차 조합이 따로 메시지로 나가면 어느 게 싼지 비교가 안 된다.
-    from .engine import _seoul_group, city_label
-    by_route: dict[str, list[Alert]] = defaultdict(list)
-    for a in alerts:
-        by_route[_seoul_group(cfg, a.combo.route)].append(a)
+    from .engine import _seoul_group, city_label, alert_selection
+    by_route = alert_selection(cfg, alerts)   # 선별 규칙은 engine 한 곳에만
     combos_by_route: dict[str, list] = defaultdict(list)
     for c in all_combos or []:
         combos_by_route[_seoul_group(cfg, c.route)].append(c)
@@ -296,13 +312,10 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             x for x in (a.combo.price, a.rt_price) if x)
 
     messages: list[tuple[int, str]] = []
-    for _key, items in by_route.items():
-        # 노출 대상 선별은 감지 지표 기준 (engine.display_selection과 동일해야
-        # 왕복 검증을 받은 항목과 실제 표시 항목이 어긋나지 않는다)
-        items.sort(key=lambda a: a.combo.price)
-        top = items[: cfg.bundle_top_n]
-        # 선별이 끝난 뒤 표시 순서만 실제 금액 기준으로 다시 정렬
-        top.sort(key=best_price)
+    for _key, top in by_route.items():
+        # 선별은 engine.alert_selection이 이미 pay 기준으로 마쳤다.
+        # 여기서는 표시 순서만 알림에 붙은 왕복 실가까지 반영해 다시 맞춘다.
+        top = sorted(top, key=best_price)
 
         # 가격 차이가 미미한 항목은 빼서 줄 수를 줄인다 (v1.27).
         # 옆 날짜가 1~2% 차이로 줄줄이 뜨는 건 정보가 아니라 소음이고,
@@ -319,15 +332,17 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 🏆는 '깰 이전 기록이 있을 때'만. 새로 잡힌 조합은 비교 대상이 없어
         # 역대 최저라고 해봐야 의미가 없다 (v1.42).
         record = any(a.kind == "record" and a.prev_min for a in top)
-        lines = [""]   # 제목은 표시 항목을 다 정한 뒤 채운다 (아래 head_idx)
+        lines = ["", ""]   # 제목은 표시 항목을 다 정한 뒤 채운다 (head_idx)
         head_idx = 0
 
         # 근처 날짜 후보 (알림 조건은 아니지만 값이 비슷한 조합)
         shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
-        base = min(a.combo.price for a in top)
+        # 고르는 잣대도 **화면에 찍히는 값(pay)**이어야 한다. 편도합산으로
+        # 재면 왕복이 싼 조합이 상한에 걸려 빠지거나, 엉뚱하게 끼어든다.
+        base = min(a.combo.pay for a in top)
         limit = base * (1 + cfg.similar_margin_pct / 100)
         cands = [c for c in combos_by_route.get(_key, [])
-                 if (c.dep, c.nights) not in shown_deps and c.price <= limit]
+                 if (c.dep, c.nights) not in shown_deps and c.pay <= limit]
         # 추리는 규칙은 세 화면 공용 (pick_dates)
         near = pick_dates(cands, cfg.similar_top_n)
 
@@ -335,9 +350,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
         # 탓에 두 번째 주 항목보다 근처 날짜가 싸게 나왔다. 실측 김포-제주에서
         # 13만 → 16만 → 13만 순으로 보여 정렬이 깨진 것처럼 읽혔다.
-        near_lines: list = []
         stream = [(best_price(a), 0, a) for a in top]
-        stream += [(c.price, 1, c) for c in near]
+        stream += [(c.pay, 1, c) for c in near]   # ← price로 두면 순서가 무너진다
         stream.sort(key=lambda x: (x[0], x[1]))
 
         # 제목의 "N원부터"는 **이 메시지에 실제로 실리는 것 중 최저가**여야 한다.
@@ -348,7 +362,9 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         why = ""
         t0 = top[0]
         if t0.kind == "record" and t0.prev_min:
-            why = f" · {(t0.prev_min - t0.combo.price) / t0.prev_min * 100:.0f}% 싸짐"
+            # prev_min은 pay 기준으로 저장된 값이다. price와 비교하면 잣대가
+            # 섞여 % 가 틀린다.
+            why = f" · {(t0.prev_min - best_price(t0)) / t0.prev_min * 100:.0f}% 싸짐"
         elif t0.baseline:
             cut = (t0.baseline - best_price(t0)) / max(t0.baseline, 1) * 100
             if cut >= 1:
@@ -363,10 +379,14 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                            f"<b>{city_label(cfg, route)} {head_price:,}원</b>/인"
                            f"{head_air}{why}")
 
+        # **한 메시지 = 하나의 오름차순 목록.** 예전엔 알림 조건을 충족한 것과
+        # 값이 비슷한 '다른 날짜'를 두 구역으로 나눠 아래에 몰아넣었다. 그래서
+        # 정렬을 해놔도 금액이 중간에서 처음부터 다시 시작했다(오사카 실측).
+        # 읽는 쪽에 그 구분은 쓸모가 없다 — 어차피 싼 순으로 고르기 때문이다.
+        # 구역을 없애니 알림도 고정판·전체시세와 같은 모양이 된다.
         for _price, kind, obj in stream:
-            if kind == 1:                      # 다른 날짜
-                near_lines.append("\n".join(
-                    entry_lines(cfg, obj, airport=not head_air)))
+            if kind == 1:                      # 값이 비슷한 다른 날짜
+                lines += entry_lines(cfg, obj, airport=not head_air)
                 continue
 
             a, c = obj, obj.combo
@@ -374,19 +394,12 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                 used.append(a)      # 실제로 표시된 것만 '보냄'으로 기록해야 한다
             one, rt = c.price, (c.rt_price or a.rt_price)
             pay = min(one, rt) if rt else one
-            lines.append("")
-            # 모든 금액을 1인 기준으로 통일한다. 주 항목에만 총액을 붙이면
-            # '다른 날짜'와 잣대가 달라 보인다 (v2.07).
-            lines += entry_lines(cfg, c, pay=pay, airport=not head_air)
-            if a.prev_sent and a.prev_sent > c.price:
-                lines.append(f"    🔻 지난 알림보다 "
-                             f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
-
-        if near_lines:
-            lines.append("")
-            lines.append("<b>다른 날짜</b>")
-            for x in near_lines:
-                lines.append(x)
+            # 지난 알림 대비 하락은 **화살표와 금액만.** 줄을 따로 쓰지 않고
+            # 2줄 끝 부가 자리에 붙인다 (카드조건·네이버와 같은 자리).
+            drop = ""
+            if a.prev_sent and a.prev_sent > c.pay:
+                drop = f" · 🔻{round((a.prev_sent - c.pay) / n):,}"
+            lines += entry_lines(cfg, c, pay=pay, airport=not head_air, note=drop)
 
         body = "\n".join(lines)
         messages.append((best_price(top[0]),

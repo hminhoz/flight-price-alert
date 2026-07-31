@@ -136,6 +136,7 @@ def main():
     test_tfs_time_filter()
     test_baseline_unstick()
     test_new_vs_drop_badge()
+    test_rules_are_enforced_not_remembered()
     test_near_dates_linked()
     test_time_histogram()
     test_bundle_gap_filter()
@@ -424,13 +425,16 @@ def test_new_vs_drop_badge():
                      ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"})
     first = engine.Alert(kind="baseline", combo=c, baseline=850_000, prev_min=None)
     msg = format_alerts(cfg, [first])[0]
-    assert "지난 알림" not in msg, "첫 알림에는 재알림 문구가 없어야 한다"
+    assert "🔻" not in msg, "첫 알림에는 하락 표시가 없어야 한다"
 
     again = engine.Alert(kind="baseline", combo=c, baseline=850_000,
                          prev_min=None, prev_sent=900_000)
     msg = format_alerts(cfg, [again])[0]
-    assert "지난 알림보다 50,000원 더 내림" in msg, msg  # 100,000 / 2명
-    print("OK 재알림 표시: 첫 알림은 조용, 재알림은 하락폭 명시")
+    # 화살표와 금액만. 설명 문장은 두지 않는다 (v2.27)
+    assert "🔻50,000" in msg, msg          # 100,000 / 2명
+    assert "지난 알림보다" not in msg, "설명 문장이 남아 있다"
+    assert msg.count("\n") <= 6, "하락 표시가 줄을 하나 더 잡아먹는다"
+    print("OK 재알림 표시: 첫 알림은 조용, 재알림은 🔻금액만")
 
 
 def test_bundle_gap_filter():
@@ -500,6 +504,92 @@ def test_cycle_progress():
     print("OK 한 바퀴: 완주 판정·중복 방지·하루 1회 보고")
 
 
+
+def test_rules_are_enforced_not_remembered():
+    """**규칙 감시 테스트.** 세 화면이 규범을 지키는지 구조로 확인한다.
+
+    왜 필요한가: v2.18의 정렬 수정이 알림에만 들어가 고정판·전체시세는
+    8버전 동안 어긋난 순서로 나갔다. 문서에 적어두는 것만으로는 안 지켜진다.
+    아래 셋 중 하나라도 깨지면 이 테스트가 잡는다.
+    """
+    import app.notify as N
+    from app import engine as E
+    cfg = load()
+    kix = [r for r in cfg.routes if r.destination == "KIX"]
+    assert len(kix) >= 2, "인천·김포가 함께 있는 노선으로 시험해야 한다"
+
+    def mk(route, day, price, rt=None, nights=3):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, day), nights=nights,
+            price=price, rt_price=rt,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "A", "carrier": "7C"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "A", "carrier": "7C"})
+
+    # **후보 수가 top N보다 많아야** 선별이 실제로 무언가를 걸러낸다.
+    # (3개만 두면 어떤 잣대로 골라도 다 통과해 테스트가 무의미해진다 — 실제로
+    #  처음 짠 감시 테스트가 그래서 회귀를 못 잡았다.)
+    # 가장 싼 조합(pay 20만)을 **편도합산으로는 꼴찌**로 만들어 둔다.
+    assert cfg.bundle_top_n == 3, "이 시험은 top N=3을 전제로 한다"
+    a1 = mk(kix[0], 2, 400_000)
+    a2 = mk(kix[1], 9, 450_000)
+    a3 = mk(kix[0], 16, 500_000)
+    a4 = mk(kix[1], 23, 900_000, rt=200_000)     # price 꼴찌 · pay 1등
+    combos = [a1, a2, a3, a4]
+    assert [c.pay for c in combos] == [400_000, 450_000, 500_000, 200_000]
+
+    def prices(msg):
+        import re as _re
+        plain = _re.sub(r"<[^>]+>", "", msg)
+        return [int(x.replace(",", ""))
+                for x in _re.findall(r"^([\d,]{6,})", plain, _re.M)]
+
+    # ── 규칙 1: 세 화면 모두 pay 오름차순 ─────────────────────────────
+    alerts = [engine.Alert(kind="baseline", combo=c, baseline=700_000,
+                           prev_min=None) for c in combos]
+    screens = {
+        "알림": format_alerts(cfg, alerts, combos, dt.date(2026, 8, 1)),
+        "고정판": N.format_board(cfg, combos, "07/31 15:00", dt.date(2026, 8, 1)),
+        "전체시세": N.format_digest(cfg, combos, "", dt.date(2026, 8, 1)),
+    }
+    for name, msgs in screens.items():
+        for m in msgs:
+            got = prices(m)
+            assert got == sorted(got), f"{name} 정렬 깨짐: {got}"
+        # 인천·김포가 한 도시 블록으로 합쳐져 함께 정렬돼야 한다
+        joined = "\n".join(msgs)
+        assert joined.count("오사카") + joined.count("KIX") >= 1, name
+
+    # ── 규칙 2: 왕복이 싼 조합이 후보에서 밀리지 않는다 ────────────────
+    # price로 고르면 가장 싼 a3(pay 30만)이 top3 밖으로 밀릴 수 있다.
+    shown = []
+    format_alerts(cfg, alerts, combos, dt.date(2026, 8, 1), used=shown)
+    cheapest = min(combos, key=lambda c: c.pay)
+    assert any(a.combo is cheapest for a in shown), \
+        "가장 싼(왕복) 조합이 표시되지 않았다 — 선별을 price로 하고 있다"
+
+    # ── 규칙 3: engine의 검증 대상과 notify의 표시 대상이 같다 ─────────
+    picked = {id(a.combo) for a in E.display_selection(cfg, alerts)}
+    assert {id(a.combo) for a in shown} <= picked, \
+        "표시된 건이 왕복 검증 대상 밖이다 — 선별 규칙이 두 벌로 갈라졌다"
+
+    # ── 규칙 4: 세 화면이 실제로 공용 부품을 거친다 ────────────────────
+    real = N.entry_lines
+    calls = {"n": 0}
+    try:
+        N.entry_lines = lambda *a, **k: (calls.__setitem__("n", calls["n"] + 1),
+                                         real(*a, **k))[1]
+        for fn in (lambda: format_alerts(cfg, alerts, combos, dt.date(2026, 8, 1)),
+                   lambda: N.format_board(cfg, combos, "x", dt.date(2026, 8, 1)),
+                   lambda: N.format_digest(cfg, combos, "", dt.date(2026, 8, 1))):
+            before = calls["n"]
+            fn()
+            assert calls["n"] > before, "공용 항목 형식을 쓰지 않는 화면이 있다"
+    finally:
+        N.entry_lines = real
+
+    print("OK 규칙 감시: 세 화면 pay 오름차순 · 선별 한 벌 · 공용 부품 경유")
+
+
 def test_near_dates_linked():
     """근처 날짜 목록의 각 줄이 눌러서 갈 수 있는 링크인지 (v1.31)."""
     cfg = load()
@@ -518,8 +608,9 @@ def test_near_dates_linked():
     near = [mk(12, 820_000), mk(14, 840_000)]
     msg = format_alerts(cfg, [a], [top] + near, today=dt.date(2026, 8, 1))[0]
 
-    # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
-    body = msg.split("다른 날짜")[1] if "다른 날짜" in msg else ""
+    # v2.27부터 구역 자체가 없다 — 한 메시지 = 하나의 오름차순 목록.
+    body = msg
+    assert "다른 날짜" not in msg, "구역을 나누면 금액이 다시 처음부터 시작한다"
     assert body.count("<a href=") >= len(near), msg   # 편도면 날짜 2개가 링크
     assert "9/12" in body, body                         # 날짜·요일
     assert "410,000" in body, body                      # 820,000 / 2명
@@ -1323,12 +1414,14 @@ def test_baseline_unstick():
 
 
 def test_mixed_source_links():
-    """출처가 섞이면 **두 사이트 링크를 다 준다** (v2.02).
+    """**날짜 = 그 편을 사는 곳으로 가는 링크** (v2.27).
 
-    가는 편과 오는 편을 다른 사이트에서 따로 사야 하는데 한쪽만 걸면
-    나머지 편 가격이 그곳에 없다. 실측 조합 796개 중 52개가 혼합이다.
+    예전엔 날짜를 늘 구글로 보내고 값이 네이버에서 왔으면 줄 끝에
+    `네이버(가는편)` 꼬리표를 달았다 — 눌러도 그 가격이 없는 링크였다.
+    이제 링크 자체가 예약처를 가리키고, 꼬리표는 "구글이 아닌 곳에서
+    사야 한다"는 사실만 말한다. 실측 조합 796개 중 52개가 혼합이다.
     """
-    from app.notify import entry_lines, _naver_note
+    from app.notify import entry_lines, _buy_note
     cfg = load()
     route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
 
@@ -1340,18 +1433,28 @@ def test_mixed_source_links():
             ret_leg={"price": 100_000, "dep_time": "21:00", "airline": "B",
                      "carrier": "LJ", **({"source": src_ret} if src_ret else {})})
 
-    # 둘 다 네이버 → 네이버 링크 하나 (편 구분 없음)
+    # 둘 다 네이버 → 날짜 범위 하나가 네이버로
     c = mk("naver", "naver")
-    assert "네이버</a>" in _naver_note(cfg, c)
-    # 둘 다 구글 → 네이버 링크 없음
-    c = mk(None, None)
-    assert _naver_note(cfg, c) == ""
-    # 섞이면 → 어느 편인지 표시
-    c = mk("naver", None)
-    note = _naver_note(cfg, c)
-    assert "네이버(가는편)" in note, note
+    head, body = entry_lines(cfg, c)
+    assert head.count("<a href=") == 1 and "flight.naver" in head, head
+    assert _buy_note(c) == " · 네이버", _buy_note(c)
 
-    # 알림·고정판·digest 세 곳이 같은 항목 형식을 쓴다
+    # 둘 다 구글 → 네이버 링크도 꼬리표도 없다
+    c = mk(None, None)
+    head, body = entry_lines(cfg, c)
+    assert "flight.naver" not in head and _buy_note(c) == ""
+
+    # 섞이면 → 날짜마다 각자의 예약처로, 꼬리표는 '따로 발권'
+    c = mk("naver", None)
+    head, body = entry_lines(cfg, c)
+    assert head.count("<a href=") == 2, head
+    out_link, ret_link = head.split("</a>")[0], head.split("</a>")[1]
+    assert "flight.naver" in out_link, "가는 편이 네이버인데 링크가 구글"
+    assert "google" in ret_link, "오는 편이 구글인데 링크가 네이버"
+    assert "따로 발권" in _buy_note(c), _buy_note(c)
+    assert "(가는편)" not in body, "편 표시는 링크가 대신한다"
+
+    # 알림·고정판·전체시세 세 곳이 같은 항목 형식을 쓴다
     import datetime as _dt
     mixed = mk("naver", None)
     a = engine.Alert(kind="baseline", combo=mixed, baseline=250_000, prev_min=None)
@@ -1361,7 +1464,7 @@ def test_mixed_source_links():
              + format_digest(cfg, [mixed], "", _dt.date(2026, 8, 1)))
     for m in texts:
         assert "flight.naver" in m, m[:200]
-    print("OK 혼합 출처: 네이버 링크에 편 표시 · 세 화면 동일 형식")
+    print("OK 혼합 출처: 날짜가 각자 예약처로 · 꼬리표는 따로 발권만")
 
 
 def test_unit_is_city():

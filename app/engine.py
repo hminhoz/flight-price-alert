@@ -372,20 +372,29 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
     return out[: cfg.verify_max_queries]
 
 
-def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
-    """알림 메시지 본문에 실제로 노출될 알림들 (노선별 저가 top N).
+def alert_selection(cfg: Settings, alerts: list[Alert]) -> dict:
+    """도시별 표시 후보 top N. **engine과 notify가 이 함수 하나를 공유한다.**
 
-    notify.format_alerts 와 동일한 선별 규칙 — 왕복 검증 쿼리를 표시될 건에만
-    쓰기 위해 분리했다.
+    예전엔 같은 규칙이 두 곳에 복사돼 있었다 — 왕복 검증을 받는 대상과 실제
+    화면에 실리는 대상이 어긋나면 알림에 검증 안 된 값이 나간다.
+
+    잣대는 `combo.pay`다. 편도합산(`price`)으로 고르면 **왕복이 싼 조합이
+    후보 top N에서 밀려 아예 안 보인다** — 화면엔 pay를 찍으면서 고르기는
+    price로 하던 게 v2.27까지 남아 있던 마지막 구멍이었다.
     """
     from collections import defaultdict
-    by_route: dict[str, list[Alert]] = defaultdict(list)
+    by_city: dict[str, list[Alert]] = defaultdict(list)
     for a in alerts:
-        by_route[_seoul_group(cfg, a.combo.route)].append(a)
+        by_city[_seoul_group(cfg, a.combo.route)].append(a)
+    return {k: sorted(v, key=lambda a: a.combo.pay)[: cfg.bundle_top_n]
+            for k, v in by_city.items()}
+
+
+def display_selection(cfg: Settings, alerts: list[Alert]) -> list[Alert]:
+    """왕복 검증 쿼리를 '실제로 표시될 건'에만 쓰기 위한 평탄화 버전."""
     picked: list[Alert] = []
-    for items in by_route.values():
-        items.sort(key=lambda a: a.combo.price)
-        picked += items[: cfg.bundle_top_n]
+    for items in alert_selection(cfg, alerts).values():
+        picked += items
     return picked
 
 
