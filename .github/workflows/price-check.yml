@@ -49,10 +49,17 @@ jobs:
           for f in engine.py gparse.py links.py notify.py search.py \
                    settings.py state.py test_pipeline.py price-check.yml; do
             if [ -f "$f" ]; then
-              git rm -q "$f"
+              git rm -q --ignore-unmatch "$f" || true
+              rm -f "$f"
               echo "루트 옛 사본 삭제: $f"
             fi
           done
+          # .gitignore는 숨김 파일이라 웹 UI 드래그 업로드에서 빠진다.
+          # **없으면 여기서 만든다** — 올릴 수 없는 파일에 의존하면 안 된다.
+          if [ ! -f .gitignore ]; then
+            printf '__pycache__/\n*.pyc\n.venv/\n' > .gitignore
+            echo ".gitignore 생성"
+          fi
           git add data/ .gitignore
           if git diff --cached --quiet; then
             echo "변경 없음"
