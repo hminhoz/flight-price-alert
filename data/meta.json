@@ -2,20 +2,24 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   112,
-   166,
-   167
+   240,
+   241,
+   242,
+   243,
+   244
   ],
   "495657895:h": [
-   "b592a7ff550f",
-   "6efeeec49d17",
-   "0f5f3c4a5f66"
+   "05cc29a7ef00",
+   "b61f997bea7e",
+   "aca5c94e67fd",
+   "663a8e97b5fa",
+   "915985c2a8c6"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-07-31T07:34:23+00:00",
+ "cycle_started_at": "2026-07-31T08:33:14+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-07-31T07:34:23+00:00",
+ "last_cycle_done_at": "2026-07-31T08:33:14+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "naver_cursor": 63,
@@ -83,11 +87,6 @@
  "naver_total": 145,
  "recent_runs": [
   {
-   "at": "2026-07-29T12:43:35+00:00",
-   "attempted": 0,
-   "failed": 0
-  },
-  {
    "at": "2026-07-29T13:20:30+00:00",
    "attempted": 0,
    "failed": 0
@@ -131,17 +130,22 @@
    "at": "2026-07-31T07:47:23+00:00",
    "attempted": 1130,
    "failed": 0
+  },
+  {
+   "at": "2026-07-31T08:46:11+00:00",
+   "attempted": 1130,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 1481,
+  "legs1": 1577,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 100,
-  "gain_sum": 40934684,
-  "ok": 179,
+  "cheaper": 112,
+  "gain_sum": 19551094,
+  "ok": 176,
   "targets": 240
  },
  "sent_epoch": "v2.20-shown-only",
