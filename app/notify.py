@@ -68,6 +68,63 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
     return f"{leg.get('dep_time', '?')}{mark}"
 
 
+def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
+                rt_cheaper: bool | None = None) -> list[str]:
+    """**알림·고정판·digest가 공유하는 항목 두 줄** (v2.25).
+
+        123,400  [8/8(토)]~[8/12(수)] 4박 · 인천 왕복
+                 07:30/18:00 제주항공 · 카드조건 · 네이버(오는편)
+
+    1줄 = 가격 · 날짜(링크) · 박수 · 공항
+    2줄 = 시각 · 항공사 · 부가(카드조건/네이버)
+    날짜가 곧 링크다 — 왕복이면 범위 하나, 편도면 각 날짜가 그 편 검색.
+    """
+    n = max(cfg.adults, 1)
+    price = pay if pay is not None else c.pay
+    if rt_cheaper is None:
+        rt_cheaper = bool(c.rt_price and c.rt_price < c.price)
+    ow = cfg.window_for(c.route.key, "out")
+    rw = cfg.window_for(c.route.key, "ret")
+
+    if c.is_cross:
+        codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
+        u = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
+                               back=c.back)
+        when = f'<a href="{u}">{_d(c.dep)}~{_d(c.ret)}</a>'
+    elif rt_cheaper:
+        u = google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
+                                 out_window=ow, ret_window=rw)
+        when = f'<a href="{u}">{_d(c.dep)}~{_d(c.ret)}</a>'
+    else:
+        u1 = google_oneway_url(c.route.origin, c.route.destination,
+                               c.dep, cfg.adults, window=ow)
+        u2 = google_oneway_url(c.route.destination, c.route.origin,
+                               c.ret, cfg.adults, window=rw)
+        when = (f'<a href="{u1}">{_d(c.dep)}</a>~'
+                f'<a href="{u2}">{_d(c.ret)}</a>')
+
+    head = (f"<b>{round(price / n):,}</b>  {when} {c.nights}박"
+            + (_airport_note(c) if airport else ""))
+    extra = _cond(c) + _naver_note(cfg, c)
+    body = (f"    {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} "
+            f"{_airlines(c)}{extra}")
+    return [head, body]
+
+
+def _naver_note(cfg, c) -> str:
+    """네이버 값이면 그 링크를 짧게. 어느 편인지도 함께.
+
+    예전엔 `오는편 [네이버] 가는편 [구글]`처럼 두 사이트를 다 적어 줄이 길었다.
+    구글은 이미 날짜에 걸려 있으므로 **네이버만** 덧붙이면 된다 (v2.25).
+    """
+    a, b = _sources(c)
+    if "naver" not in (a, b) or c.is_cross:
+        return ""
+    nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+    which = "" if a == b else ("(가는편)" if a == "naver" else "(오는편)")
+    return f' · <a href="{nv}">네이버{which}</a>'
+
+
 def _times(c) -> str:
     """`06:00/21:15` + 출처. 알림·고정판·근처날짜·digest가 같은 규칙을 쓴다.
 
@@ -159,7 +216,7 @@ def _ko_src(s: str | None) -> str:
 def _cond(c) -> str:
     """카드 이용실적 등 조건부 가격이면 표시. 눌러보기 전에 알아야 한다."""
     if c.out_leg.get("card_cond") or c.ret_leg.get("card_cond"):
-        return " · <b>카드조건</b>"
+        return " · 카드조건"
     return ""
 
 
@@ -284,10 +341,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         for _price, kind, obj in stream:
             if kind == 1:                      # 다른 날짜 — 날짜와 값만
                 c = obj
-                near_lines.append(
-                    f'<b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
-                    f'{c.nights}박\n    {_times(c)} {_airlines(c)}{_cond(c)}'
-                    f'{_sites(cfg, c)}')
+                near_lines.append("\n".join(
+                    entry_lines(cfg, c, airport=False)))
                 continue
 
             a, c = obj, obj.combo
@@ -298,9 +353,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             lines.append("")
             # 모든 금액을 1인 기준으로 통일한다. 주 항목에만 총액을 붙이면
             # '다른 날짜'와 잣대가 달라 보인다 (v2.07).
-            lines.append(f"<b>{_d(c.dep)}~{_d(c.ret)}</b> {c.nights}박"
-                         f"{_airport_note(c)} · <b>{round(pay / n):,}원</b>/인")
-            # 지난 알림보다 더 내렸으면 그것부터 알린다 — 재알림의 존재 이유다.
+            lines += entry_lines(cfg, c, pay=pay)
             if a.prev_sent and a.prev_sent > c.price:
                 lines.append(f"🔻 지난 알림보다 "
                              f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
@@ -309,41 +362,9 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             # 미확인' 단서는 더 필요 없다.
 
 
-            # 어떤 편인지 + 어디서 사는지를 한 줄로
-            a_, b_ = _sources(c)
-            where = ("네이버에서 구매" if a_ == b_ == "naver"
-                     else "" if a_ == b_ != "naver"
-                     else f"가는편 {_ko_src(a_)} / 오는편 {_ko_src(b_)} 따로 구매")
-            lines.append(f"{_leg_time(c.out_leg)} → {_leg_time(c.ret_leg)} "
-                         f"{_airlines(c)}{_cond(c)}"
-                         + (f" · {where}" if where else ""))
-
-            codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-            g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
-                                   back=c.back if c.is_cross else None)
-            # **링크를 실제 구매 방식에 맞춘다** (v2.22).
-            # 예전엔 편도 2장이 싼데도 왕복 링크를 줘서, 눌러도 그 가격이
-            # 화면에 없었다. 그래서 "왕복권으로 구매" 같은 안내가 필요했는데
-            # 링크가 맞으면 문구 자체가 필요 없다.
-            ow = cfg.window_for(c.route.key, "out")
-            rw = cfg.window_for(c.route.key, "ret")
-            if c.is_cross:
-                lines.append(f'<a href="{g}">구글에서 보기</a>')
-            elif rt and rt < one:
-                gr = google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
-                                          out_window=ow, ret_window=rw)
-                nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-                lines.append(f'<b>왕복권</b> <a href="{gr}">구글</a> · '
-                             f'<a href="{nv}">네이버</a>')
-            else:
-                o1 = google_oneway_url(c.route.origin, c.route.destination,
-                                       c.dep, cfg.adults, window=ow)
-                o2 = google_oneway_url(c.route.destination, c.route.origin,
-                                       c.ret, cfg.adults, window=rw)
-                nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-                lines.append(f'<b>편도 2장</b> <a href="{o1}">가는편</a> · '
-                             f'<a href="{o2}">오는편</a> · '
-                             f'<a href="{nv}">네이버</a>')
+            if a.prev_sent and a.prev_sent > c.price:
+                lines.append(f"🔻 지난 알림보다 "
+                             f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
 
         if near_lines:
             lines.append("")
@@ -396,14 +417,11 @@ def format_board(cfg: Settings, combos: list, stamp: str,
 
     def city_block(picked):
         top = picked[0]
-        rows = [f'<b>{city_label(cfg, top.route)} {round(top.price / n):,}원</b>/인 · '
-                f'{_blink(cfg, top)} {top.nights}박{_airport_note(top)}'
-                f'{_sites(cfg, top)}',
-                f'    {_times(top)} {_airlines(top)}{_cond(top)}']
-        for c in picked[1:]:
-            rows.append(f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} '
-                        f'{c.nights}박\n    {_times(c)} {_airlines(c)}{_cond(c)}'
-                        f'{_sites(cfg, c)}')
+        notes = {_airport_note(x) for x in picked}
+        head_air = notes.pop() if len(notes) == 1 else ""
+        rows = [f'<b>{city_label(cfg, top.route)}</b>{head_air}']
+        for c in picked:
+            rows += entry_lines(cfg, c, airport=not head_air)
         return "\n".join(rows)
 
     # 모든 날짜에 링크를 건다 → 한 통엔 안 들어가므로 도시 단위로 나눠 담는다.
@@ -430,47 +448,6 @@ def format_board(cfg: Settings, combos: list, stamp: str,
         tail = foot if i == total else f"({i}/{total} — 아래로 계속)"
         out.append(f"{head}\n\n{body}\n\n{tail}")
     return out
-
-
-def _blink(cfg, c) -> str:
-    """날짜 → 그 가격이 실제로 있는 곳으로.
-
-    · 둘 다 네이버면 네이버 하나 (주소가 84자로 구글 169자의 절반이다)
-    · 둘 다 구글이면 구글 하나
-    · **섞이면 둘 다** — 가는 편과 오는 편을 다른 사이트에서 따로 사야 하므로
-      한쪽만 걸면 나머지 편 가격이 그곳에 없다 (v2.02).
-    """
-    a, b = _sources(c)
-    label = f"{_d(c.dep)}~{_d(c.ret)}"
-    g_codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-
-    def g():
-        return google_flights_url(c.route, c.dep, c.ret, cfg.adults, g_codes,
-                                  back=c.back if c.is_cross else None)
-
-    if c.is_cross:                       # 교차 조합은 네이버 다구간 URL이 없다
-        return f'<a href="{g()}">{label}</a>'
-    if a == b == "naver":
-        return f'<a href="{naver_url(c.route, c.dep, c.ret, cfg.adults)}">{label}</a>'
-    if a == b:
-        return f'<a href="{g()}">{label}</a>'
-    # 혼합: 날짜는 글자로 두고, 사이트 링크는 줄 끝에 붙인다(_sites)
-    return label
-
-
-def _sites(cfg, c) -> str:
-    """혼합 조합일 때 줄 끝에 붙일 두 사이트 링크. 아니면 빈 문자열."""
-    a, b = _sources(c)
-    if a == b or c.is_cross:
-        return ""
-    nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-    codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
-    g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes)
-    a_, b_ = _sources(c)
-    n_lbl = "가는편" if a_ == "naver" else "오는편"
-    g_lbl = "오는편" if a_ == "naver" else "가는편"
-    return (f' · {n_lbl} <a href="{nv}">네이버</a>'
-            f' {g_lbl} <a href="{g}">구글</a>')
 
 
 _BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다
@@ -526,13 +503,9 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
         # 도시 헤더로 올려 매 줄 반복을 없앤다 (v2.04).
         notes = {_airport_note(c) for c in picked}
         head_air = notes.pop() if len(notes) == 1 else ""
-        rows = [f"<b>{city_label(cfg, top.route)}</b>"
-                f"{head_air}  {round(top.price / n):,}원~"]
+        rows = [f"<b>{city_label(cfg, top.route)}</b>{head_air}"]
         for c in picked:
-            air = "" if head_air else _airport_note(c)
-            rows.append(
-                f'· <b>{round(c.price / n):,}</b>  {_blink(cfg, c)} {c.nights}박{air}\n'
-                f'    {_times(c)} {_airlines(c)}{_cond(c)}{_sites(cfg, c)}')
+            rows += entry_lines(cfg, c, airport=not head_air)
         blocks.append("\n".join(rows))
 
     # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다

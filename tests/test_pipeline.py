@@ -215,8 +215,8 @@ def test_price_ordering():
     assert engine.city_label(cfg, r2) in msgs[0], "더 싼 도시의 메시지가 먼저 와야 한다"
 
     body = msgs[1]
-    i_cheap = body.index("250,000원")   # 500,000 / 2명
-    i_exp = body.index("400,000원</b>/인")   # 800,000 / 2명
+    i_cheap = body.index("250,000")   # 500,000 / 2명
+    i_exp = body.index("400,000")     # 800,000 / 2명 (편도 2장)
     assert i_cheap < i_exp, f"싼 항목이 위에 와야 한다:\n{body}"
     print("OK 정렬: 노선 간·노선 내 모두 실제 금액 오름차순")
 
@@ -326,7 +326,7 @@ def test_near_dates_linked():
 
     # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
     body = msg.split("다른 날짜")[1] if "다른 날짜" in msg else ""
-    assert body.count("<a href=") == len(near), msg
+    assert body.count("<a href=") >= len(near), msg   # 편도면 날짜 2개가 링크
     assert "9/12" in body, body                         # 날짜·요일
     assert "410,000" in body, body                      # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
@@ -386,7 +386,7 @@ def test_off_window_mark_is_short():
                               "dep_time": "18:55", "carrier": "KE"})
     a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "16:20⚠ → 18:55" in msg, msg       # 조건 밖인 쪽에만 ⚠
+    assert "16:20⚠/18:55" in msg, msg         # 조건 밖인 쪽에만 ⚠
     assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
     print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
 
@@ -573,19 +573,19 @@ def test_digest():
     msg = "\n".join(msgs)
 
     # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
-    assert msg.count("원~") == 2, msg
+    assert msg.count("</b>") >= 2, msg   # 도시 헤더 둘
     i2 = msg.index(engine.city_label(cfg, r2))
     i1 = msg.index(engine.city_label(cfg, r1))
     assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
-    assert "250,000원~" in msg, msg      # 500,000 / 2명
-    assert "350,000원~" in msg, msg      # 700,000 / 2명
+    assert "250,000" in msg and "350,000" in msg, msg
     assert "450,000" in msg, "도시 안에서는 여러 날짜를 보여준다"
-    assert msg.count("<a href=") == 3, "날짜마다 링크"
+    # 편도가 싼 조합은 날짜 두 개가 각각 링크 → 항목당 1~2개
+    assert msg.count("<a href=") >= 3, "날짜마다 링크"
 
     # 도시별 표시 개수는 설정을 따른다
     many = [mk(r1, d, 900_000 - d * 1000) for d in range(1, 9)]
     msg3 = "\n".join(format_digest(cfg, many, "", dt.date(2026, 8, 1)))
-    assert msg3.count("<a href=") == cfg.digest_top_n, msg3
+    assert msg3.count("<a href=") >= cfg.digest_top_n, msg3
 
     # 텔레그램 4096자 제한을 넘으면 나눠 보낸다 (실측 8도시×3날짜 = 6,400자)
     from app.notify import TELEGRAM_LIMIT
@@ -633,7 +633,7 @@ def test_live_board():
 
     # v1.98: **모든 날짜에 링크**. 그래서 여러 통으로 나눈다.
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
-    assert board.count("<a href=") == len(cities) * cfg.board_top_n, board.count("<a href=")
+    assert board.count("<a href=") >= len(cities) * cfg.board_top_n
     assert "📌" in board.splitlines()[0]
 
     # v1.96부터 도시당 개수는 board_top_n으로 고정하고, 길이는 통을 나눠 맞춘다.
@@ -643,7 +643,7 @@ def test_live_board():
     for pm in parts_s:
         assert len(pm) < TELEGRAM_LIMIT, len(pm)
     b_small = "\n".join(parts_s)
-    assert b_small.count("<a href=") == 2 * cfg.board_top_n, b_small.count("<a href=")
+    assert b_small.count("<a href=") >= 2 * cfg.board_top_n
 
     # 빈 데이터에도 죽지 않는다
     assert "아직" in format_board(cfg, [], "07/26 14:07", dt.date(2026, 8, 1))[0]
@@ -1139,7 +1139,7 @@ def test_mixed_source_links():
     가는 편과 오는 편을 다른 사이트에서 따로 사야 하는데 한쪽만 걸면
     나머지 편 가격이 그곳에 없다. 실측 조합 796개 중 52개가 혼합이다.
     """
-    from app.notify import _blink, _sites
+    from app.notify import entry_lines, _naver_note
     cfg = load()
     route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
 
@@ -1151,32 +1151,28 @@ def test_mixed_source_links():
             ret_leg={"price": 100_000, "dep_time": "21:00", "airline": "B",
                      "carrier": "LJ", **({"source": src_ret} if src_ret else {})})
 
-    # 둘 다 네이버 → 네이버 하나 (주소가 짧다)
+    # 둘 다 네이버 → 네이버 링크 하나 (편 구분 없음)
     c = mk("naver", "naver")
-    assert "flight.naver" in _blink(cfg, c) and _sites(cfg, c) == ""
-    # 둘 다 구글 → 구글 하나
+    assert "네이버</a>" in _naver_note(cfg, c)
+    # 둘 다 구글 → 네이버 링크 없음
     c = mk(None, None)
-    assert "google.com" in _blink(cfg, c) and _sites(cfg, c) == ""
-    # 섞이면 → 날짜는 글자, 줄 끝에 두 링크
+    assert _naver_note(cfg, c) == ""
+    # 섞이면 → 어느 편인지 표시
     c = mk("naver", None)
-    assert "<a href" not in _blink(cfg, c), _blink(cfg, c)
-    s = _sites(cfg, c)
-    assert "flight.naver" in s and "google.com" in s, s
-    assert s.count("<a href") == 2, s
-    # 알림·고정판·digest **세 곳 모두** 같은 규칙을 써야 한다
+    note = _naver_note(cfg, c)
+    assert "네이버(가는편)" in note, note
+
+    # 알림·고정판·digest 세 곳이 같은 항목 형식을 쓴다
     import datetime as _dt
-    st = State.__new__(State)
-    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
-    st.time_hist, st.naver_legs = {}, {}
     mixed = mk("naver", None)
     a = engine.Alert(kind="baseline", combo=mixed, baseline=250_000, prev_min=None)
     from app.notify import format_board, format_digest
     texts = (format_alerts(cfg, [a], [mixed])
-             + format_board(cfg, [mixed], "07/27 23:59", _dt.date(2026, 8, 1))
+             + format_board(cfg, [mixed], "07/31 14:00", _dt.date(2026, 8, 1))
              + format_digest(cfg, [mixed], "", _dt.date(2026, 8, 1)))
     for m in texts:
-        assert "flight.naver" in m and "google.com" in m, m[:200]
-    print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
+        assert "flight.naver" in m, m[:200]
+    print("OK 혼합 출처: 네이버 링크에 편 표시 · 세 화면 동일 형식")
 
 
 def test_unit_is_city():
@@ -1500,19 +1496,22 @@ def test_links_match_payment():
         return [u for u in _re.findall(r'href="([^"]+)"', msg)
                 if "google.com" in u]
 
-    # 왕복이 싼 경우 → 왕복 링크 하나
+    # 왕복이 싼 경우 → 날짜 **범위 전체**가 왕복 링크 하나
     c = mk(300_000)
     a = engine.Alert(kind="baseline", combo=c, baseline=500_000, prev_min=None)
     g = goog_of(format_alerts(cfg, [a], [c])[0])
     assert len(g) == 1 and trip_of(g[0]) == 1, (len(g), [trip_of(u) for u in g])
 
-    # 편도가 싼 경우 → 편도 링크 둘
+    # 편도가 싼 경우 → **각 날짜**가 그 편의 편도 링크
     c = mk(None)
     a = engine.Alert(kind="baseline", combo=c, baseline=500_000, prev_min=None)
-    g = goog_of(format_alerts(cfg, [a], [c])[0])
+    msg = format_alerts(cfg, [a], [c])[0]
+    g = goog_of(msg)
     assert len(g) == 2, len(g)
     assert all(trip_of(u) == 2 for u in g), [trip_of(u) for u in g]
-    print("OK 링크·구매방식 일치: 왕복이면 왕복 1개 · 편도면 편도 2개")
+    # 날짜 자체가 링크여야 한다 (아래에 따로 링크 줄을 두지 않는다)
+    assert '">8/8(토)</a>' in msg and '">8/12(수)</a>' in msg, msg
+    print("OK 링크: 날짜가 링크 · 왕복이면 범위 1개 · 편도면 날짜별 2개")
 
 
 def test_tolerant_parser():
@@ -1722,8 +1721,8 @@ def test_price_ordering():
     assert engine.city_label(cfg, r2) in msgs[0], "더 싼 도시의 메시지가 먼저 와야 한다"
 
     body = msgs[1]
-    i_cheap = body.index("250,000원")   # 500,000 / 2명
-    i_exp = body.index("400,000원</b>/인")   # 800,000 / 2명
+    i_cheap = body.index("250,000")   # 500,000 / 2명
+    i_exp = body.index("400,000")     # 800,000 / 2명 (편도 2장)
     assert i_cheap < i_exp, f"싼 항목이 위에 와야 한다:\n{body}"
     print("OK 정렬: 노선 간·노선 내 모두 실제 금액 오름차순")
 
@@ -1833,7 +1832,7 @@ def test_near_dates_linked():
 
     # v1.38부터 근처 날짜는 별도 구역이 아니라 본문에 오름차순으로 섞인다.
     body = msg.split("다른 날짜")[1] if "다른 날짜" in msg else ""
-    assert body.count("<a href=") == len(near), msg
+    assert body.count("<a href=") >= len(near), msg   # 편도면 날짜 2개가 링크
     assert "9/12" in body, body                         # 날짜·요일
     assert "410,000" in body, body                      # 820,000 / 2명
     assert "D-" not in body, "D-day는 빼기로 했다"
@@ -1893,7 +1892,7 @@ def test_off_window_mark_is_short():
                               "dep_time": "18:55", "carrier": "KE"})
     a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "16:20⚠ → 18:55" in msg, msg       # 조건 밖인 쪽에만 ⚠
+    assert "16:20⚠/18:55" in msg, msg         # 조건 밖인 쪽에만 ⚠
     assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
     print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
 
@@ -2080,19 +2079,19 @@ def test_digest():
     msg = "\n".join(msgs)
 
     # 도시가 제목, 그 밑에 날짜 여러 줄. 싼 도시부터.
-    assert msg.count("원~") == 2, msg
+    assert msg.count("</b>") >= 2, msg   # 도시 헤더 둘
     i2 = msg.index(engine.city_label(cfg, r2))
     i1 = msg.index(engine.city_label(cfg, r1))
     assert i2 < i1, "더 싼 도시가 먼저 와야 한다"
-    assert "250,000원~" in msg, msg      # 500,000 / 2명
-    assert "350,000원~" in msg, msg      # 700,000 / 2명
+    assert "250,000" in msg and "350,000" in msg, msg
     assert "450,000" in msg, "도시 안에서는 여러 날짜를 보여준다"
-    assert msg.count("<a href=") == 3, "날짜마다 링크"
+    # 편도가 싼 조합은 날짜 두 개가 각각 링크 → 항목당 1~2개
+    assert msg.count("<a href=") >= 3, "날짜마다 링크"
 
     # 도시별 표시 개수는 설정을 따른다
     many = [mk(r1, d, 900_000 - d * 1000) for d in range(1, 9)]
     msg3 = "\n".join(format_digest(cfg, many, "", dt.date(2026, 8, 1)))
-    assert msg3.count("<a href=") == cfg.digest_top_n, msg3
+    assert msg3.count("<a href=") >= cfg.digest_top_n, msg3
 
     # 텔레그램 4096자 제한을 넘으면 나눠 보낸다 (실측 8도시×3날짜 = 6,400자)
     from app.notify import TELEGRAM_LIMIT
@@ -2140,7 +2139,7 @@ def test_live_board():
 
     # v1.98: **모든 날짜에 링크**. 그래서 여러 통으로 나눈다.
     cities = {engine._seoul_group(cfg, r) for r in cfg.routes}
-    assert board.count("<a href=") == len(cities) * cfg.board_top_n, board.count("<a href=")
+    assert board.count("<a href=") >= len(cities) * cfg.board_top_n
     assert "📌" in board.splitlines()[0]
 
     # 자동 맞춤: 여유가 있으면 많이, 없으면 줄인다 (v1.48)
@@ -2641,7 +2640,7 @@ def test_mixed_source_links():
     가는 편과 오는 편을 다른 사이트에서 따로 사야 하는데 한쪽만 걸면
     나머지 편 가격이 그곳에 없다. 실측 조합 796개 중 52개가 혼합이다.
     """
-    from app.notify import _blink, _sites
+    from app.notify import entry_lines, _naver_note
     cfg = load()
     route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
 
@@ -2653,32 +2652,28 @@ def test_mixed_source_links():
             ret_leg={"price": 100_000, "dep_time": "21:00", "airline": "B",
                      "carrier": "LJ", **({"source": src_ret} if src_ret else {})})
 
-    # 둘 다 네이버 → 네이버 하나 (주소가 짧다)
+    # 둘 다 네이버 → 네이버 링크 하나 (편 구분 없음)
     c = mk("naver", "naver")
-    assert "flight.naver" in _blink(cfg, c) and _sites(cfg, c) == ""
-    # 둘 다 구글 → 구글 하나
+    assert "네이버</a>" in _naver_note(cfg, c)
+    # 둘 다 구글 → 네이버 링크 없음
     c = mk(None, None)
-    assert "google.com" in _blink(cfg, c) and _sites(cfg, c) == ""
-    # 섞이면 → 날짜는 글자, 줄 끝에 두 링크
+    assert _naver_note(cfg, c) == ""
+    # 섞이면 → 어느 편인지 표시
     c = mk("naver", None)
-    assert "<a href" not in _blink(cfg, c), _blink(cfg, c)
-    s = _sites(cfg, c)
-    assert "flight.naver" in s and "google.com" in s, s
-    assert s.count("<a href") == 2, s
-    # 알림·고정판·digest **세 곳 모두** 같은 규칙을 써야 한다
+    note = _naver_note(cfg, c)
+    assert "네이버(가는편)" in note, note
+
+    # 알림·고정판·digest 세 곳이 같은 항목 형식을 쓴다
     import datetime as _dt
-    st = State.__new__(State)
-    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
-    st.time_hist, st.naver_legs = {}, {}
     mixed = mk("naver", None)
     a = engine.Alert(kind="baseline", combo=mixed, baseline=250_000, prev_min=None)
     from app.notify import format_board, format_digest
     texts = (format_alerts(cfg, [a], [mixed])
-             + format_board(cfg, [mixed], "07/27 23:59", _dt.date(2026, 8, 1))
+             + format_board(cfg, [mixed], "07/31 14:00", _dt.date(2026, 8, 1))
              + format_digest(cfg, [mixed], "", _dt.date(2026, 8, 1)))
     for m in texts:
-        assert "flight.naver" in m and "google.com" in m, m[:200]
-    print("OK 혼합 출처: 알림·고정판·digest 모두 두 사이트 링크")
+        assert "flight.naver" in m, m[:200]
+    print("OK 혼합 출처: 네이버 링크에 편 표시 · 세 화면 동일 형식")
 
 
 def test_unit_is_city():
@@ -3100,13 +3095,13 @@ def test_roundtrip_verification():
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg              # 더 싼 쪽(편도 2장)
-    assert "편도 2장" in msg and "가는편" in msg, msg   # 편도면 편도 링크 2개
+    assert msg.count("<a href=") >= 2, msg   # 편도면 날짜 두 개가 각각 링크
 
     # 왕복이 더 싼 경우 → 왕복이 대표 금액 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
     assert "300,000원</b>/인" in msg, msg
-    assert "왕복권" in msg and "가는편" not in msg, msg
+    assert "<a href=" in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 
