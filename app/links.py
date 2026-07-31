@@ -17,6 +17,40 @@ from urllib.parse import quote_plus, urlencode
 from .settings import Route
 
 
+def google_oneway_url(origin: str, dest: str, day: dt.date, adults: int,
+                      carrier: str = "", window=None) -> str:
+    """편도 검색 링크. 출발 시각 조건을 심는다 (v2.22).
+
+    편도 2장이 더 쌀 때 왕복 링크를 주면 그 가격이 화면에 없다.
+    실제로 사야 하는 방식과 링크를 맞춘다.
+    """
+    from . import tfs as TFS
+    leg = TFS.flight_data(
+        day.isoformat(), origin, dest, max_stops=0,
+        dep_window=(window[0].hour, window[1].hour) if window else None)
+    return TFS.url(TFS.build_tfs([leg], adults=adults, trip=2))
+
+
+def google_roundtrip_url(route: Route, dep: dt.date, ret: dt.date, adults: int,
+                         out_window=None, ret_window=None) -> str:
+    """왕복 검색 링크 + 양쪽 출발 시각 조건 (v2.22).
+
+    알림이 "이 가격이 싸다"고 말했으면 눌렀을 때 그 가격이 보여야 한다.
+    """
+    from . import tfs as TFS
+    legs = [
+        TFS.flight_data(dep.isoformat(), route.origin, route.destination,
+                        max_stops=0,
+                        dep_window=(out_window[0].hour, out_window[1].hour)
+                        if out_window else None),
+        TFS.flight_data(ret.isoformat(), route.destination, route.origin,
+                        max_stops=0,
+                        dep_window=(ret_window[0].hour, ret_window[1].hour)
+                        if ret_window else None),
+    ]
+    return TFS.url(TFS.build_tfs(legs, adults=adults, trip=1))
+
+
 def google_flights_url(route: Route, dep: dt.date, ret: dt.date,
                        adults: int = 1, carriers: list[str] | None = None,
                        back: Route | None = None, short: bool = False) -> str:

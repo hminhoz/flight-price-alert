@@ -85,6 +85,7 @@ class Settings:
     min_below_baseline_pct: float = 2.0
     min_redrop_pct: float = 2.0     # 재알림 최소 하락폭 (%)
     bundle_min_gap_pct: float = 3.0 # 묶음 항목 간 최소 가격 차이 (%)
+    rt_freshness_days: int = 3
     verify_budget_min: int = 6
     verify_skew_ratio: float = 1.5
     verify_per_city: int = 4
@@ -212,6 +213,7 @@ def load(path: Path | None = None) -> Settings:
         min_below_baseline_pct=float(al.get("min_below_baseline_pct", 2)),
         min_redrop_pct=float(al.get("min_redrop_pct", 2)),
         bundle_min_gap_pct=float(al.get("bundle_min_gap_pct", 3)),
+        rt_freshness_days=max(1, int(al.get("rt_freshness_days", 3))),
         verify_budget_min=max(1, int(al.get("verify_budget_min", 6))),
         verify_skew_ratio=float(al.get("verify_skew_ratio", 1.5)),
         verify_per_city=max(1, int(al.get("verify_per_city", 4))),

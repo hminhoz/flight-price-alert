@@ -45,6 +45,9 @@ class State:
         # 네이버 수집분. 구글 legs와 섞지 않고 따로 둔다 — 출처를 잃지 않고,
         # 한쪽이 실패해도 다른 쪽이 남는다 (v1.69).
         self.naver_legs: dict = _load("naver_legs.json")
+        # 왕복 실가. 메모리에만 두면 매 실행 240건을 새로 조회하고, 조회 못 한
+        # 조합은 계속 편도합산(부풀려진 값)으로 표시된다 (v2.21).
+        self.rt_prices: dict = _load("rt_prices.json")
 
     # ---------- legs ----------
     @staticmethod
@@ -133,3 +136,4 @@ class State:
         _save("meta.json", self.meta)
         _save("time_hist.json", self.time_hist)
         _save("naver_legs.json", self.naver_legs)
+        _save("rt_prices.json", self.rt_prices)

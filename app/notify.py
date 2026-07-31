@@ -9,7 +9,8 @@ from collections import defaultdict
 import requests
 
 from .engine import Alert
-from .links import google_flights_url, naver_url
+from .links import (google_flights_url, google_oneway_url,
+                    google_roundtrip_url, naver_url)
 from .settings import Settings
 
 log = logging.getLogger(__name__)
@@ -306,10 +307,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             # 왕복 실가도 **양쪽 시간 조건을 만족한다** — 요청 tfs에 가는 편·
             # 오는 편 출발 시각을 심는다(필드 8·9, v2.15). 예전의 '귀국 시각
             # 미확인' 단서는 더 필요 없다.
-            # 어떤 방식으로 사야 하는지만 알린다. 안 사는 쪽 가격과 절감액은
-            # 판단에 쓰이지 않는 노이즈다 (v2.18).
-            if rt and rt < one:
-                lines.append("<b>왕복권으로 구매</b> (편도 2장보다 쌉니다)")
+
 
             # 어떤 편인지 + 어디서 사는지를 한 줄로
             a_, b_ = _sources(c)
@@ -323,13 +321,29 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             codes = [c.out_leg.get("carrier", ""), c.ret_leg.get("carrier", "")]
             g = google_flights_url(c.route, c.dep, c.ret, cfg.adults, codes,
                                    back=c.back if c.is_cross else None)
+            # **링크를 실제 구매 방식에 맞춘다** (v2.22).
+            # 예전엔 편도 2장이 싼데도 왕복 링크를 줘서, 눌러도 그 가격이
+            # 화면에 없었다. 그래서 "왕복권으로 구매" 같은 안내가 필요했는데
+            # 링크가 맞으면 문구 자체가 필요 없다.
+            ow = cfg.window_for(c.route.key, "out")
+            rw = cfg.window_for(c.route.key, "ret")
             if c.is_cross:
                 lines.append(f'<a href="{g}">구글에서 보기</a>')
-            else:
+            elif rt and rt < one:
+                gr = google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
+                                          out_window=ow, ret_window=rw)
                 nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
-                gl, nl = f'<a href="{g}">구글</a>', f'<a href="{nv}">네이버</a>'
-                lines.append(f"{nl} · {gl}" if "naver" in (a_, b_)
-                             else f"{gl} · {nl}")
+                lines.append(f'<b>왕복권</b> <a href="{gr}">구글</a> · '
+                             f'<a href="{nv}">네이버</a>')
+            else:
+                o1 = google_oneway_url(c.route.origin, c.route.destination,
+                                       c.dep, cfg.adults, window=ow)
+                o2 = google_oneway_url(c.route.destination, c.route.origin,
+                                       c.ret, cfg.adults, window=rw)
+                nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+                lines.append(f'<b>편도 2장</b> <a href="{o1}">가는편</a> · '
+                             f'<a href="{o2}">오는편</a> · '
+                             f'<a href="{nv}">네이버</a>')
 
         if near_lines:
             lines.append("")

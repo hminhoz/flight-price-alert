@@ -385,6 +385,9 @@ def main() -> int:
     # ---- 왕복 실가 검증 (v1.12) ----
     # 판정은 편도 합산 기준 그대로. 메시지에 노출될 조합만 왕복으로 재조회해
     # 표시 금액을 실구매가에 가깝게 만든다. 실패해도 알림은 그대로 나간다.
+    def _dt_now() -> str:
+        return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+
     def verify_combos(cs):
         """왕복 실가를 확인해 조합에 붙인다. **판정 전에** 해야 한다.
 
@@ -443,6 +446,10 @@ def main() -> int:
                     c.rt_price = price
                     if price:
                         ok += 1
+                        state.rt_prices[c.key] = {
+                            "price": price,
+                            "at": _dt_now(),
+                        }
         left = len(targets) - done_n
         if left:
             log.info("왕복 검증 예산(%d분) 소진 → %d건은 다음 실행으로",

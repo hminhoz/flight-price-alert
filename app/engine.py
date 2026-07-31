@@ -122,6 +122,7 @@ class Combo:
     ret_route: Route | None = None   # 오는 편 노선. None이면 route와 동일(왕복)
     city: str = ""                   # 기준가 단위용 도시 키 (build_combos가 채운다)
     rt_price: int | None = None      # 왕복 실가 (확인된 조합만)
+    rt_at: str = ""                  # 그 값을 언제 확인했는지 (오래된 것부터 갱신)
 
     @property
     def pay(self) -> int:
@@ -211,6 +212,13 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
     combos: list[Combo] = []
     excluded = set(cfg.exclude_airlines or ())
     nv = getattr(state, "naver_legs", None) or {}
+    # 저장해 둔 왕복 실가를 조합에 붙인다. 신선도가 지난 것은 무시한다.
+    rt_cache = {}
+    _cut = (dt.datetime.now(dt.timezone.utc)
+            - dt.timedelta(days=cfg.rt_freshness_days)).isoformat(timespec="seconds")
+    for k, v in (getattr(state, "rt_prices", None) or {}).items():
+        if v.get("at", "") >= _cut:
+            rt_cache[k] = v
     # 구글 leg는 leg_freshness_days가 지나면 무시되는데 네이버는 검사가 없어
     # 한 번 모으면 영원히 쓰였다. 수집이 며칠 실패하면 사라진 가격으로 알림이
     # 나간다 → 같은 방식으로 만료시킨다 (v1.91).
@@ -277,13 +285,18 @@ def build_combos(cfg: Settings, state: State, today: dt.date) -> list[Combo]:
                     same = (ret_route.key == out_route.key)
                     if not same and not cfg.cross_airports:
                         continue
-                    combos.append(Combo(
+                    _c = Combo(
                         route=out_route, dep=d, nights=n,
                         price=out_leg["price"] + ret_leg["price"],
                         out_leg=out_leg, ret_leg=ret_leg,
                         ret_route=None if same else ret_route,
                         city=city,
-                    ))
+                    )
+                    _rt = rt_cache.get(_c.key)
+                    if _rt and _rt.get("price"):
+                        _c.rt_price = _rt["price"]
+                        _c.rt_at = _rt.get("at", "")
+                    combos.append(_c)
     return combos
 
 
@@ -351,7 +364,11 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
         for c in sorted(items, key=lambda x: x.price)[: cfg.verify_per_city]:
             picked[id(c)] = c
 
-    out = sorted(picked.values(), key=lambda c: -ratio(c))
+    # **모르는 것 먼저, 그다음 오래된 것 순.** 매 실행 같은 것만 다시 묻지 않고
+    # 몇 번에 나눠 전체 커버리지를 채운다 (네이버 수집과 같은 방식).
+    # 아는 값이라도 오래되면 다시 확인해야 하므로 `rt_at`으로 줄을 세운다 (v2.23).
+    out = sorted(picked.values(),
+                 key=lambda c: (c.rt_price is not None, c.rt_at, -ratio(c)))
     return out[: cfg.verify_max_queries]
 
 

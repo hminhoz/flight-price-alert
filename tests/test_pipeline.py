@@ -128,6 +128,8 @@ def main():
     test_call_signatures()
     test_all_imports_resolve()
     test_mark_sent_only_shown()
+    test_rt_price_persisted()
+    test_links_match_payment()
     test_mixed_source_links()
     test_unit_is_city()
     test_verify_targets_catch_skew()
@@ -183,7 +185,7 @@ def test_per_person_and_link():
     # 코드를 모르면 필터 없는 링크 + 다른 라벨
     combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
     msg2 = format_alerts(cfg, [a])[0]
-    assert "구글</a>" in msg2, msg2
+    assert "<a href=" in msg2, msg2
     print("OK 1인당 표기 + 항공사 필터 링크")
 
 
@@ -1379,6 +1381,140 @@ def test_mark_sent_only_shown():
     print(f"OK 발송 기록: 후보 {len(alerts)}건 중 {len(shown)}건만 기록 · 옛 기록 1회 정리")
 
 
+def test_rt_price_persisted():
+    """왕복 실가는 저장돼 다음 실행에도 쓰여야 한다 (v2.21).
+
+    메모리에만 두면 매 실행 240건을 새로 묻고, 못 물어본 593건은 계속
+    편도합산(부풀려진 값)으로 표시된다. 실측: 나고야 알림 287,600원인데
+    저장이 없어 다시 계산하면 349,783원이 나왔다.
+    """
+    import datetime as _dt
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs, st.rt_prices = {}, {}, {}
+    today = _dt.date(2026, 8, 1)
+    dep, ret = _dt.date(2026, 9, 10), _dt.date(2026, 9, 13)
+    now = _dt.datetime.now(_dt.timezone.utc)
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=200_000, airline="A", dep_time="07:00",
+                  carrier="7C", now=now)
+    st.record_leg(State.leg_key(route.key, "ret", ret.isoformat()),
+                  price=800_000, airline="A", dep_time="19:00",
+                  carrier="7C", now=now)
+
+    c0 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c0.rt_price is None and c0.pay == 1_000_000
+
+    # 저장해 두면 다음 조합 생성에서 붙는다
+    st.rt_prices[c0.key] = {"price": 400_000,
+                            "at": now.isoformat(timespec="seconds")}
+    c1 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c1.rt_price == 400_000 and c1.pay == 400_000, (c1.rt_price, c1.pay)
+
+    # 오래된 값은 무시한다
+    old = (now - _dt.timedelta(days=cfg.rt_freshness_days + 1))
+    st.rt_prices[c0.key]["at"] = old.isoformat(timespec="seconds")
+    c2 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c2.rt_price is None, "신선도 지난 값을 썼다"
+
+    # 검증 대상은 **아직 모르는 것부터**
+    known = engine.Combo(route=route, dep=dep, nights=4, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000)
+    unknown = engine.Combo(route=route, dep=dep, nights=3, price=900_000,
+                           out_leg={"price": 100_000, "dep_time": "07:00"},
+                           ret_leg={"price": 800_000, "dep_time": "19:00"},
+                           city="CJU")
+    order = engine.verify_targets(cfg, [known, unknown])
+    assert order and order[0] is unknown, "이미 아는 것을 먼저 물었다"
+
+    # 아는 것끼리는 **오래된 것부터**
+    older = engine.Combo(route=route, dep=dep, nights=4, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000, rt_at="2026-07-01T00:00:00")
+    newer = engine.Combo(route=route, dep=dep, nights=3, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000, rt_at="2026-07-30T00:00:00")
+    order2 = engine.verify_targets(cfg, [newer, older])
+    assert order2.index(older) < order2.index(newer), "오래된 것을 나중에 물었다"
+    print("OK 왕복 실가 저장: 재사용·신선도·미조회 우선")
+
+
+def test_links_match_payment():
+    """링크가 **실제 구매 방식**과 일치해야 한다 (v2.22).
+
+    예전엔 편도 2장이 싼데도 왕복 링크를 줬다. 눌러도 그 가격이 화면에 없어
+    "왕복권으로 구매" 같은 안내가 필요했는데, 링크가 맞으면 문구가 불필요하다.
+    """
+    import base64
+    import re as _re
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "ICN-NGO"][0]
+
+    def _rv(b, k):
+        v = s2 = 0
+        while True:
+            x = b[k]; k += 1
+            v |= (x & 0x7F) << s2
+            if not x & 0x80:
+                return v, k
+            s2 += 7
+
+    def trip_of(u):
+        """tfs에서 여정 종류(필드 19)를 읽는다. 1=왕복 2=편도"""
+        tfs = u.split("tfs=")[1].split("&")[0]
+        raw = base64.urlsafe_b64decode(tfs + "=" * (-len(tfs) % 4))
+        i, trip = 0, None
+        while i < len(raw):
+            key, i = _rv(raw, i)
+            fno, wt = key >> 3, key & 7
+            if wt == 0:
+                v, i = _rv(raw, i)
+                if fno == 19:
+                    trip = v
+            elif wt == 2:
+                ln, i = _rv(raw, i)
+                i += ln
+            else:
+                break
+        return trip
+
+    def mk(rt):
+        c = engine.Combo(
+            route=route, dep=dt.date(2026, 8, 8), nights=4, price=380_000,
+            out_leg={"price": 100_000, "dep_time": "07:30", "airline": "A"},
+            ret_leg={"price": 280_000, "dep_time": "18:00", "airline": "A"},
+            city="NGO")
+        c.rt_price = rt
+        return c
+
+    def goog_of(msg):
+        return [u for u in _re.findall(r'href="([^"]+)"', msg)
+                if "google.com" in u]
+
+    # 왕복이 싼 경우 → 왕복 링크 하나
+    c = mk(300_000)
+    a = engine.Alert(kind="baseline", combo=c, baseline=500_000, prev_min=None)
+    g = goog_of(format_alerts(cfg, [a], [c])[0])
+    assert len(g) == 1 and trip_of(g[0]) == 1, (len(g), [trip_of(u) for u in g])
+
+    # 편도가 싼 경우 → 편도 링크 둘
+    c = mk(None)
+    a = engine.Alert(kind="baseline", combo=c, baseline=500_000, prev_min=None)
+    g = goog_of(format_alerts(cfg, [a], [c])[0])
+    assert len(g) == 2, len(g)
+    assert all(trip_of(u) == 2 for u in g), [trip_of(u) for u in g]
+    print("OK 링크·구매방식 일치: 왕복이면 왕복 1개 · 편도면 편도 2개")
+
+
 def test_tolerant_parser():
     """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
 
@@ -1556,7 +1692,7 @@ def test_per_person_and_link():
     # 코드를 모르면 필터 없는 링크 + 다른 라벨
     combo.out_leg["carrier"] = combo.ret_leg["carrier"] = ""
     msg2 = format_alerts(cfg, [a])[0]
-    assert "구글</a>" in msg2, msg2
+    assert "<a href=" in msg2, msg2
     print("OK 1인당 표기 + 항공사 필터 링크")
 
 
@@ -2747,6 +2883,73 @@ def test_mark_sent_only_shown():
     print(f"OK 발송 기록: 후보 {len(alerts)}건 중 {len(shown)}건만 기록 · 옛 기록 1회 정리")
 
 
+def test_rt_price_persisted():
+    """왕복 실가는 저장돼 다음 실행에도 쓰여야 한다 (v2.21).
+
+    메모리에만 두면 매 실행 240건을 새로 묻고, 못 물어본 593건은 계속
+    편도합산(부풀려진 값)으로 표시된다. 실측: 나고야 알림 287,600원인데
+    저장이 없어 다시 계산하면 349,783원이 나왔다.
+    """
+    import datetime as _dt
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta = {}, {}, {}, {}
+    st.time_hist, st.naver_legs, st.rt_prices = {}, {}, {}
+    today = _dt.date(2026, 8, 1)
+    dep, ret = _dt.date(2026, 9, 10), _dt.date(2026, 9, 13)
+    now = _dt.datetime.now(_dt.timezone.utc)
+    st.record_leg(State.leg_key(route.key, "out", dep.isoformat()),
+                  price=200_000, airline="A", dep_time="07:00",
+                  carrier="7C", now=now)
+    st.record_leg(State.leg_key(route.key, "ret", ret.isoformat()),
+                  price=800_000, airline="A", dep_time="19:00",
+                  carrier="7C", now=now)
+
+    c0 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c0.rt_price is None and c0.pay == 1_000_000
+
+    # 저장해 두면 다음 조합 생성에서 붙는다
+    st.rt_prices[c0.key] = {"price": 400_000,
+                            "at": now.isoformat(timespec="seconds")}
+    c1 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c1.rt_price == 400_000 and c1.pay == 400_000, (c1.rt_price, c1.pay)
+
+    # 오래된 값은 무시한다
+    old = (now - _dt.timedelta(days=cfg.rt_freshness_days + 1))
+    st.rt_prices[c0.key]["at"] = old.isoformat(timespec="seconds")
+    c2 = [x for x in engine.build_combos(cfg, st, today)
+          if x.dep == dep and x.nights == 3][0]
+    assert c2.rt_price is None, "신선도 지난 값을 썼다"
+
+    # 검증 대상은 **아직 모르는 것부터**
+    known = engine.Combo(route=route, dep=dep, nights=4, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000)
+    unknown = engine.Combo(route=route, dep=dep, nights=3, price=900_000,
+                           out_leg={"price": 100_000, "dep_time": "07:00"},
+                           ret_leg={"price": 800_000, "dep_time": "19:00"},
+                           city="CJU")
+    order = engine.verify_targets(cfg, [known, unknown])
+    assert order and order[0] is unknown, "이미 아는 것을 먼저 물었다"
+
+    # 아는 것끼리는 **오래된 것부터**
+    older = engine.Combo(route=route, dep=dep, nights=4, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000, rt_at="2026-07-01T00:00:00")
+    newer = engine.Combo(route=route, dep=dep, nights=3, price=900_000,
+                         out_leg={"price": 100_000, "dep_time": "07:00"},
+                         ret_leg={"price": 800_000, "dep_time": "19:00"},
+                         city="CJU", rt_price=500_000, rt_at="2026-07-30T00:00:00")
+    order2 = engine.verify_targets(cfg, [newer, older])
+    assert order2.index(older) < order2.index(newer), "오래된 것을 나중에 물었다"
+    print("OK 왕복 실가 저장: 재사용·신선도·미조회 우선")
+
+
 def test_tolerant_parser():
     """안 쓰는 필드가 빠진 페이로드에서도 가격·시각을 뽑는지 (v1.20).
 
@@ -2897,13 +3100,13 @@ def test_roundtrip_verification():
     a.rt_price = 1_200_000
     msg = format_alerts(cfg, [a])[0]
     assert "400,000원</b>/인" in msg, msg              # 더 싼 쪽(편도 2장)
-    assert "왕복권으로 구매" not in msg, msg   # 편도가 싸면 안내 없음
+    assert "편도 2장" in msg and "가는편" in msg, msg   # 편도면 편도 링크 2개
 
     # 왕복이 더 싼 경우 → 왕복이 대표 금액 (노선마다 갈리므로 양방향 필요)
     a.rt_price = 600_000
     msg = format_alerts(cfg, [a])[0]
     assert "300,000원</b>/인" in msg, msg
-    assert "왕복권으로 구매" in msg, msg
+    assert "왕복권" in msg and "가는편" not in msg, msg
     print("OK 금액 표시: 실제 낼 금액을 대표로, 대안 구매법은 비교 한 줄")
 
 
