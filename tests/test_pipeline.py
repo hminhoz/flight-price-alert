@@ -137,6 +137,7 @@ def main():
     test_baseline_unstick()
     test_new_vs_drop_badge()
     test_fresh_rt_is_not_asked_again()
+    test_naver_skips_fresh()
     test_rules_are_enforced_not_remembered()
     test_near_dates_linked()
     test_time_histogram()
@@ -624,6 +625,53 @@ def test_fresh_rt_is_not_asked_again():
     assert stale in got and unknown in got, "오래됐거나 모르는 것은 물어야 한다"
     assert got[0] is unknown, "모르는 것이 먼저여야 한다"
     print("OK 왕복 검증 대상: 신선한 것 제외 · 모르는 것 우선")
+
+
+
+def test_naver_skips_fresh():
+    """**네이버도 신선한 것은 다시 긁지 않는다** (v2.37).
+
+    왕복 실가(v2.34)와 같은 문제가 네이버 수집에도 있었다 — 정렬만 하고
+    제외를 안 해서, 남은 게 1건뿐인 날에도 25분 예산을 다 써서 이미 가진
+    값을 다시 수집했다. 네이버는 브라우저를 띄우고 요청이 늘수록 차단
+    위험이 커지므로 이쪽이 더 나쁘다.
+    """
+    import datetime as _dt
+    from app import naver_collect as NVC
+
+    now = _dt.datetime.now(_dt.timezone.utc)
+    cut = (now - _dt.timedelta(days=3)).isoformat()
+    day = _dt.date(2026, 9, 10)
+    pairs = [("GMP", "CJU", "out", "GMP-CJU")]
+    dates = {("GMP", "CJU", "out"): [day]}
+    known = {f"GMP-CJU|out|{day.isoformat()}": {"price": 1, "at": now.isoformat()}}
+
+    calls = []
+
+    class FakeProbe:
+        @staticmethod
+        def _ensure_playwright():
+            calls.append("launch")      # 여기 오면 브라우저를 띄운 것
+            return False
+
+        @staticmethod
+        def _start_display():
+            return None
+
+    # 전부 신선 → **브라우저를 띄우지도 않아야 한다**
+    out, remain, total, dstat = NVC.collect(
+        pairs, dates, 2, {}, known=known, probe_mod=FakeProbe, fresh_cut=cut)
+    assert calls == [], "신선한데도 브라우저를 띄웠다 — 25분이 재수집에 샌다"
+    assert total == 1, "대상 총량(분모)은 그대로여야 한다"
+    assert remain == 0 and not out
+
+    # 만료됐으면 다시 긁는다
+    old = {f"GMP-CJU|out|{day.isoformat()}":
+           {"price": 1, "at": (now - _dt.timedelta(days=5)).isoformat()}}
+    NVC.collect(pairs, dates, 2, {}, known=old,
+                probe_mod=FakeProbe, fresh_cut=cut)
+    assert calls == ["launch"], "만료된 값을 다시 긁지 않았다"
+    print("OK 네이버 수집: 신선한 것 건너뜀 · 만료된 것만 다시")
 
 
 def test_near_dates_linked():

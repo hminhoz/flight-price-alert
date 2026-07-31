@@ -54,7 +54,7 @@ def _urls(o: str, d: str, day, adults: int):
 
 def collect(route_pairs: list, dates_by_pair: dict, adults: int,
             windows: dict, budget_sec: int = 1500,
-            known: dict | None = None, probe_mod=None,
+            known: dict | None = None, probe_mod=None, fresh_cut: str = "",
             delay: tuple = (8, 16), reset_every: int = 12,
             stop_after_fail: int = 6) -> tuple[dict, int, int, dict]:
     """편도 단위로 훑어 {leg_key: {...}} 를 돌려준다.
@@ -78,11 +78,23 @@ def collect(route_pairs: list, dates_by_pair: dict, adults: int,
     total = len(jobs)
     if not total:
         return out, 0, 0, {}
+
+    def _k(j) -> str:
+        return f"{j[3]}|{j[2]}|{j[4].isoformat()}"
+
+    # **이미 신선한 것은 다시 긁지 않는다** (v2.37).
+    # 예전엔 정렬만 하고(못 모은 것 먼저, 오래된 것 순) 제외를 안 했다.
+    # 그래서 남은 게 1건뿐인 날에도 25분 예산을 다 써서 이미 가진 값을
+    # 다시 수집했다. 네이버는 브라우저를 띄우는 데다 요청이 늘수록 차단
+    # 위험이 커지므로, 왕복 실가(v2.34)보다 이쪽이 더 나쁘다.
+    if fresh_cut:
+        jobs = [j for j in jobs if known.get(_k(j), {}).get("at", "") < fresh_cut]
+    missing = sum(1 for j in jobs if _k(j) not in known)
+    if not jobs:
+        log.info("네이버 수집: 전부 신선(%d건) → 브라우저 띄우지 않고 건너뜀", total)
+        return out, 0, total, {}
     # 못 모은 것 먼저, 그다음 오래된 것 순
-    jobs.sort(key=lambda j: known.get(
-        f"{j[3]}|{j[2]}|{j[4].isoformat()}", {}).get("at", ""))
-    missing = sum(1 for j in jobs
-                  if f"{j[3]}|{j[2]}|{j[4].isoformat()}" not in known)
+    jobs.sort(key=lambda j: known.get(_k(j), {}).get("at", ""))
     if probe_mod is None:
         from . import naver_browser_probe as probe_mod
     if not probe_mod._ensure_playwright():

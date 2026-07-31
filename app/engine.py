@@ -334,7 +334,7 @@ def preview_alerts(cfg: Settings, combos: list[Combo]) -> list[Alert]:
     return out
 
 
-def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
+def verify_pool(cfg: Settings, combos: list[Combo]) -> list[Combo]:
     """왕복 실가를 확인할 조합.
 
     편도 합산 순위만 보면 안 된다 — 오는 편 편도가 폭등한 조합은 합산이 커서
@@ -375,9 +375,23 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
     # 이 함수만 떼어 봐도 옳아야 한다 (테스트가 이걸 잡았다).
     # 남은 것 중에서는 왜곡이 큰(배율 높은) 조합부터 — 편도합산과 실가가
     # 가장 많이 벌어지는 곳이 그쪽이다.
+    return list(picked.values())
+
+
+def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
+    """그 풀 중 **이번에 실제로 물어볼 것.** 신선한 값은 뺀다.
+
+    선정(`verify_pool`)과 조회 대상을 나눈 이유: 실행 요약에 '확보/대상'을
+    보여주려면 분모(=풀 전체)를 알아야 하는데, 예전엔 한 함수가 둘을 섞어
+    분모를 꺼낼 수 없었다 (v2.36).
+    """
+    def ratio(c: Combo) -> float:
+        o = c.out_leg.get("price") or 1
+        return (c.ret_leg.get("price") or 0) / o
+
     cut = (dt.datetime.now(dt.timezone.utc)
            - dt.timedelta(days=cfg.rt_freshness_days)).isoformat()
-    todo = [c for c in picked.values()
+    todo = [c for c in verify_pool(cfg, combos)
             if not (c.rt_price and (c.rt_at or "") >= cut)]
     # 줄 세우기는 예전 그대로 — **모르는 것 먼저, 아는 것끼리는 오래된 것부터,**
     # 같으면 왜곡이 큰 것부터. 바뀐 건 '신선한 것을 아예 빼는' 것뿐이다.
@@ -388,31 +402,33 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
 def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
     """실행이 제대로 돌았는지 **한 줄로.** 고정판 첫 통 제목 아래에 붙인다.
 
-    왜 여기인가: 지금까지 이 숫자들은 Actions 로그에만 있었다 — 열어야만
-    보이는 정보는 결국 확인하지 않는다. 새 메시지로 보내면 하루 24통이라
-    그것대로 소음이다. 고정판은 매 실행 조용히 갱신되므로 **추가 메시지 0**에
-    늘 최신이다.
+    왜 여기인가: 이 숫자들은 Actions 로그에만 있었고, **열어야만 보이는
+    정보는 결국 확인하지 않는다.** 새 메시지로 보내면 하루 24통이라 그것대로
+    소음이다. 고정판은 매 실행 조용히 갱신되므로 추가 메시지 0에 늘 최신이다.
 
-    담는 것은 넷: 얼마나 찾았나 · 그중 새 것 · 왕복 실가 상태 · 실패 여부.
+    **세 항목 모두 같은 규칙**: `확보/대상 (+이번에 늘어난 것)`.
+    분모가 있어야 '많다/적다'를 판단할 수 있고, 규칙이 같아야 읽을 때
+    매번 다시 해석하지 않는다.
     """
     r = (state.meta.get("last_run") or {})
-    known = sum(1 for c in combos
-                if not c.is_cross and c.rt_price is not None)
+    m = state.meta
+
+    def frac(name, got, total, plus=0):
+        s = f"{name} {got:,}/{total:,}" if total else f"{name} {got:,}"
+        return s + (f"(+{plus:,})" if plus else "")
 
     parts = []
     if r.get("legs"):
-        new = r.get("legs_new", 0)
-        parts.append(f"구글 {r['legs']:,}건"
-                     + (f"(새 {new:,})" if new else ""))
-    nv_rows = int(state.meta.get("naver_total", 0))
-    if nv_rows:
-        parts.append(f"네이버 {nv_rows:,}건 "
-                     f"{state.meta.get('naver_runs', 0)}/{cfg.naver_runs_per_day}회")
-    if known or r.get("rt_asked"):
-        got = f"왕복 {known:,}건"
-        if r.get("rt_ok"):
-            got += f"(새 {r['rt_ok']:,})"
-        parts.append(got)
+        parts.append(frac("구글", r.get("legs_ok", 0), r["legs"]))
+    nv_total = int(m.get("naver_total", 0))
+    if nv_total:
+        parts.append(frac("네이버", len(getattr(state, "naver_legs", {}) or {}),
+                          nv_total, r.get("naver_new", 0))
+                     + f" {m.get('naver_runs', 0)}/{cfg.naver_runs_per_day}회")
+    if r.get("rt_pool"):
+        known = sum(1 for c in combos
+                    if not c.is_cross and c.rt_price is not None)
+        parts.append(frac("왕복", known, r["rt_pool"], r.get("rt_ok", 0)))
     # 실패는 **0이어도 적는다.** 0을 봐야 정상임이 확인된다.
     parts.append(f"실패 {r.get('failed', 0):,}")
     return "🔎 " + " · ".join(parts)

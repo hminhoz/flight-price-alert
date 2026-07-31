@@ -156,7 +156,6 @@ def main() -> int:
     stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0, 0])  # [가격확보, 조건불일치, 실패, 데이터없음]
     last_errors: dict[str, str] = {}
     attempted = failed = 0
-    legs_before = len(state.legs)     # '새로 찾은 건'을 세기 위한 기준점
 
     def work(leg):
         """네트워크 작업만 담당. 상태 기록은 메인 스레드에서 한다."""
@@ -211,8 +210,10 @@ def main() -> int:
             absorb(*work(leg))
 
     state.record_run_stats(attempted=attempted, failed=failed)
+    # `legs_new`(처음 보는 노선·날짜)는 감시 대상 날짜가 고정이라 초기 이후
+    # 영원히 0이었다 → 폐기. 대신 **가격을 실제로 확보한 건수**를 센다 (v2.36).
     state.meta.setdefault("last_run", {}).update({
-        "legs": attempted, "legs_new": len(state.legs) - legs_before,
+        "legs": attempted, "legs_ok": sum(v[0] for v in stats.values()),
         "failed": failed,
     })
     log.info("검색 완료: %d 시도 → 가격확보 %d / 조건불일치 %d / 실패 %d / 데이터없음 %d",
@@ -284,15 +285,21 @@ def main() -> int:
                         day += dt.timedelta(days=1)
                     dates_by[(o, d, "out")] = outs
                     dates_by[(d, o, "ret")] = rets
+                _fresh_cut = (dt.datetime.now(dt.timezone.utc)
+                              - dt.timedelta(days=cfg.naver_freshness_days)
+                              ).isoformat()
                 got, remain, total, dstat = NVC.collect(
                     pairs, dates_by, cfg.adults, windows,
                     budget_sec=cfg.naver_budget_min * 60,
-                    known=state.naver_legs,
+                    known=state.naver_legs, fresh_cut=_fresh_cut,
                     delay=cfg.naver_delay_sec,
                     reset_every=cfg.naver_reset_every,
                     stop_after_fail=cfg.naver_stop_after_fail)
                 if got:
+                    _nv_before = len(state.naver_legs)
                     state.naver_legs.update(got)
+                    state.meta.setdefault("last_run", {})["naver_new"] = \
+                        len(state.naver_legs) - _nv_before
                 naver_ran = True
                 state.meta["naver_remain"] = remain
                 state.meta["naver_dstat"] = {k: list(v) for k, v in dstat.items()}
@@ -300,7 +307,11 @@ def main() -> int:
                 if state.meta.get("naver_day") != today.isoformat():
                     state.meta["naver_day"] = today.isoformat()
                     state.meta["naver_runs"] = 0
-                state.meta["naver_runs"] = int(state.meta.get("naver_runs", 0)) + 1
+                # **아무것도 할 게 없어 건너뛴 실행은 할당량을 쓰지 않는다.**
+                # 그래야 `naver_runs_per_day`가 '기회 상한'이라는 말이 참이 된다.
+                if dstat:
+                    state.meta["naver_runs"] = \
+                        int(state.meta.get("naver_runs", 0)) + 1
                 state.meta["naver_last_run"] = today.isoformat()
                 log.info("네이버 반영 %d건 (누적 %d/%d) · 미수집 %d건 · 오늘 %d/%d회",
                          len(got), len(state.naver_legs), total, remain,
@@ -471,6 +482,8 @@ def main() -> int:
         cheaper = sum(1 for c in targets if c.rt_price and c.rt_price < c.price)
         state.meta.setdefault("last_run", {}).update({
             "rt_asked": len(targets), "rt_ok": ok, "rt_cheaper": cheaper,
+            "rt_pool": len([c for c in engine.verify_pool(cfg, cs)
+                            if not c.is_cross]),
         })
         state.meta["rt_shape"] = sh
         state.meta["rt_stats"] = {
