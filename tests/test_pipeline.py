@@ -941,9 +941,14 @@ def test_board_ids_compact():
 
     calls = []
 
+    seq = [112]
+
     def fake_post(token, method, payload):
         calls.append(method)
-        return {"message_id": 112} if method == "sendMessage" else {"ok": True}
+        if method != "sendMessage":
+            return {"ok": True}
+        seq[0] += 1
+        return {"message_id": seq[0]}
 
     old_post, old_env = N._post, dict(os.environ)
     os.environ["TELEGRAM_BOT_TOKEN"] = "t"
@@ -951,7 +956,7 @@ def test_board_ids_compact():
     N._post = fake_post
     try:
         ids = N.upsert_board("첫 내용", {})
-        assert ids["999"] == [112] and calls == ["sendMessage"], (ids, calls)
+        assert ids["999"] == [113] and calls == ["sendMessage"], (ids, calls)
 
         calls.clear()                      # 내용 동일 → 호출 없음
         ids = N.upsert_board("첫 내용", ids)
@@ -961,9 +966,17 @@ def test_board_ids_compact():
         ids = N.upsert_board("바뀐 내용", ids)
         assert calls == ["editMessageText"], calls
 
-        calls.clear()                      # 통이 늘면 새 통만 발송
+        # 통 수가 바뀌면 **전부 지우고 다시 보낸다** (v2.29).
+        # 새 통만 덧붙이면 1/3은 위쪽에, 나머지는 한참 아래에 떨어져
+        # 고정판이 대화방에서 흩어진다. 남는 통은 옛 내용 그대로 남는다.
+        calls.clear()
         ids = N.upsert_board(["바뀐 내용", "둘째 통"], ids)
-        assert calls == ["sendMessage"] and len(ids["999"]) == 2, (calls, ids)
+        assert calls == ["deleteMessage", "sendMessage", "sendMessage"], calls
+        assert ids["999"] == [114, 115], ids          # 연달아 발송돼 붙어 있다
+
+        calls.clear()                      # 줄어들 때도 남는 통을 지운다
+        ids = N.upsert_board("한 통으로", ids)
+        assert calls.count("deleteMessage") == 2 and len(ids["999"]) == 1, (calls, ids)
 
         # 전문은 저장하지 않는다 (해시만)
         assert not any(str(k).endswith(":text") for k in ids), ids
@@ -975,7 +988,7 @@ def test_board_ids_compact():
         N._post = old_post
         os.environ.clear()
         os.environ.update(old_env)
-    print("OK 고정판 상태: 해시만 저장 · 동일 내용은 호출 생략")
+    print("OK 고정판 상태: 해시만 저장 · 동일 내용 생략 · 통 수 변화 시 재발송")
 
 
 def test_exclude_airlines():

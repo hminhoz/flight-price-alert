@@ -345,6 +345,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
                  if (c.dep, c.nights) not in shown_deps and c.pay <= limit]
         # 추리는 규칙은 세 화면 공용 (pick_dates)
         near = pick_dates(cands, cfg.similar_top_n)
+        has_context = bool(near)     # 참고 행이 섞이면 특가 쪽에 표시가 필요하다
 
         # 주 항목과 근처 날짜를 **하나의 오름차순 스트림**으로 합친다 (v1.38).
         # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
@@ -396,10 +397,14 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             pay = min(one, rt) if rt else one
             # 지난 알림 대비 하락은 **화살표와 금액만.** 줄을 따로 쓰지 않고
             # 2줄 끝 부가 자리에 붙인다 (카드조건·네이버와 같은 자리).
-            drop = ""
+            # **이번에 조건을 넘은 건지 표시한다.** 한 목록으로 합치면서
+            # 어느 게 '새로 뜬 특가'이고 어느 게 참고용 다른 날짜인지 알 수
+            # 없어졌다 (v2.27의 과잉 삭제). 다만 목록에 참고 행이 하나도
+            # 없으면 전부 특가라 표시가 소음이 되므로 **섞였을 때만** 붙인다.
+            note = " · 특가" if has_context else ""
             if a.prev_sent and a.prev_sent > c.pay:
-                drop = f" · 🔻{round((a.prev_sent - c.pay) / n):,}"
-            lines += entry_lines(cfg, c, pay=pay, airport=not head_air, note=drop)
+                note += f" · 🔻{round((a.prev_sent - c.pay) / n):,}"
+            lines += entry_lines(cfg, c, pay=pay, airport=not head_air, note=note)
 
         body = "\n".join(lines)
         messages.append((best_price(top[0]),
@@ -583,6 +588,16 @@ def upsert_board(texts, ids: dict) -> dict:
         mids = [mids] if isinstance(mids, int) else list(mids)
         hs = out.get(f"{chat_id}:h") or []
         hs = [hs] if isinstance(hs, str) else list(hs)
+        # **통 수가 바뀌면 전부 지우고 다시 보낸다.**
+        # 예전엔 남는 통을 그냥 버렸는데, 버려진 메시지는 대화방에 옛 내용
+        # 그대로 남았다. 반대로 통이 늘면 새 통만 뒤늦게 발송돼 1/3은 위쪽에,
+        # 2/3·3/3은 한참 아래에 떨어졌다(실측 message_id 112 vs 166·167).
+        # "연달아 붙어 있다"는 전제가 그때 깨진다.
+        if len(mids) != len(texts):
+            for mid in mids:
+                _post(token, "deleteMessage",
+                      {"chat_id": chat_id, "message_id": mid})
+            mids, hs = [], []
         new_ids, new_hs = [], []
         for i, (text, dg) in enumerate(zip(texts, digests)):
             mid = mids[i] if i < len(mids) else None
@@ -595,9 +610,11 @@ def upsert_board(texts, ids: dict) -> dict:
                 if r is not None:
                     new_ids.append(mid); new_hs.append(dg); continue
                 log.info("고정판 수정 실패(chat %s, %d번째) → 새로 발송", chat_id, i + 1)
+            # 고정판은 **무음 발송**. 푸시는 진짜 특가에만 쓴다.
             r = _post(token, "sendMessage", {
                 "chat_id": chat_id, "text": text, "parse_mode": "HTML",
-                "disable_web_page_preview": True})
+                "disable_web_page_preview": True,
+                "disable_notification": True})
             if r and r.get("message_id"):
                 new_ids.append(r["message_id"]); new_hs.append(dg)
         out[chat_id], out[f"{chat_id}:h"] = new_ids, new_hs
