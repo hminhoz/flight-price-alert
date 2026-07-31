@@ -654,16 +654,13 @@ def main() -> int:
         log.info("텔레그램 월 요약 처리 완료 (%s월)", digest_month)
 
     if wants_digest and not digest:
-        sub = ("요청하신 현재 시세입니다" if not digest_month
-               else f"{digest_month}월 출발만 추렸습니다")
-        for _m in notify.format_digest(cfg, combos, sub, today, digest_month):
+        # 부제는 두지 않는다 — 제목이 이미 "전체 시세 · N월 출발"이라 같은 말이다.
+        for _m in notify.format_digest(cfg, combos, "", today, digest_month):
             notify.send(_m)
         log.info("텔레그램 요청 처리 완료 (월=%s)", digest_month or "전체")
 
     if digest:
-        sub = (f"{manual_month}월 출발만 추렸습니다" if manual_month
-               else "요청하신 현재 시세입니다")
-        for _m in notify.format_digest(cfg, combos, sub, today, manual_month):
+        for _m in notify.format_digest(cfg, combos, "", today, manual_month):
             notify.send(_m)
         log.info("다이제스트 전송 완료 (월=%s) · 상태 저장하지 않음",
                  manual_month or "전체")

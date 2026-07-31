@@ -22,8 +22,6 @@ def _d(date) -> str:
     return f"{date.month}/{date.day}({_WEEKDAY[date.weekday()]})"
 
 
-def _won(n: int) -> str:
-    return f"₩{n:,}"
 
 
 _AIRPORT_KO = {"ICN": "인천", "GMP": "김포", "HND": "하네다", "NRT": "나리타",
@@ -50,9 +48,6 @@ def _sources(c) -> tuple:
             c.ret_leg.get("source") or "google")
 
 
-def _mixed(c) -> bool:
-    a, b = _sources(c)
-    return a != b
 
 
 def _leg_time(leg: dict, mark_src: bool = False) -> str:
@@ -111,6 +106,95 @@ def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
     return [head, body]
 
 
+# ============================================================ 화면 조립 (공용)
+#
+# 알림 · 고정판 · 전체시세는 **같은 부품으로 조립된다** (v2.26).
+#
+#   제목 1줄   {아이콘} <b>{이름}</b> · {범위} · {i/총}
+#   도시 블록  도시 줄 + 항목 2줄(entry_lines) × N
+#   꼬리 1줄   해당 메시지에 실제로 등장한 기호만 설명
+#
+# 화면마다 다른 것은 **아이콘·이름·도시당 개수** 셋뿐이다. 나머지를 각자
+# 들고 있으면 한쪽만 고쳐져 어긋난다 — 실제로 꼬리에 "편도 2장 합산 기준"이
+# 남아 있었다(이제 편도·왕복 중 싼 값을 쓰는데도).
+
+TELEGRAM_LIMIT = 4096     # 텔레그램 한 통 한도
+_SAFE_LEN = 3900          # 조립 시 여유를 둔 상한
+
+
+def pick_dates(combos: list, top_n: int) -> list:
+    """도시 안에서 보여줄 날짜를 고른다. **세 화면이 같은 규칙을 쓴다.**
+
+    같은 출발일·같은 가격이면 박 수가 긴 쪽만 남긴다 (3박·4박이 같은 값이라
+    두 줄씩 뜨던 문제). 그다음 싼 순 → 이른 날짜 순.
+
+    기준은 **화면에 찍히는 값(`c.pay` = 편도합산·왕복실가 중 싼 쪽)**이다.
+    편도합산으로 정렬하면 왕복이 싼 항목이 엉뚱한 자리에 끼어 세로로 읽을 때
+    243,000 → 235,000 → 260,000처럼 보인다. 알림은 v2.18에 고쳤는데
+    고정판·전체시세는 그대로였다.
+    """
+    pick: dict = {}
+    for c in combos:
+        k = (c.dep, c.pay)
+        if k not in pick or c.nights > pick[k].nights:
+            pick[k] = c
+    return sorted(pick.values(), key=lambda c: (c.pay, c.dep))[:top_n]
+
+
+def city_block(cfg, picked: list, label: str) -> str:
+    """도시 줄 + 항목들. 공항이 블록 안에서 모두 같으면 도시 줄로 올린다."""
+    notes = {_airport_note(c) for c in picked}
+    head_air = notes.pop() if len(notes) == 1 else ""
+    rows = [f"<b>{label}</b>{head_air}"]
+    for c in picked:
+        rows += entry_lines(cfg, c, airport=not head_air)
+    return "\n".join(rows)
+
+
+def _foot(cfg, body: str) -> str:
+    """꼬리는 **이 메시지에 실제로 나온 것만** 설명한다.
+
+    안 쓴 기호를 매번 나열하면 그게 소음이다.
+    """
+    parts = [f"성인 {cfg.adults}명 · 1인 기준"]
+    if "⚠" in body:
+        parts.append("⚠는 선호 시간대 밖")
+    if "<a href" in body:
+        parts.append("날짜를 누르면 예약처로")
+    return " · ".join(parts)
+
+
+def pack(cfg, title: str, blocks: list[str]) -> list[str]:
+    """도시 블록들을 텔레그램 한 통 한도에 맞게 나눈다. **분할 규칙도 공용.**
+
+    통이 여러 개면 **모든 통의 제목에** `i/총`을 붙인다 (첫 통만 번호가 없어
+    "1/3은 왜 없지?"가 됐던 적이 있다). 번호가 이어짐을 말해주므로
+    "아래로 계속" 같은 안내 줄은 두지 않는다.
+    """
+    msgs: list[list[str]] = []
+    cur: list[str] = []
+    for b in blocks:
+        cand = cur + ["", b] if cur else [b]
+        if cur and len("\n".join(cand)) + len(title) + 90 > _SAFE_LEN:
+            msgs.append(cur)
+            cur = [b]
+        else:
+            cur = cand
+    msgs.append(cur)
+
+    total = len(msgs)
+    # 꼬리는 **마지막 통에만**. 번호가 이어짐을 이미 말해주므로 매 통마다
+    # 같은 안내를 반복할 이유가 없다. 대신 기호 설명은 전체 내용을 보고 정한다.
+    whole = "\n".join("\n".join(r) for r in msgs)
+    out = []
+    for i, rows in enumerate(msgs, 1):
+        body = "\n".join(rows)
+        head = title if total == 1 else f"{title} · <b>{i}/{total}</b>"
+        tail = f"\n\n{_foot(cfg, whole)}" if i == total else ""
+        out.append(f"{head}\n\n{body}{tail}")
+    return out
+
+
 def _naver_note(cfg, c) -> str:
     """네이버 값이면 그 링크를 짧게. 어느 편인지도 함께.
 
@@ -125,33 +209,10 @@ def _naver_note(cfg, c) -> str:
     return f' · <a href="{nv}">네이버{which}</a>'
 
 
-def _times(c) -> str:
-    """`06:00/21:15` + 출처. 알림·고정판·근처날짜·digest가 같은 규칙을 쓴다.
-
-    고정판과 근처 날짜에는 출처 표시가 아예 빠져 있었다(v1.71에서 알림만
-    고치고 나머지를 놓쳤다). 어디서 사야 하는지 모르면 가격만 보여주는 셈이다.
-    """
-    a, b = _sources(c)
-    mx = a != b
-    s = f"{_leg_time(c.out_leg, mx)}/{_leg_time(c.ret_leg, mx)}"
-    return s + (" 네이버" if a == b == "naver" else "")
 
 
-def _src_suffix(c) -> str:
-    """두 편이 같은 출처일 때 항목 끝에 붙일 표시."""
-    a, b = _sources(c)
-    return " · 네이버" if a == b == "naver" else ""
 
 
-def _mixed_note(c) -> str:
-    """출처가 섞이면 **각각 다른 곳에서 발권**해야 한다는 걸 반드시 알린다.
-    링크만 둘 다 걸어두면 한 곳에서 다 살 수 있다고 오해한다 (v1.91)."""
-    if not _mixed(c):
-        return ""
-    a, b = _sources(c)
-    ko = {"naver": "네이버", "google": "구글"}
-    return (f"⚠️ 가는 편은 {ko[a]}, 오는 편은 {ko[b]}에서 "
-            f"<b>각각 따로</b> 발권해야 해요")
 
 
 # 항공사명은 **IATA 코드 기준**으로 매핑한다. 이름은 사명 변경에 흔들린다 —
@@ -180,37 +241,10 @@ def _ko_air(name: str, code: str = "") -> str:
             or name)
 
 
-def _src(c) -> str:
-    """네이버에서 온 값이면 표시. 어디서 사야 하는지 알아야 한다."""
-    s = {c.out_leg.get("source"), c.ret_leg.get("source")}
-    return " · 네이버" if "naver" in s else ""
 
 
-def _alt_line(c, adults: int) -> str:
-    """구글·네이버가 겹칠 때 진 쪽도 알려준다.
-
-    네이버 특가석은 환불·변경 제약이 있어 더 비싸도 구글 쪽을 고르고 싶을 수
-    있다. 5% 넘게 차이날 때만 (그 아래는 소음).
-    """
-    parts = []
-    for leg, ko in ((c.out_leg, "가는 편"), (c.ret_leg, "오는 편")):
-        alt = leg.get("alt_price")
-        cur = leg.get("price")
-        if not alt or not cur:
-            continue
-        gap = (alt - cur) / cur * 100
-        if gap < 5:
-            continue
-        seat = leg.get("seat") or ""
-        parts.append(f"{ko} {_ko_src(leg.get('source'))}{(' ' + seat) if seat else ''} "
-                     f"{round(cur / adults):,} vs "
-                     f"{_ko_src(leg.get('alt_source'))} {round(alt / adults):,}")
-    # 근처 날짜 목록이 '·'로 시작하므로 마커를 달리 한다 (혼동 방지)
-    return "" if not parts else "↳ " + " / ".join(parts) + " (1인)"
 
 
-def _ko_src(s: str | None) -> str:
-    return {"naver": "네이버", "google": "구글"}.get(s or "", "구글")
 
 
 def _cond(c) -> str:
@@ -227,11 +261,6 @@ def _airlines(c) -> str:
     return a if a == b else f"{a}/{b}"
 
 
-def _per(total: int, adults: int) -> str:
-    """1인당 금액을 앞세우고 총액을 괄호에 (사용자 요청, v1.23)."""
-    if adults <= 1:
-        return _won(total)
-    return f"{_won(round(total / adults))}/인 (총 {_won(total)})"
 
 
 def format_alerts(cfg: Settings, alerts: list[Alert],
@@ -292,11 +321,6 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         record = any(a.kind == "record" and a.prev_min for a in top)
         lines = [""]   # 제목은 표시 항목을 다 정한 뒤 채운다 (아래 head_idx)
         head_idx = 0
-        # 이 도시에 서울발 공항이 여러 개면 항목마다 공항을 밝힌다.
-        multi_air = len({(c.route.origin, c.route.destination)
-                         for c in combos_by_route.get(_key, [])
-                         } | {(a.combo.route.origin, a.combo.route.destination)
-                              for a in top}) > 1
 
         # 근처 날짜 후보 (알림 조건은 아니지만 값이 비슷한 조합)
         shown_deps = {(a.combo.dep, a.combo.nights) for a in top}
@@ -304,14 +328,8 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         limit = base * (1 + cfg.similar_margin_pct / 100)
         cands = [c for c in combos_by_route.get(_key, [])
                  if (c.dep, c.nights) not in shown_deps and c.price <= limit]
-        # 같은 날 출발·같은 가격이면 박 수가 긴 쪽이 이득이라 그것만 남긴다.
-        # (3박과 4박이 같은 값이라 두 줄씩 뜨던 문제)
-        pick: dict = {}
-        for c in cands:
-            k = (c.dep, c.price, c.out_leg.get("dep_time"), c.ret_leg.get("dep_time"))
-            if k not in pick or c.nights > pick[k].nights:
-                pick[k] = c
-        near = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.similar_top_n]
+        # 추리는 규칙은 세 화면 공용 (pick_dates)
+        near = pick_dates(cands, cfg.similar_top_n)
 
         # 주 항목과 근처 날짜를 **하나의 오름차순 스트림**으로 합친다 (v1.38).
         # 예전엔 두 구역을 따로 정렬해, 근처 날짜 상한이 '가장 싼 주 항목 +10%'인
@@ -326,7 +344,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
         # 알림 항목만 보고 정하면, 더 싼 근처 날짜가 바로 아래 있는데도 제목이
         # 비싼 값을 말하는 모순이 생긴다 (v1.44).
         head_price = round(min(x[0] for x in stream) / max(n, 1))
-        # 제목엔 도시·금액·왜 싼지만. 잠금화면에서 이 한 줄로 판단한다.
+        # 제목엔 도시·금액·공항·왜 싼지만. 잠금화면에서 이 한 줄로 판단한다.
         why = ""
         t0 = top[0]
         if t0.kind == "record" and t0.prev_min:
@@ -335,14 +353,20 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             cut = (t0.baseline - best_price(t0)) / max(t0.baseline, 1) * 100
             if cut >= 1:
                 why = f" · 평소보다 {cut:.0f}% 싸짐"
+        # 공항 표기는 고정판·전체시세와 **같은 규칙**: 실리는 항목이 모두 같은
+        # 공항이면 제목(=도시 줄)에 한 번, 섞이면 항목마다. 예전엔 주 항목은
+        # 항상 붙고 '다른 날짜'는 절대 안 붙어 같은 메시지 안에서도 어긋났다.
+        notes = {_airport_note(a.combo) for a in top} | {
+            _airport_note(c) for c in near}
+        head_air = notes.pop() if len(notes) == 1 else ""
         lines[head_idx] = (f"{'🏆' if record else '✈️'} "
-                           f"<b>{city_label(cfg, route)} {head_price:,}원</b>/인{why}")
+                           f"<b>{city_label(cfg, route)} {head_price:,}원</b>/인"
+                           f"{head_air}{why}")
 
         for _price, kind, obj in stream:
-            if kind == 1:                      # 다른 날짜 — 날짜와 값만
-                c = obj
+            if kind == 1:                      # 다른 날짜
                 near_lines.append("\n".join(
-                    entry_lines(cfg, c, airport=False)))
+                    entry_lines(cfg, obj, airport=not head_air)))
                 continue
 
             a, c = obj, obj.combo
@@ -353,26 +377,20 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
             lines.append("")
             # 모든 금액을 1인 기준으로 통일한다. 주 항목에만 총액을 붙이면
             # '다른 날짜'와 잣대가 달라 보인다 (v2.07).
-            lines += entry_lines(cfg, c, pay=pay)
+            lines += entry_lines(cfg, c, pay=pay, airport=not head_air)
             if a.prev_sent and a.prev_sent > c.price:
-                lines.append(f"🔻 지난 알림보다 "
-                             f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
-            # 왕복 실가도 **양쪽 시간 조건을 만족한다** — 요청 tfs에 가는 편·
-            # 오는 편 출발 시각을 심는다(필드 8·9, v2.15). 예전의 '귀국 시각
-            # 미확인' 단서는 더 필요 없다.
-
-
-            if a.prev_sent and a.prev_sent > c.price:
-                lines.append(f"🔻 지난 알림보다 "
+                lines.append(f"    🔻 지난 알림보다 "
                              f"{round((a.prev_sent - c.price) / n):,}원 더 내림")
 
         if near_lines:
             lines.append("")
-            lines.append("<b>다른 날짜</b> (1인)")
+            lines.append("<b>다른 날짜</b>")
             for x in near_lines:
-                lines.append(f"· {x}")
+                lines.append(x)
 
-        messages.append((best_price(top[0]), "\n".join(lines)))
+        body = "\n".join(lines)
+        messages.append((best_price(top[0]),
+                         f"{body}\n\n{_foot(cfg, body)}"))
 
     # 노선 간에도 싼 순서로: 가장 저렴한 노선의 메시지가 먼저 간다
     messages.sort(key=lambda m: m[0])
@@ -382,95 +400,35 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 def format_board(cfg: Settings, combos: list, stamp: str,
                  today: "dt.date | None" = None,
                  month: int | None = None) -> list[str]:
-    """고정판 — 모든 날짜에 링크를 걸기 위해 여러 통으로 나눈다 (v1.98).
+    """📌 고정판 — 실행마다 조용히 수정되는, 방에 고정해두는 현황판.
 
-    통이 여러 개여도 **연달아 발송돼 대화창에서 붙어 있다** — 상단 띠를 눌러
-    첫 통으로 점프한 뒤 스크롤하면 이어서 읽힌다. 띠를 여러 번 누를 필요 없다.
-    링크는 **그 가격이 실제로 있는 곳**으로 건다(네이버 값이면 네이버).
+    수정 방식이라 알림이 울리지 않는다. 통이 여러 개여도 연달아 붙어 있어
+    스크롤로 이어 읽힌다. 조립은 pack()이 하고 여기서는 **무엇을 담을지만**
+    정한다.
     """
-    from .engine import _seoul_group, city_label
-    today = today or (dt.datetime.now(dt.timezone.utc)
-                      + dt.timedelta(hours=9)).date()
-    n = max(cfg.adults, 1)
-
-    if month:
-        combos = [c for c in (combos or []) if c.dep.month == month]
-    by_city: dict = {}
-    for c in combos or []:
-        by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
-    title = ("📌 <b>항공권 최저가</b>"
-             + (f" · <b>{month}월 출발</b>" if month else "")
-             + f" · {stamp} 기준")
-    if not by_city:
-        miss = (f"{month}월 출발 조합이 아직 없습니다." if month
-                else "아직 비교할 조합이 없습니다.")
-        return [f"{title}\n\n{miss}"]
-
-    ranked: list[list] = []
-    for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
-        pick: dict = {}
-        for c in city_combos:
-            k = (c.dep, c.price)
-            if k not in pick or c.nights > pick[k].nights:
-                pick[k] = c
-        ranked.append(sorted(pick.values(), key=lambda c: (c.price, c.dep)))
-
-    def city_block(picked):
-        top = picked[0]
-        notes = {_airport_note(x) for x in picked}
-        head_air = notes.pop() if len(notes) == 1 else ""
-        rows = [f'<b>{city_label(cfg, top.route)}</b>{head_air}']
-        for c in picked:
-            rows += entry_lines(cfg, c, airport=not head_air)
-        return "\n".join(rows)
-
-    # 모든 날짜에 링크를 건다 → 한 통엔 안 들어가므로 도시 단위로 나눠 담는다.
-    # 통이 여러 개여도 연달아 발송돼 붙어 있으므로 스크롤로 이어 읽힌다.
-    blocks = [city_block(pk[: cfg.board_top_n]) for pk in ranked]
-    foot = f"성인 {cfg.adults}명 · ⚠는 선호 시간대 밖 · 날짜를 누르면 예약처로"
-
-    # 통을 나눈 뒤 **모든 통에** 같은 형식으로 번호를 붙인다.
-    # 첫 통만 번호가 없어 "1/3은 왜 없지?"가 됐다 (v1.99).
-    msgs, cur = [], []
-    for b in blocks:
-        cand = cur + ["", b] if cur else [b]
-        if len("\n".join(cand)) + len(title) + len(foot) + 8 > _BOARD_SAFE_LEN and cur:
-            msgs.append("\n".join(cur))
-            cur = [b]
-        else:
-            cur = cand
-    msgs.append("\n".join(cur))
-
-    total = len(msgs)
-    out = []
-    for i, body in enumerate(msgs, 1):
-        head = title if total == 1 else f"{title} · <b>{i}/{total}</b>"
-        tail = foot if i == total else f"({i}/{total} — 아래로 계속)"
-        out.append(f"{head}\n\n{body}\n\n{tail}")
-    return out
-
-
-_BOARD_SAFE_LEN = 3900   # 4096 제한에 여유를 둔다
-
-
-TELEGRAM_LIMIT = 4096
-_SAFE_LEN = 3600      # 여유를 두고 자른다 (링크 URL이 하나에 180자쯤 된다)
+    return _screen(cfg, combos, month,
+                   icon="📌", name="최저가 현황",
+                   extra=f"{stamp} 기준", top_n=cfg.board_top_n)
 
 
 def format_digest(cfg: Settings, combos: list, subtitle: str = "",
                   today: "dt.date | None" = None,
                   month: int | None = None) -> list[str]:
-    """도시별 '지금 최저가' 한 줄 요약 (v1.45).
+    """🔄 전체 시세 — 요청했을 때만(`/digest`) 나가는 넓은 조회.
 
-    왜 필요한가: 한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않는다. 조용한
-    날에 "지금 뭐가 제일 싸지?"를 확인할 방법이 없었다. 예전 한 바퀴 완료
-    메시지는 기준가 숫자만 나열해 날짜도 링크도 없어 쓸 수가 없었다.
-    → 도시마다 실제 최저 조합을 날짜·시각·항공사·링크까지 한 줄로 싣는다.
+    왜 필요한가: 한 번 알린 조합은 더 싸지기 전엔 다시 알리지 않는다.
+    조용한 날에 "지금 뭐가 제일 싸지?"를 확인할 방법이 이것뿐이다.
+    고정판보다 도시당 날짜를 더 많이 싣는 것 말고는 차이가 없다.
     """
+    return _screen(cfg, combos, month,
+                   icon="🔄", name="전체 시세",
+                   extra=subtitle, top_n=cfg.digest_top_n)
+
+
+def _screen(cfg: Settings, combos: list, month: int | None, *,
+            icon: str, name: str, extra: str, top_n: int) -> list[str]:
+    """고정판·전체시세의 **공통 본체**. 다른 건 아이콘·이름·개수뿐이다."""
     from .engine import _seoul_group, city_label
-    today = today or (dt.datetime.now(dt.timezone.utc)
-                      + dt.timedelta(hours=9)).date()
-    n = max(cfg.adults, 1)
 
     if month:
         combos = [c for c in (combos or []) if c.dep.month == month]
@@ -478,51 +436,23 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
     for c in combos or []:
         by_city.setdefault(_seoul_group(cfg, c.route), []).append(c)
 
-    head = [f"🔄 <b>지금 최저가</b>" + (f" · {month}월 출발" if month else "")]
-    if subtitle:
-        head.append(subtitle)
+    title = (f"{icon} <b>{name}</b>"
+             + (f" · {month}월 출발" if month else "")
+             + (f" · {extra}" if extra else ""))
     if not by_city:
         miss = (f"{month}월 출발 조합이 아직 없습니다." if month
                 else "아직 비교할 조합이 없습니다.")
-        return ["\n".join(head + ["", miss])]
+        return [f"{title}\n\n{miss}"]
 
-    # 도시를 제목으로 올리고 날짜를 밑에 붙인다. 도시별 1개만 보여주면 "어느
-    # 도시가 싼지"는 알아도 "언제 가야 싼지"를 모른다. 반대로 도시명을 매 줄
-    # 반복하면 지저분해진다 (v1.46).
-    blocks: list[str] = []
-    for city_combos in sorted(by_city.values(), key=lambda v: min(x.price for x in v)):
-        # 같은 출발일·같은 가격이면 박 수가 긴 쪽만
-        pick: dict = {}
-        for c in city_combos:
-            k = (c.dep, c.price)
-            if k not in pick or c.nights > pick[k].nights:
-                pick[k] = c
-        picked = sorted(pick.values(), key=lambda c: (c.price, c.dep))[: cfg.digest_top_n]
-        top = picked[0]
-        # 가격을 맨 앞에 두어 세로로 비교되게. 공항 정보가 모두 같으면
-        # 도시 헤더로 올려 매 줄 반복을 없앤다 (v2.04).
-        notes = {_airport_note(c) for c in picked}
-        head_air = notes.pop() if len(notes) == 1 else ""
-        rows = [f"<b>{city_label(cfg, top.route)}</b>{head_air}"]
-        for c in picked:
-            rows += entry_lines(cfg, c, airport=not head_air)
-        blocks.append("\n".join(rows))
+    # 싼 도시부터 (역시 실제 지불액 기준)
+    blocks = []
+    for city_combos in sorted(by_city.values(),
+                              key=lambda v: min(x.pay for x in v)):
+        picked = pick_dates(city_combos, top_n)
+        blocks.append(city_block(cfg, picked,
+                                 city_label(cfg, picked[0].route)))
+    return pack(cfg, title, blocks)
 
-    # 텔레그램 한 통은 4096자 제한이다. 도시 블록 단위로 나눠 담는다
-    # (실측 8개 도시 × 3날짜 = 6,400자로 한 통에 안 들어갔다, v1.46).
-    foot = f"성인 {cfg.adults}명 · 편도 2장 합산 기준 · ⚠는 선호 시간대 밖"
-    msgs: list[str] = []
-    cur: list[str] = list(head)
-    for b in blocks:
-        candidate = cur + ["", b]
-        if len("\n".join(candidate)) + len(foot) + 2 > _SAFE_LEN and len(cur) > len(head):
-            msgs.append("\n".join(cur))
-            cur = [f"🔄 <b>지금 최저가</b> (이어서 {len(msgs) + 1})", "", b]
-        else:
-            cur = candidate
-    cur += ["", foot]
-    msgs.append("\n".join(cur))
-    return msgs
 
 
 def _targets() -> tuple[str, list[str]]:
