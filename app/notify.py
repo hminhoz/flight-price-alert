@@ -593,7 +593,8 @@ def upsert_board(texts, ids: dict) -> dict:
         # 그대로 남았다. 반대로 통이 늘면 새 통만 뒤늦게 발송돼 1/3은 위쪽에,
         # 2/3·3/3은 한참 아래에 떨어졌다(실측 message_id 112 vs 166·167).
         # "연달아 붙어 있다"는 전제가 그때 깨진다.
-        if len(mids) != len(texts):
+        resent = len(mids) != len(texts)
+        if resent:
             for mid in mids:
                 _post(token, "deleteMessage",
                       {"chat_id": chat_id, "message_id": mid})
@@ -617,5 +618,12 @@ def upsert_board(texts, ids: dict) -> dict:
                 "disable_notification": True})
             if r and r.get("message_id"):
                 new_ids.append(r["message_id"]); new_hs.append(dg)
+        # 새로 보냈으면 **첫 통을 봇이 직접 고정한다.**
+        # 통 수가 바뀔 때마다 사람이 다시 고정하게 둘 수는 없다. 나머지 통은
+        # 바로 아래 붙어 있으므로 고정은 1통이면 충분하다.
+        if resent and new_ids:
+            _post(token, "pinChatMessage",
+                  {"chat_id": chat_id, "message_id": new_ids[0],
+                   "disable_notification": True})
         out[chat_id], out[f"{chat_id}:h"] = new_ids, new_hs
     return out

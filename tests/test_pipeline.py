@@ -942,9 +942,13 @@ def test_board_ids_compact():
     calls = []
 
     seq = [112]
+    pinned = []
 
     def fake_post(token, method, payload):
         calls.append(method)
+        if method == "pinChatMessage":
+            pinned.append(payload["message_id"])
+            return {"ok": True}
         if method != "sendMessage":
             return {"ok": True}
         seq[0] += 1
@@ -955,10 +959,14 @@ def test_board_ids_compact():
     os.environ["TELEGRAM_CHAT_ID"] = "999"
     N._post = fake_post
     try:
+        # 최초 생성도 '새로 보낸' 경우다 → 첫 통을 고정한다
         ids = N.upsert_board("첫 내용", {})
-        assert ids["999"] == [113] and calls == ["sendMessage"], (ids, calls)
+        assert ids["999"] == [113], ids
+        assert calls == ["sendMessage", "pinChatMessage"] and pinned == [113], \
+            (calls, pinned)
+        calls.clear(); pinned.clear()
 
-        calls.clear()                      # 내용 동일 → 호출 없음
+        # 내용 동일 → 호출 없음
         ids = N.upsert_board("첫 내용", ids)
         assert calls == [], calls
 
@@ -971,8 +979,14 @@ def test_board_ids_compact():
         # 고정판이 대화방에서 흩어진다. 남는 통은 옛 내용 그대로 남는다.
         calls.clear()
         ids = N.upsert_board(["바뀐 내용", "둘째 통"], ids)
-        assert calls == ["deleteMessage", "sendMessage", "sendMessage"], calls
+        assert calls == ["deleteMessage", "sendMessage", "sendMessage",
+                         "pinChatMessage"], calls
         assert ids["999"] == [114, 115], ids          # 연달아 발송돼 붙어 있다
+        assert pinned == [114], "새로 보냈으면 첫 통을 봇이 고정해야 한다"
+
+        calls.clear(); pinned.clear()      # 내용만 바뀌면 고정은 건드리지 않는다
+        ids = N.upsert_board(["다시 바뀐 내용", "둘째 통"], ids)
+        assert "pinChatMessage" not in calls and pinned == [], calls
 
         calls.clear()                      # 줄어들 때도 남는 통을 지운다
         ids = N.upsert_board("한 통으로", ids)
@@ -988,7 +1002,7 @@ def test_board_ids_compact():
         N._post = old_post
         os.environ.clear()
         os.environ.update(old_env)
-    print("OK 고정판 상태: 해시만 저장 · 동일 내용 생략 · 통 수 변화 시 재발송")
+    print("OK 고정판 상태: 해시만 저장 · 동일 내용 생략 · 재발송 시 자동 고정")
 
 
 def test_exclude_airlines():
