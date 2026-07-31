@@ -194,7 +194,7 @@ def _foot(cfg, body: str) -> str:
     return " · ".join(parts)
 
 
-def pack(cfg, title: str, blocks: list[str]) -> list[str]:
+def pack(cfg, title: str, blocks: list[str], lead: str = "") -> list[str]:
     """도시 블록들을 텔레그램 한 통 한도에 맞게 나눈다. **분할 규칙도 공용.**
 
     통이 여러 개면 **모든 통의 제목에** `i/총`을 붙인다 (첫 통만 번호가 없어
@@ -220,6 +220,9 @@ def pack(cfg, title: str, blocks: list[str]) -> list[str]:
     for i, rows in enumerate(msgs, 1):
         body = "\n".join(rows)
         head = title if total == 1 else f"{title} · <b>{i}/{total}</b>"
+        # 실행 요약은 **첫 통에만.** 고정해두고 보는 게 1통이라 여기 있어야 한다.
+        if lead and i == 1:
+            head = f"{head}\n{lead}"
         tail = f"\n\n{_foot(cfg, whole)}" if i == total else ""
         out.append(f"{head}\n\n{body}{tail}")
     return out
@@ -417,7 +420,7 @@ def format_alerts(cfg: Settings, alerts: list[Alert],
 
 def format_board(cfg: Settings, combos: list, stamp: str,
                  today: "dt.date | None" = None,
-                 month: int | None = None) -> list[str]:
+                 month: int | None = None, status: str = "") -> list[str]:
     """📌 고정판 — 실행마다 조용히 수정되는, 방에 고정해두는 현황판.
 
     수정 방식이라 알림이 울리지 않는다. 통이 여러 개여도 연달아 붙어 있어
@@ -426,7 +429,7 @@ def format_board(cfg: Settings, combos: list, stamp: str,
     """
     return _screen(cfg, combos, month,
                    icon="📌", name="최저가 현황",
-                   extra=f"{stamp} 기준", top_n=cfg.board_top_n)
+                   extra=f"{stamp} 기준", top_n=cfg.board_top_n, status=status)
 
 
 def format_digest(cfg: Settings, combos: list, subtitle: str = "",
@@ -444,7 +447,8 @@ def format_digest(cfg: Settings, combos: list, subtitle: str = "",
 
 
 def _screen(cfg: Settings, combos: list, month: int | None, *,
-            icon: str, name: str, extra: str, top_n: int) -> list[str]:
+            icon: str, name: str, extra: str, top_n: int,
+            status: str = "") -> list[str]:
     """고정판·전체시세의 **공통 본체**. 다른 건 아이콘·이름·개수뿐이다."""
     from .engine import _seoul_group, city_label
 
@@ -469,7 +473,7 @@ def _screen(cfg: Settings, combos: list, month: int | None, *,
         picked = pick_dates(city_combos, top_n)
         blocks.append(city_block(cfg, picked,
                                  city_label(cfg, picked[0].route)))
-    return pack(cfg, title, blocks)
+    return pack(cfg, title, blocks, lead=status)
 
 
 

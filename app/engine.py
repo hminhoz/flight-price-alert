@@ -364,12 +364,58 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
         for c in sorted(items, key=lambda x: x.price)[: cfg.verify_per_city]:
             picked[id(c)] = c
 
-    # **모르는 것 먼저, 그다음 오래된 것 순.** 매 실행 같은 것만 다시 묻지 않고
-    # 몇 번에 나눠 전체 커버리지를 채운다 (네이버 수집과 같은 방식).
-    # 아는 값이라도 오래되면 다시 확인해야 하므로 `rt_at`으로 줄을 세운다 (v2.23).
-    out = sorted(picked.values(),
-                 key=lambda c: (c.rt_price is not None, c.rt_at, -ratio(c)))
-    return out[: cfg.verify_max_queries]
+    # **이미 아는 값은 다시 묻지 않는다.**
+    # `rt_freshness_days` 동안 믿겠다고 해놓고 매 실행 재조회하면 예산이
+    # 전부 재확인에 쓰인다 — 실측(v2.34) 풀 411건 중 모르는 것은 61건뿐이었고
+    # 나머지 350건이 재조회였다. 상한을 240→450으로 올렸더니 풀 전체가
+    # 매번 대상이 되면서 드러났다.
+    #
+    # 신선도는 **여기서 직접 본다.** `build_combos`가 오래된 값을 안 붙이니
+    # `rt_price is None`만 봐도 되지만, 그건 다른 함수가 지켜주는 약속이다.
+    # 이 함수만 떼어 봐도 옳아야 한다 (테스트가 이걸 잡았다).
+    # 남은 것 중에서는 왜곡이 큰(배율 높은) 조합부터 — 편도합산과 실가가
+    # 가장 많이 벌어지는 곳이 그쪽이다.
+    cut = (dt.datetime.now(dt.timezone.utc)
+           - dt.timedelta(days=cfg.rt_freshness_days)).isoformat()
+    todo = [c for c in picked.values()
+            if not (c.rt_price and (c.rt_at or "") >= cut)]
+    # 줄 세우기는 예전 그대로 — **모르는 것 먼저, 아는 것끼리는 오래된 것부터,**
+    # 같으면 왜곡이 큰 것부터. 바뀐 건 '신선한 것을 아예 빼는' 것뿐이다.
+    return sorted(todo, key=lambda c: (c.rt_price is not None, c.rt_at,
+                                       -ratio(c)))[: cfg.verify_max_queries]
+
+
+def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
+    """실행이 제대로 돌았는지 **한 줄로.** 고정판 첫 통 제목 아래에 붙인다.
+
+    왜 여기인가: 지금까지 이 숫자들은 Actions 로그에만 있었다 — 열어야만
+    보이는 정보는 결국 확인하지 않는다. 새 메시지로 보내면 하루 24통이라
+    그것대로 소음이다. 고정판은 매 실행 조용히 갱신되므로 **추가 메시지 0**에
+    늘 최신이다.
+
+    담는 것은 넷: 얼마나 찾았나 · 그중 새 것 · 왕복 실가 상태 · 실패 여부.
+    """
+    r = (state.meta.get("last_run") or {})
+    known = sum(1 for c in combos
+                if not c.is_cross and c.rt_price is not None)
+
+    parts = []
+    if r.get("legs"):
+        new = r.get("legs_new", 0)
+        parts.append(f"구글 {r['legs']:,}건"
+                     + (f"(새 {new:,})" if new else ""))
+    nv_rows = int(state.meta.get("naver_total", 0))
+    if nv_rows:
+        parts.append(f"네이버 {nv_rows:,}건 "
+                     f"{state.meta.get('naver_runs', 0)}/{cfg.naver_runs_per_day}회")
+    if known or r.get("rt_asked"):
+        got = f"왕복 {known:,}건"
+        if r.get("rt_ok"):
+            got += f"(새 {r['rt_ok']:,})"
+        parts.append(got)
+    # 실패는 **0이어도 적는다.** 0을 봐야 정상임이 확인된다.
+    parts.append(f"실패 {r.get('failed', 0):,}")
+    return "🔎 " + " · ".join(parts)
 
 
 def alert_selection(cfg: Settings, alerts: list[Alert]) -> dict:

@@ -156,6 +156,7 @@ def main() -> int:
     stats: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0, 0])  # [가격확보, 조건불일치, 실패, 데이터없음]
     last_errors: dict[str, str] = {}
     attempted = failed = 0
+    legs_before = len(state.legs)     # '새로 찾은 건'을 세기 위한 기준점
 
     def work(leg):
         """네트워크 작업만 담당. 상태 기록은 메인 스레드에서 한다."""
@@ -210,6 +211,10 @@ def main() -> int:
             absorb(*work(leg))
 
     state.record_run_stats(attempted=attempted, failed=failed)
+    state.meta.setdefault("last_run", {}).update({
+        "legs": attempted, "legs_new": len(state.legs) - legs_before,
+        "failed": failed,
+    })
     log.info("검색 완료: %d 시도 → 가격확보 %d / 조건불일치 %d / 실패 %d / 데이터없음 %d",
              attempted, sum(v[0] for v in stats.values()), sum(v[1] for v in stats.values()),
              failed, sum(v[3] for v in stats.values()))
@@ -464,6 +469,9 @@ def main() -> int:
                  sh["legs1"], sh["legs1"] / tot * 100,
                  sh["legs2"], sh["legs2"] / tot * 100, sh["other"])
         cheaper = sum(1 for c in targets if c.rt_price and c.rt_price < c.price)
+        state.meta.setdefault("last_run", {}).update({
+            "rt_asked": len(targets), "rt_ok": ok, "rt_cheaper": cheaper,
+        })
         state.meta["rt_shape"] = sh
         state.meta["rt_stats"] = {
             "targets": len(targets), "ok": ok, "cheaper": cheaper,
@@ -742,7 +750,9 @@ def main() -> int:
                  + dt.timedelta(hours=9)).strftime("%m/%d %H:%M")
         try:
             state.meta["board_ids"] = notify.upsert_board(
-                notify.format_board(cfg, combos, stamp, today), state.board_ids())
+                notify.format_board(cfg, combos, stamp, today,
+                                    status=engine.run_status(cfg, state, combos)),
+                state.board_ids())
             log.info("고정판 갱신 완료")
         except Exception as e:  # noqa: BLE001 - 고정판 실패가 알림을 막지 않는다
             log.info("고정판 갱신 실패: %s", str(e)[:150])

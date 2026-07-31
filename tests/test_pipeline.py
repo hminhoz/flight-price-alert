@@ -136,6 +136,7 @@ def main():
     test_tfs_time_filter()
     test_baseline_unstick()
     test_new_vs_drop_badge()
+    test_fresh_rt_is_not_asked_again()
     test_rules_are_enforced_not_remembered()
     test_near_dates_linked()
     test_time_histogram()
@@ -588,6 +589,41 @@ def test_rules_are_enforced_not_remembered():
         N.entry_lines = real
 
     print("OK 규칙 감시: 세 화면 pay 오름차순 · 선별 한 벌 · 공용 부품 경유")
+
+
+
+def test_fresh_rt_is_not_asked_again():
+    """**신선한 왕복 실가는 다시 묻지 않는다** (v2.34).
+
+    `rt_freshness_days` 동안 믿겠다고 해놓고 매 실행 재조회하면 조회 예산이
+    전부 재확인에 쓰인다. 실측: 대상 411건 중 모르는 것은 61건뿐이었고
+    나머지 350건이 이미 아는 신선한 값이었다. 상한을 240→450으로 올려
+    풀 전체가 대상이 되면서 드러났다.
+    """
+    import datetime as _dt
+    cfg = load()
+    route = [r for r in cfg.routes if r.key == "GMP-CJU"][0]
+    now = _dt.datetime.now(_dt.timezone.utc)
+
+    def mk(nights, rt_price=None, age_days=None):
+        at = ""
+        if age_days is not None:
+            at = (now - _dt.timedelta(days=age_days)).isoformat()
+        return engine.Combo(
+            route=route, dep=_dt.date(2026, 9, 10), nights=nights, price=900_000,
+            out_leg={"price": 100_000, "dep_time": "07:00"},
+            ret_leg={"price": 800_000, "dep_time": "19:00"},
+            city="CJU", rt_price=rt_price, rt_at=at)
+
+    fresh = mk(3, 500_000, age_days=0)                        # 방금 확인
+    stale = mk(4, 500_000, age_days=cfg.rt_freshness_days + 1)  # 기한 지남
+    unknown = mk(5)                                            # 모름
+
+    got = engine.verify_targets(cfg, [fresh, stale, unknown])
+    assert fresh not in got, "신선한 값을 다시 물었다 — 예산이 재확인에 샌다"
+    assert stale in got and unknown in got, "오래됐거나 모르는 것은 물어야 한다"
+    assert got[0] is unknown, "모르는 것이 먼저여야 한다"
+    print("OK 왕복 검증 대상: 신선한 것 제외 · 모르는 것 우선")
 
 
 def test_near_dates_linked():
