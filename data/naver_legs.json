@@ -466,15 +466,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-08-02": {
-  "airline": "대한항공",
-  "at": "2026-07-31T07:49:10+00:00",
-  "card_cond": false,
-  "dep_time": "18:15",
-  "price": 292400,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-08-03": {
   "airline": "티웨이항공",
   "at": "2026-07-31T11:27:28+00:00",
