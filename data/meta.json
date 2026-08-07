@@ -9,41 +9,41 @@
    244
   ],
   "495657895:h": [
-   "2c25a7579ff0",
-   "4cd733a1d8e5",
-   "090e1866e86c",
-   "778ec208bf28",
-   "b5ff240c7ea7"
+   "620bd2595307",
+   "48fa8a0b0c45",
+   "82420822edc5",
+   "da6aead7f079",
+   "aae25eb656f1"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-07T20:03:22+00:00",
+ "cycle_started_at": "2026-08-07T22:27:07+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-07T20:03:22+00:00",
+ "last_cycle_done_at": "2026-08-07T22:27:07+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1040,
   "legs_new": 0,
-  "legs_ok": 953,
+  "legs_ok": 952,
   "naver_new": 0,
-  "rt_asked": 90,
-  "rt_cheaper": 1,
+  "rt_asked": 89,
+  "rt_cheaper": 0,
   "rt_ok": 1,
-  "rt_pool": 555
+  "rt_pool": 554
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-08",
  "naver_dstat": {
   "out": [
-   5,
-   550,
-   2
+   3,
+   170,
+   0
   ],
   "out·왕복형": [
-   5,
-   550,
+   3,
+   170,
    0
   ],
   "out·왕복형(재시도)": [
@@ -53,12 +53,12 @@
   ],
   "ret": [
    4,
-   65,
+   69,
    0
   ],
   "ret·왕복형": [
    4,
-   65,
+   69,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -67,21 +67,16 @@
    0
   ],
   "세션1": [
-   9,
-   600,
-   6
+   7,
+   400,
+   4
   ]
  },
  "naver_last_run": "2026-08-08",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 134,
  "recent_runs": [
-  {
-   "at": "2026-08-05T08:20:02+00:00",
-   "attempted": 1100,
-   "failed": 0
-  },
   {
    "at": "2026-08-05T16:21:13+00:00",
    "attempted": 1080,
@@ -126,18 +121,23 @@
    "at": "2026-08-07T20:15:29+00:00",
    "attempted": 1040,
    "failed": 0
+  },
+  {
+   "at": "2026-08-07T22:39:25+00:00",
+   "attempted": 1040,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 4,
+  "legs1": 1,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 1,
-  "gain_sum": 144401,
+  "cheaper": 0,
+  "gain_sum": 0,
   "ok": 1,
-  "targets": 90
+  "targets": 89
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
