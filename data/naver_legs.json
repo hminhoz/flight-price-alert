@@ -225,10 +225,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-24": {
-  "airline": "이스타항공",
-  "at": "2026-07-29T12:48:05+00:00",
-  "dep_time": "06:10",
-  "price": 272200,
+  "airline": "에어서울",
+  "at": "2026-08-11T04:59:38+00:00",
+  "card_cond": false,
+  "dep_time": "06:00",
+  "price": 257000,
   "seat": "일반석",
   "source": "naver"
  },
