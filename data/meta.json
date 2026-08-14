@@ -9,41 +9,41 @@
    306
   ],
   "495657895:h": [
-   "8ba82a4b7249",
-   "492246c8d875",
-   "7eb30e109b75",
-   "4ed6208d51e8",
-   "a4620478cbb9"
+   "0297a4ec9490",
+   "9b715dd14292",
+   "5acee08aa2f0",
+   "ef4bd12cd470",
+   "84846af757a6"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-14T06:03:40+00:00",
+ "cycle_started_at": "2026-08-14T10:34:06+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-14T06:03:40+00:00",
+ "last_cycle_done_at": "2026-08-14T10:34:06+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 970,
   "legs_new": 0,
-  "legs_ok": 878,
+  "legs_ok": 882,
   "naver_new": 0,
-  "rt_asked": 96,
-  "rt_cheaper": 8,
-  "rt_ok": 11,
-  "rt_pool": 467
+  "rt_asked": 111,
+  "rt_cheaper": 27,
+  "rt_ok": 33,
+  "rt_pool": 453
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-14",
  "naver_dstat": {
   "out": [
    2,
-   73,
+   75,
    0
   ],
   "out·왕복형": [
    2,
-   73,
+   75,
    0
   ],
   "out·왕복형(재시도)": [
@@ -53,12 +53,12 @@
   ],
   "ret": [
    4,
-   69,
+   68,
    0
   ],
   "ret·왕복형": [
    4,
-   69,
+   68,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -74,14 +74,9 @@
  },
  "naver_last_run": "2026-08-14",
  "naver_remain": 0,
- "naver_runs": 4,
+ "naver_runs": 5,
  "naver_total": 125,
  "recent_runs": [
-  {
-   "at": "2026-08-12T18:15:43+00:00",
-   "attempted": 990,
-   "failed": 0
-  },
   {
    "at": "2026-08-12T21:37:09+00:00",
    "attempted": 990,
@@ -126,18 +121,23 @@
    "at": "2026-08-14T06:14:43+00:00",
    "attempted": 970,
    "failed": 0
+  },
+  {
+   "at": "2026-08-14T10:45:38+00:00",
+   "attempted": 970,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 25,
+  "legs1": 128,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 8,
-  "gain_sum": 2232093,
-  "ok": 11,
-  "targets": 96
+  "cheaper": 27,
+  "gain_sum": 5430174,
+  "ok": 33,
+  "targets": 111
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
