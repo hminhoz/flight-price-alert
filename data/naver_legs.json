@@ -395,15 +395,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-08-17": {
-  "airline": "에어서울",
-  "at": "2026-08-10T06:14:53+00:00",
-  "card_cond": false,
-  "dep_time": "20:50",
-  "price": 257000,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-08-18": {
   "airline": "에어부산",
   "at": "2026-08-13T10:58:43+00:00",
