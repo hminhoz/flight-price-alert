@@ -9,41 +9,41 @@
    394
   ],
   "495657895:h": [
-   "8fe0e53ccc0c",
-   "f9957f14f43d",
-   "502e0fc57407",
-   "26ab7e231631",
-   "044ca64f18f0"
+   "28f55bc06c20",
+   "871523c2e50a",
+   "b2e2611a4c88",
+   "26bcefb8ceba",
+   "b1677f3ceb99"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-17T00:00:21+00:00",
+ "cycle_started_at": "2026-08-17T03:34:33+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-17T00:00:21+00:00",
+ "last_cycle_done_at": "2026-08-17T03:34:33+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 920,
   "legs_new": 0,
-  "legs_ok": 381,
+  "legs_ok": 793,
   "naver_new": 0,
-  "rt_asked": 67,
-  "rt_cheaper": 0,
-  "rt_ok": 0,
-  "rt_pool": 112
+  "rt_asked": 266,
+  "rt_cheaper": 144,
+  "rt_ok": 187,
+  "rt_pool": 436
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-17",
  "naver_dstat": {
   "out": [
-   9,
-   1301,
-   7
+   2,
+   71,
+   0
   ],
   "out·왕복형": [
-   9,
-   1301,
+   2,
+   71,
    0
   ],
   "out·왕복형(재시도)": [
@@ -67,26 +67,16 @@
    0
   ],
   "세션1": [
-   12,
-   700,
-   7
-  ],
-  "세션2": [
-   2,
+   7,
    200,
    2
   ]
  },
  "naver_last_run": "2026-08-17",
  "naver_remain": 0,
- "naver_runs": 5,
+ "naver_runs": 6,
  "naver_total": 120,
  "recent_runs": [
-  {
-   "at": "2026-08-16T10:56:00+00:00",
-   "attempted": 920,
-   "failed": 0
-  },
   {
    "at": "2026-08-16T12:12:29+00:00",
    "attempted": 920,
@@ -131,21 +121,26 @@
    "at": "2026-08-17T00:24:55+00:00",
    "attempted": 920,
    "failed": 0
+  },
+  {
+   "at": "2026-08-17T03:47:00+00:00",
+   "attempted": 920,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 0,
+  "legs1": 1436,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 0,
-  "gain_sum": 0,
-  "ok": 0,
-  "targets": 67
+  "cheaper": 144,
+  "gain_sum": 28928224,
+  "ok": 187,
+  "targets": 266
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159577
+ "tg_offset": 74159578
 }
