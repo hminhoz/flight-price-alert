@@ -10,7 +10,7 @@ import requests
 
 from .engine import Alert
 from .links import (google_flights_url, google_oneway_url,
-                    google_roundtrip_url, naver_url)
+                    google_roundtrip_url, naver_url, naver_leg_url)
 from .settings import Settings
 
 log = logging.getLogger(__name__)
@@ -59,8 +59,12 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
     """
     # 출처는 여기 쓰지 않는다. 줄 끝 링크가 `가는편 네이버 / 오는편 구글`로
     # 어느 편을 어디서 사는지 알려주므로 시각 옆 표기는 중복이다 (v2.05).
+    # ⚠는 시각 **앞**에 붙인다 (v2.44). 뒤에 붙이면 `16:20⚠/19:05`가 되는데,
+    # 텔레그램은 이모지를 단어 경계로 보아 그 뒤의 `/19`를 **봇 명령어로
+    # 자동 인식**한다 — 파랗게 되고 누르면 채팅창에 입력된다(실사용 보고,
+    # 가고시마 16:20⚠/19:05). 앞에 붙이면 슬래시 앞뒤가 항상 숫자라 안전하다.
     mark = "⚠" if leg.get("off_window") else ""
-    return f"{leg.get('dep_time', '?')}{mark}"
+    return f"{mark}{leg.get('dep_time', '?')}"
 
 
 def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
@@ -115,13 +119,17 @@ def _date_links(cfg, c, rt_cheaper: bool) -> str:
         return rng(google_roundtrip_url(c.route, c.dep, c.ret, cfg.adults,
                                         out_window=ow, ret_window=rw))
     # 편도 2장 — 편마다 파는 곳이 다를 수 있으므로 날짜마다 따로 건다
-    def one(src, o, d, day, win) -> str:
+    def one(src, o, d, day, win, leg) -> str:
         if src == "naver":
-            return naver_url(c.route, c.dep, c.ret, cfg.adults)
+            # 그 편이 앞 구간인 왕복 검색으로 (편도 URL은 안 된다, v1.84)
+            return naver_leg_url(c.route, c.dep, c.ret, cfg.adults, leg)
         return google_oneway_url(o, d, day, cfg.adults, window=win)
-    u1 = one(so, c.route.origin, c.route.destination, c.dep, ow)
-    u2 = one(sr, c.route.destination, c.route.origin, c.ret, rw)
-    return f'<a href="{u1}">{_d(c.dep)}</a>~<a href="{u2}">{_d(c.ret)}</a>'
+    u1 = one(so, c.route.origin, c.route.destination, c.dep, ow, "out")
+    u2 = one(sr, c.route.destination, c.route.origin, c.ret, rw, "ret")
+    # 구분자가 곧 발권 형태다: `~`는 왕복권 1장, `+`는 편도 2장 (v2.43).
+    # HTML로는 링크 1개/2개가 다르지만 **텔레그램 화면에선 밑줄이 이어져
+    # 보여 구분이 안 된다**(실사용 보고). 티켓을 더하듯 +로 잇는다.
+    return f'<a href="{u1}">{_d(c.dep)}</a> + <a href="{u2}">{_d(c.ret)}</a>'
 
 
 def _buy_note(cfg, c) -> str:
@@ -139,7 +147,12 @@ def _buy_note(cfg, c) -> str:
     if so == sr == "naver":
         return " · 네이버"
     if "naver" in (so, sr):
-        nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+        # **네이버 글자는 네이버가 파는 그 편이 앞 구간인 검색으로** 보낸다.
+        # 네이버는 편도 URL이 안 되므로(실측 0행, v1.84) 왕복 검색의 앞 구간을
+        # 이용한다. 그냥 왕복으로 보내면 오는 편이 네이버여도 가는 편부터
+        # 보여서 "둘 다 가는 편만 나온다"가 된다 (v2.42 버그 수정).
+        nv = naver_leg_url(c.route, c.dep, c.ret, cfg.adults,
+                           "out" if so == "naver" else "ret")
         if so == "naver":       # 가는 편이 네이버 → 오는 편이 구글
             gg = google_oneway_url(c.route.destination, c.route.origin, c.ret,
                                    cfg.adults,
@@ -208,6 +221,13 @@ def _foot(cfg, body: str) -> str:
         parts.append("⚠는 선호 시간대 밖")
     if "<a href" in body:
         parts.append("날짜를 누르면 예약처로")
+    # ~와 +가 같이 나온 메시지에만 구분을 설명한다 (한쪽뿐이면 비교 대상이
+    # 없어 설명이 소음이다)
+    import re as _re
+    has_plus = bool(_re.search(r"</a> \+ <a", body))
+    has_rng = bool(_re.search(r">[^<]*~[^<]*</a>", body))
+    if has_plus and has_rng:
+        parts.append("~는 왕복권 1장, +는 편도 2장")
     return " · ".join(parts)
 
 

@@ -96,6 +96,26 @@ def google_flights_url(route: Route, dep: dt.date, ret: dt.date,
                 f"&curr=KRW&hl=ko")
 
 
+def naver_leg_url(route: Route, dep: dt.date, ret: dt.date, adults: int,
+                  leg: str) -> str:
+    """특정 편(out/ret)을 **앞 구간에 둔** 네이버 왕복 검색.
+
+    네이버는 편도 페이지 URL이 실측에서 항상 0행이었다(v1.84) — 보낼 수 없다.
+    대신 왕복 검색은 앞 구간부터 보여주므로, 오는 편을 사야 하면 오는 구간을
+    앞에 둔다. 이게 없으면 '네이버' 글자가 항상 가는 편부터 보여줘서
+    "둘 다 눌러도 가는 편만 나온다"가 된다 (v2.42).
+    """
+    o, d = route.origin, route.destination
+    dep_s, ret_s = dep.strftime("%Y%m%d"), ret.strftime("%Y%m%d")
+    kind = "domestic" if route.domestic else "international"
+    if leg == "ret":
+        first, second = f"{d}-{o}-{ret_s}", f"{o}-{d}-{dep_s}"
+    else:
+        first, second = f"{o}-{d}-{dep_s}", f"{d}-{o}-{ret_s}"
+    return (f"https://flight.naver.com/flights/{kind}/"
+            f"{first}/{second}?adult={adults}&fareType=Y")
+
+
 def naver_url(route: Route, dep: dt.date, ret: dt.date, adults: int,
               back: Route | None = None) -> str:
     # 네이버는 다구간 URL 규격이 공개돼 있지 않아, 교차 조합이면 가는 편 기준

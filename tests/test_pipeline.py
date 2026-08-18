@@ -163,6 +163,7 @@ def main():
     test_fresh_rt_is_not_asked_again()
     test_naver_skips_fresh()
     test_domestic_skips_roundtrip()
+    test_no_telegram_command_patterns()
     test_rules_are_enforced_not_remembered()
     test_near_dates_linked()
     test_time_histogram()
@@ -730,6 +731,34 @@ def test_domestic_skips_roundtrip():
     print("OK 왕복 대상: 국내선 제외 · 스위치로 되돌릴 수 있음")
 
 
+
+def test_no_telegram_command_patterns():
+    """**`/숫자`가 봇 명령어로 오인식되는 패턴을 만들지 않는다** (v2.44).
+
+    텔레그램은 이모지·공백 뒤의 `/19` 같은 것을 봇 명령어로 자동 인식한다 —
+    파랗게 되고 누르면 채팅창에 입력된다. `16:20⚠/19:05`(⚠가 시각 뒤)가
+    정확히 그랬다(실사용 보고, 가고시마). ⚠는 시각 앞에 붙는다.
+    슬래시 앞은 항상 숫자여야 한다.
+    """
+    import re as _re, datetime as _dt
+    from app import notify as N
+    cfg = load()
+    route = [r for r in cfg.routes if not r.domestic][0]
+    c = engine.Combo(
+        route=route, dep=_dt.date(2026, 9, 10), nights=3, price=400_000,
+        out_leg={"price": 1, "dep_time": "16:20", "off_window": True},
+        ret_leg={"price": 1, "dep_time": "19:05", "off_window": True})
+    a = engine.Alert(kind="baseline", combo=c, baseline=500_000, prev_min=None)
+    texts = (format_alerts(cfg, [a], [c])
+             + N.format_board(cfg, [c], "x", _dt.date(2026, 8, 1))
+             + N.format_digest(cfg, [c], "", _dt.date(2026, 8, 1)))
+    for m in texts:
+        plain = _re.sub(r"<[^>]+>", "", m)
+        bad = _re.findall(r"(?:^|[^0-9A-Za-z])/[0-9A-Za-z]", plain, _re.M)
+        assert not bad, f"명령어 오인식 패턴: {bad} in {plain[:200]}"
+    print("OK 텔레그램 명령어 오인식 없음 (⚠는 시각 앞)")
+
+
 def test_near_dates_linked():
     """근처 날짜 목록의 각 줄이 눌러서 갈 수 있는 링크인지 (v1.31)."""
     cfg = load()
@@ -811,7 +840,7 @@ def test_off_window_mark_is_short():
                               "dep_time": "18:55", "carrier": "KE"})
     a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
     msg = format_alerts(cfg, [a])[0]
-    assert "16:20⚠/18:55" in msg, msg         # 조건 밖인 쪽에만 ⚠
+    assert "⚠16:20/18:55" in msg, msg         # 조건 밖인 쪽에만 ⚠ (시각 앞, v2.44)
     assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
     print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
 
@@ -1615,6 +1644,12 @@ def test_mixed_source_links():
     c = mk("naver", None)
     head, body = entry_lines(cfg, c)
     assert head.count("<a href=") == 2, head
+    # v2.43: 편도 2장은 구분자가 `+`다. 텔레그램 화면에선 링크 1개/2개가
+    # 밑줄로 구분되지 않아(실사용 보고) 구분자 자체를 기호로 쓴다.
+    assert "</a> + <a" in head, "편도 2장인데 + 구분자가 아니다: " + head
+    rt1 = mk(None, None); rt1.rt_price = 150_000     # 왕복권이 싼 조합
+    h2, _ = entry_lines(cfg, rt1)
+    assert "~" in h2 and " + " not in h2, "왕복권 1장인데 +가 붙었다: " + h2
     out_link, ret_link = head.split("</a>")[0], head.split("</a>")[1]
     assert "flight.naver" in out_link, "가는 편이 네이버인데 링크가 구글"
     assert "google" in ret_link, "오는 편이 구글인데 링크가 네이버"
@@ -1626,6 +1661,17 @@ def test_mixed_source_links():
     nv_part, gg_part = note.split("·<a")
     assert "flight.naver" in nv_part, "네이버 글자가 네이버로 가지 않는다"
     assert "google" in gg_part, "구글 글자가 구글로 가지 않는다"
+    # v2.42: 네이버 글자는 **네이버가 파는 그 편이 앞 구간**이어야 한다.
+    # 늘 가는 편을 앞에 두면 "둘 다 눌러도 가는 편만 나온다"가 된다(실사용 보고).
+    # 이 조합은 가는 편이 네이버 → 네이버 URL 앞 구간이 GMP발이어야 한다.
+    import re as _re
+    first_seg = _re.search(r"naver[.]com/flights/\w+/([A-Z]{3})-", nv_part)
+    assert first_seg.group(1) == "GMP", nv_part[:120]
+
+    c_ret_nv = mk(None, "naver")     # 오는 편이 네이버 → CJU발이 앞 구간
+    note2 = _buy_note(cfg, c_ret_nv)
+    first_seg2 = _re.search(r"naver[.]com/flights/\w+/([A-Z]{3})-", note2)
+    assert first_seg2.group(1) == "CJU", note2[:120]
     assert "(가는편)" not in body, "편 표시는 링크가 대신한다"
 
     # 알림·고정판·전체시세 세 곳이 같은 항목 형식을 쓴다
