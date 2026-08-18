@@ -86,7 +86,7 @@ def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
     head = (f"<b>{round(price / n):,}</b>  {when} {c.nights}박"
             + (_airport_note(c) if airport else ""))
     body = (f"    {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} "
-            f"{_airlines(c)}{_cond(c)}{_buy_note(c)}{note}")
+            f"{_airlines(c)}{_cond(c)}{_buy_note(cfg, c)}{note}")
     return [head, body]
 
 
@@ -124,15 +124,32 @@ def _date_links(cfg, c, rt_cheaper: bool) -> str:
     return f'<a href="{u1}">{_d(c.dep)}</a>~<a href="{u2}">{_d(c.ret)}</a>'
 
 
-def _buy_note(c) -> str:
-    """구글이 아닌 곳에서 사야 할 때만. **어느 편인지는 링크가 말해준다.**"""
+def _buy_note(cfg, c) -> str:
+    """구글이 아닌 곳에서 사야 할 때만.
+
+    혼합 발권이면 **`네이버`·`구글` 글자 자체가 각자의 예약처 링크다** (v2.40).
+    전엔 글자가 안 눌려서, 날짜 두 개 중 어느 쪽이 네이버인지 이 줄만 보고는
+    알 수 없었다 — "따로 발권"이라고 말만 하고 어디서를 안 알려준 셈.
+    날짜 링크와 같은 URL을 쓰므로 새 규칙이 생기는 게 아니라
+    같은 링크가 글자에도 붙는 것뿐이다.
+    """
     if c.is_cross:
         return ""
     so, sr = _sources(c)
     if so == sr == "naver":
         return " · 네이버"
     if "naver" in (so, sr):
-        return " · 네이버·구글 따로 발권"     # 한 곳에서 다 살 수 있다는 오해 방지
+        nv = naver_url(c.route, c.dep, c.ret, cfg.adults)
+        if so == "naver":       # 가는 편이 네이버 → 오는 편이 구글
+            gg = google_oneway_url(c.route.destination, c.route.origin, c.ret,
+                                   cfg.adults,
+                                   window=cfg.window_for(c.route.key, "ret"))
+        else:                    # 오는 편이 네이버 → 가는 편이 구글
+            gg = google_oneway_url(c.route.origin, c.route.destination, c.dep,
+                                   cfg.adults,
+                                   window=cfg.window_for(c.route.key, "out"))
+        return (f' · <a href="{nv}">네이버</a>·<a href="{gg}">구글</a>'
+                f" 따로 발권")
     return ""
 
 

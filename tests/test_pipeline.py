@@ -23,14 +23,38 @@ from app.notify import format_alerts  # noqa: E402
 
 
 CFG = load()
-TODAY0 = dt.date(2026, 8, 1)
+# **기준일은 실제 오늘.** 고정 날짜(2026-08-01)로 두었더니 8월 4일부터
+# 전체 테스트가 달력 때문에 깨졌다 — `fresh_leg_price`가 실제 현재 시각으로
+# 나이를 재기 때문에, 시간이 흐르면 테스트가 채운 leg가 '묵은 것'이 된다.
+# 파이프라인 시험 구간은 오늘을 기준으로 삼고, 출발일도 상대값으로 만든다.
+TODAY0 = dt.date.today()
+
+
+def _pick_dep0() -> list:
+    """시험용 출발일 2개. **제외 요일(일·월·화)·제외일·감시 기간을 피해** 고른다.
+    고정 날짜로 두면 달력이 흐르다 깨진다 — 실제로 8/4부터 2주간 전체 테스트가
+    죽어 있었는데 아무도 몰랐다."""
+    from app import engine as _e
+    d = max(TODAY0, CFG.period_start) + dt.timedelta(days=14)
+    end = CFG.period_end - dt.timedelta(days=max(CFG.trip_nights) + 1)
+    ok = []
+    while d <= end and len(ok) < 2:
+        if not _e.is_excluded_departure(CFG, d):
+            ok.append(d)
+        d += dt.timedelta(days=1)
+    if len(ok) < 2:
+        raise RuntimeError("감시 기간 안에 시험 가능한 출발일이 부족하다")
+    return ok
+
+
+DEP0, DEP1 = _pick_dep0()
 
 
 def fake_fill_legs(state: State, day: dt.date, out_price: int, ret_price: int,
                    route_key: str = "ICN-NGO") -> None:
     """해당 노선의 9월 일부 날짜 leg를 가짜 가격으로 채운다."""
     now = dt.datetime.combine(day, dt.time(12), tzinfo=dt.timezone.utc)
-    for d in [dt.date(2026, 9, 10), dt.date(2026, 9, 11)]:
+    for d in [DEP0, DEP1]:
         state.record_leg(State.leg_key(route_key, "out", d.isoformat()),
                          price=out_price, airline="Jeju Air",
                          dep_time="07:30", arr_time="09:10", now=now)
@@ -1580,12 +1604,12 @@ def test_mixed_source_links():
     c = mk("naver", "naver")
     head, body = entry_lines(cfg, c)
     assert head.count("<a href=") == 1 and "flight.naver" in head, head
-    assert _buy_note(c) == " · 네이버", _buy_note(c)
+    assert _buy_note(cfg, c) == " · 네이버", _buy_note(cfg, c)
 
     # 둘 다 구글 → 네이버 링크도 꼬리표도 없다
     c = mk(None, None)
     head, body = entry_lines(cfg, c)
-    assert "flight.naver" not in head and _buy_note(c) == ""
+    assert "flight.naver" not in head and _buy_note(cfg, c) == ""
 
     # 섞이면 → 날짜마다 각자의 예약처로, 꼬리표는 '따로 발권'
     c = mk("naver", None)
@@ -1594,7 +1618,14 @@ def test_mixed_source_links():
     out_link, ret_link = head.split("</a>")[0], head.split("</a>")[1]
     assert "flight.naver" in out_link, "가는 편이 네이버인데 링크가 구글"
     assert "google" in ret_link, "오는 편이 구글인데 링크가 네이버"
-    assert "따로 발권" in _buy_note(c), _buy_note(c)
+    note = _buy_note(cfg, c)
+    assert "따로 발권" in note, note
+    # v2.40: `네이버`·`구글` 글자가 각자의 예약처 링크다.
+    # 날짜 링크만으론 어느 날짜가 네이버인지 알 수 없다는 피드백에서 나왔다.
+    assert '>네이버</a>' in note and '>구글</a>' in note, note
+    nv_part, gg_part = note.split("·<a")
+    assert "flight.naver" in nv_part, "네이버 글자가 네이버로 가지 않는다"
+    assert "google" in gg_part, "구글 글자가 구글로 가지 않는다"
     assert "(가는편)" not in body, "편 표시는 링크가 대신한다"
 
     # 알림·고정판·전체시세 세 곳이 같은 항목 형식을 쓴다
