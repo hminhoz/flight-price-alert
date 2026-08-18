@@ -93,6 +93,13 @@ class State:
         # 네이버 수집분도 같이 정리한다. 안 하면 지난 날짜가 계속 쌓인다 (v1.91).
         self.naver_legs = {k: v for k, v in self.naver_legs.items()
                            if k.split("|")[2] >= keep}
+        # 왕복 실가도 마찬가지 (v2.41). 키가 `노선|출발일|N박`이라 [1]이 날짜다.
+        # 실측 684건 중 121건(18%)이 지나간 출발일이었다 — 실행마다 커밋되는
+        # 파일이라 쌓일수록 저장소만 커진다.
+        rt = getattr(self, "rt_prices", None)
+        if rt:
+            self.rt_prices = {k: v for k, v in rt.items()
+                              if k.split("|")[1] >= keep}
 
     # ---------- meta ----------
     def first_run_date(self, today: dt.date) -> dt.date:
