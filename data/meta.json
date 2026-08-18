@@ -8,40 +8,40 @@
    406
   ],
   "495657895:h": [
-   "33ddd444457e",
-   "d22cacba6b1e",
-   "1551d6a2b23f",
-   "9e83d28f3f49"
+   "1f1894a5dd6d",
+   "f878088b96e9",
+   "4649ac6fcdab",
+   "c00941ea4aab"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-18T03:07:58+00:00",
+ "cycle_started_at": "2026-08-18T05:06:14+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-18T03:07:58+00:00",
+ "last_cycle_done_at": "2026-08-18T05:06:14+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 920,
   "legs_new": 0,
-  "legs_ok": 839,
+  "legs_ok": 855,
   "naver_new": 0,
-  "rt_asked": 88,
-  "rt_cheaper": 9,
-  "rt_ok": 10,
-  "rt_pool": 495
+  "rt_asked": 260,
+  "rt_cheaper": 128,
+  "rt_ok": 177,
+  "rt_pool": 497
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-18",
  "naver_dstat": {
   "out": [
    2,
-   75,
-   0
+   72,
+   1
   ],
   "out·왕복형": [
    2,
-   75,
+   72,
    0
   ],
   "out·왕복형(재시도)": [
@@ -51,12 +51,12 @@
   ],
   "ret": [
    5,
-   52,
+   49,
    0
   ],
   "ret·왕복형": [
    5,
-   52,
+   49,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -72,14 +72,9 @@
  },
  "naver_last_run": "2026-08-18",
  "naver_remain": 0,
- "naver_runs": 5,
+ "naver_runs": 6,
  "naver_total": 119,
  "recent_runs": [
-  {
-   "at": "2026-08-17T08:15:37+00:00",
-   "attempted": 920,
-   "failed": 0
-  },
   {
    "at": "2026-08-17T10:27:15+00:00",
    "attempted": 920,
@@ -124,21 +119,26 @@
    "at": "2026-08-18T03:19:29+00:00",
    "attempted": 920,
    "failed": 0
+  },
+  {
+   "at": "2026-08-18T05:16:33+00:00",
+   "attempted": 920,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 27,
+  "legs1": 1295,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 9,
-  "gain_sum": 2720743,
-  "ok": 10,
-  "targets": 88
+  "cheaper": 128,
+  "gain_sum": 24098244,
+  "ok": 177,
+  "targets": 260
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159578
+ "tg_offset": 74159579
 }
