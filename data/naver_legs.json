@@ -395,15 +395,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-08-18": {
-  "airline": "에어부산",
-  "at": "2026-08-13T10:58:43+00:00",
-  "card_cond": false,
-  "dep_time": "20:05",
-  "price": 255000,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-08-19": {
   "airline": "진에어",
   "at": "2026-08-16T18:22:28+00:00",
