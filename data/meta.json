@@ -9,29 +9,29 @@
    429
   ],
   "495657895:h": [
-   "5ad4d4d4b6fc",
-   "39e108287433",
-   "1c63fb0ea9db",
-   "5fea703baf1e",
-   "ab94ed8f1b93"
+   "301f49b0d662",
+   "da1b48609c00",
+   "8c28cbc3a588",
+   "3b169139669b",
+   "e6b26de2ce3b"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-19T05:07:14+00:00",
+ "cycle_started_at": "2026-08-19T07:56:22+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-19T05:07:14+00:00",
+ "last_cycle_done_at": "2026-08-19T07:56:22+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 920,
   "legs_new": 0,
-  "legs_ok": 831,
+  "legs_ok": 835,
   "naver_new": 0,
-  "rt_asked": 229,
-  "rt_cheaper": 100,
-  "rt_ok": 152,
-  "rt_pool": 449
+  "rt_asked": 93,
+  "rt_cheaper": 11,
+  "rt_ok": 15,
+  "rt_pool": 446
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-19",
@@ -78,11 +78,6 @@
  "naver_total": 118,
  "recent_runs": [
   {
-   "at": "2026-08-18T12:01:54+00:00",
-   "attempted": 920,
-   "failed": 0
-  },
-  {
    "at": "2026-08-18T12:42:18+00:00",
    "attempted": 920,
    "failed": 0
@@ -126,18 +121,23 @@
    "at": "2026-08-19T05:17:38+00:00",
    "attempted": 920,
    "failed": 0
+  },
+  {
+   "at": "2026-08-19T08:07:00+00:00",
+   "attempted": 920,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 1157,
+  "legs1": 66,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 100,
-  "gain_sum": 19980104,
-  "ok": 152,
-  "targets": 229
+  "cheaper": 11,
+  "gain_sum": 2740554,
+  "ok": 15,
+  "targets": 93
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
