@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-08-20": {
-  "airline": "티웨이항공",
-  "at": "2026-08-19T22:13:12+00:00",
-  "card_cond": false,
-  "dep_time": "13:00",
-  "price": 72800,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-08-21": {
   "airline": "에어서울",
   "at": "2026-08-19T23:56:33+00:00",
@@ -384,15 +375,6 @@
   "dep_time": "12:50",
   "price": 204200,
   "seat": "할인석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-08-20": {
-  "airline": "제주항공",
-  "at": "2026-08-19T20:13:20+00:00",
-  "card_cond": false,
-  "dep_time": "20:50",
-  "price": 256000,
-  "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-08-21": {
