@@ -252,11 +252,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-09": {
-  "airline": "대한항공",
-  "at": "2026-08-16T23:24:34+00:00",
+  "airline": "진에어",
+  "at": "2026-08-21T05:32:45+00:00",
   "card_cond": false,
-  "dep_time": "10:10",
-  "price": 277000,
+  "dep_time": "10:30",
+  "price": 257000,
   "seat": "일반석",
   "source": "naver"
  },
