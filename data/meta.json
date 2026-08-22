@@ -8,28 +8,28 @@
    445
   ],
   "495657895:h": [
-   "3a69ba48d571",
-   "a34bcf6627b7",
-   "84de3b597901",
-   "81beaec9d389"
+   "b3a278b14c96",
+   "ab8cdd38c83d",
+   "523470aee8ff",
+   "094e4ab9e84a"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-22T15:40:53+00:00",
+ "cycle_started_at": "2026-08-22T16:50:53+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-22T15:40:53+00:00",
+ "last_cycle_done_at": "2026-08-22T16:50:53+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 830,
   "legs_new": 0,
-  "legs_ok": 751,
+  "legs_ok": 749,
   "naver_new": 0,
-  "rt_asked": 79,
-  "rt_cheaper": 1,
-  "rt_ok": 2,
-  "rt_pool": 403
+  "rt_asked": 99,
+  "rt_cheaper": 18,
+  "rt_ok": 22,
+  "rt_pool": 399
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-22",
@@ -76,11 +76,6 @@
  "naver_total": 112,
  "recent_runs": [
   {
-   "at": "2026-08-21T21:53:38+00:00",
-   "attempted": 860,
-   "failed": 0
-  },
-  {
    "at": "2026-08-21T23:53:09+00:00",
    "attempted": 860,
    "failed": 0
@@ -124,18 +119,23 @@
    "at": "2026-08-22T15:50:11+00:00",
    "attempted": 830,
    "failed": 0
+  },
+  {
+   "at": "2026-08-22T17:00:46+00:00",
+   "attempted": 830,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 9,
+  "legs1": 91,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 1,
-  "gain_sum": 105827,
-  "ok": 2,
-  "targets": 79
+  "cheaper": 18,
+  "gain_sum": 3262772,
+  "ok": 22,
+  "targets": 99
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
