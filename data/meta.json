@@ -2,48 +2,46 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   460,
-   461,
-   462,
-   463,
-   464
+   467,
+   468,
+   469,
+   470
   ],
   "495657895:h": [
-   "f2466630db21",
-   "8f67b9ccc0f7",
-   "01fecc0db1b1",
-   "7cdb05b1380b",
-   "ab8770aba645"
+   "1ee133fff599",
+   "af415fc6e39b",
+   "20e75891a56a",
+   "776373bf9759"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-23T21:57:57+00:00",
+ "cycle_started_at": "2026-08-23T22:58:53+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-23T21:57:57+00:00",
+ "last_cycle_done_at": "2026-08-23T22:58:53+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 830,
   "legs_new": 0,
-  "legs_ok": 747,
+  "legs_ok": 521,
   "naver_new": 0,
-  "rt_asked": 78,
+  "rt_asked": 65,
   "rt_cheaper": 0,
-  "rt_ok": 1,
-  "rt_pool": 395
+  "rt_ok": 0,
+  "rt_pool": 217
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-24",
  "naver_dstat": {
   "out": [
    2,
-   68,
+   67,
    0
   ],
   "out·왕복형": [
    2,
-   68,
+   67,
    0
   ],
   "out·왕복형(재시도)": [
@@ -53,12 +51,12 @@
   ],
   "ret": [
    5,
-   110,
+   109,
    0
   ],
   "ret·왕복형": [
    5,
-   110,
+   109,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -74,14 +72,9 @@
  },
  "naver_last_run": "2026-08-24",
  "naver_remain": 0,
- "naver_runs": 5,
+ "naver_runs": 6,
  "naver_total": 109,
  "recent_runs": [
-  {
-   "at": "2026-08-23T13:30:10+00:00",
-   "attempted": 830,
-   "failed": 0
-  },
   {
    "at": "2026-08-23T14:10:09+00:00",
    "attempted": 830,
@@ -126,18 +119,23 @@
    "at": "2026-08-23T22:08:56+00:00",
    "attempted": 830,
    "failed": 0
+  },
+  {
+   "at": "2026-08-23T23:16:01+00:00",
+   "attempted": 830,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 2,
+  "legs1": 0,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
   "cheaper": 0,
   "gain_sum": 0,
-  "ok": 1,
-  "targets": 78
+  "ok": 0,
+  "targets": 65
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
