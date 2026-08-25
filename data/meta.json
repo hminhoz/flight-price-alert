@@ -8,40 +8,40 @@
    498
   ],
   "495657895:h": [
-   "95b006370210",
-   "b0b9f1967bcb",
-   "500bb6a7878f",
-   "a0d35c825fd5"
+   "b585682c6683",
+   "94f257dccdd4",
+   "aae4df0c44b8",
+   "d520776382f9"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-25T17:15:57+00:00",
+ "cycle_started_at": "2026-08-25T18:04:01+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-25T17:15:57+00:00",
+ "last_cycle_done_at": "2026-08-25T18:04:01+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 830,
   "legs_new": 0,
-  "legs_ok": 748,
+  "legs_ok": 751,
   "naver_new": 0,
-  "rt_asked": 84,
-  "rt_cheaper": 5,
-  "rt_ok": 6,
-  "rt_pool": 393
+  "rt_asked": 93,
+  "rt_cheaper": 16,
+  "rt_ok": 17,
+  "rt_pool": 389
  },
  "naver_cursor": 63,
- "naver_day": "2026-08-25",
+ "naver_day": "2026-08-26",
  "naver_dstat": {
   "out": [
    3,
-   131,
-   0
+   139,
+   1
   ],
   "out·왕복형": [
    3,
-   131,
+   139,
    0
   ],
   "out·왕복형(재시도)": [
@@ -51,12 +51,12 @@
   ],
   "ret": [
    5,
-   113,
+   111,
    0
   ],
   "ret·왕복형": [
    5,
-   113,
+   111,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -70,16 +70,11 @@
    4
   ]
  },
- "naver_last_run": "2026-08-25",
+ "naver_last_run": "2026-08-26",
  "naver_remain": 0,
- "naver_runs": 6,
- "naver_total": 108,
+ "naver_runs": 1,
+ "naver_total": 107,
  "recent_runs": [
-  {
-   "at": "2026-08-25T08:32:28+00:00",
-   "attempted": 830,
-   "failed": 0
-  },
   {
    "at": "2026-08-25T09:29:21+00:00",
    "attempted": 830,
@@ -124,18 +119,23 @@
    "at": "2026-08-25T17:25:59+00:00",
    "attempted": 830,
    "failed": 0
+  },
+  {
+   "at": "2026-08-25T18:14:27+00:00",
+   "attempted": 830,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 19,
+  "legs1": 61,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 5,
-  "gain_sum": 1405514,
-  "ok": 6,
-  "targets": 84
+  "cheaper": 16,
+  "gain_sum": 2826858,
+  "ok": 17,
+  "targets": 93
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
