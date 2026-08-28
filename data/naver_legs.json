@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-08-28": {
-  "airline": "파라타항공",
-  "at": "2026-08-26T18:43:46+00:00",
-  "card_cond": false,
-  "dep_time": "06:00",
-  "price": 63800,
-  "seat": "특가석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-08-29": {
   "airline": "파라타항공",
   "at": "2026-08-26T18:51:00+00:00",
@@ -338,15 +329,6 @@
   "card_cond": false,
   "dep_time": "12:50",
   "price": 211800,
-  "seat": "할인석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-08-28": {
-  "airline": "진에어",
-  "at": "2026-08-25T21:21:39+00:00",
-  "card_cond": true,
-  "dep_time": "21:15",
-  "price": 197800,
   "seat": "할인석",
   "source": "naver"
  },
