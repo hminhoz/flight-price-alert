@@ -3,7 +3,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:22+00:00",
+  "checked_at": "2026-08-29T21:24:06+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 98200,
@@ -45,7 +45,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:22+00:00",
+  "checked_at": "2026-08-29T21:24:07+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 114200,
@@ -87,7 +87,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:24+00:00",
+  "checked_at": "2026-08-29T21:24:08+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 188200,
@@ -129,7 +129,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:25+00:00",
+  "checked_at": "2026-08-29T21:24:08+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 196200,
@@ -171,7 +171,7 @@
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:25+00:00",
+  "checked_at": "2026-08-29T21:24:09+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 98200,
@@ -213,7 +213,7 @@
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:26+00:00",
+  "checked_at": "2026-08-29T21:24:10+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 110200,
@@ -255,7 +255,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:27+00:00",
+  "checked_at": "2026-08-29T21:24:11+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 208200,
@@ -297,7 +297,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:28+00:00",
+  "checked_at": "2026-08-29T21:24:12+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 196200,
@@ -339,7 +339,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:29+00:00",
+  "checked_at": "2026-08-29T21:24:13+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 96200,
@@ -381,7 +381,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:29+00:00",
+  "checked_at": "2026-08-29T21:24:13+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 110200,
@@ -421,10 +421,10 @@
  },
  "GMP-CJU|out|2026-09-18": {
   "airline": "Jeju Air",
-  "arr_time": "07:30",
+  "arr_time": "07:35",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:30+00:00",
-  "dep_time": "06:15",
+  "checked_at": "2026-08-29T21:24:14+00:00",
+  "dep_time": "06:20",
   "history": {
    "2026-07-30": 176200,
    "2026-07-31": 152800,
@@ -465,7 +465,7 @@
   "airline": "Jin Air",
   "arr_time": "14:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:31+00:00",
+  "checked_at": "2026-08-29T21:24:15+00:00",
   "dep_time": "12:45",
   "history": {
    "2026-07-30": 180200,
@@ -507,7 +507,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:03:37+00:00",
+  "checked_at": "2026-08-29T21:24:20+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 268400,
@@ -544,7 +544,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:03:37+00:00",
+  "checked_at": "2026-08-29T21:24:20+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -554,7 +554,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:37+00:00",
+  "checked_at": "2026-08-29T21:24:20+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 256200,
@@ -596,7 +596,7 @@
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:37+00:00",
+  "checked_at": "2026-08-29T21:24:20+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 152200,
@@ -635,11 +635,11 @@
   "price": 120800
  },
  "GMP-CJU|out|2026-09-30": {
-  "airline": "Jin Air",
-  "arr_time": "07:30",
-  "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:39+00:00",
-  "dep_time": "06:15",
+  "airline": "Jeju Air",
+  "arr_time": "07:35",
+  "carrier": "7C",
+  "checked_at": "2026-08-29T21:24:22+00:00",
+  "dep_time": "06:20",
   "history": {
    "2026-07-30": 100200,
    "2026-07-31": 84800,
@@ -671,16 +671,16 @@
    "2026-08-26": 60800,
    "2026-08-27": 60800,
    "2026-08-28": 64800,
-   "2026-08-29": 64800
+   "2026-08-29": 62800
   },
   "off_window": false,
-  "price": 64800
+  "price": 62800
  },
  "GMP-CJU|out|2026-10-01": {
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:39+00:00",
+  "checked_at": "2026-08-29T21:24:22+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 152200,
@@ -722,7 +722,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:39+00:00",
+  "checked_at": "2026-08-29T21:24:22+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 232200,
@@ -764,7 +764,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:03:41+00:00",
+  "checked_at": "2026-08-29T21:24:24+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 268400,
@@ -787,7 +787,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:41+00:00",
+  "checked_at": "2026-08-29T21:24:24+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 144200,
@@ -829,7 +829,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:42+00:00",
+  "checked_at": "2026-08-29T21:24:24+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 232200,
@@ -871,7 +871,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:03:43+00:00",
+  "checked_at": "2026-08-29T21:24:26+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 270400,
@@ -889,7 +889,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:44+00:00",
+  "checked_at": "2026-08-29T21:24:26+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 208200,
@@ -931,7 +931,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:44+00:00",
+  "checked_at": "2026-08-29T21:24:26+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 126200,
@@ -973,7 +973,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:45+00:00",
+  "checked_at": "2026-08-29T21:24:28+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 180200,
@@ -1015,7 +1015,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:47+00:00",
+  "checked_at": "2026-08-29T21:24:28+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 256200,
@@ -1057,7 +1057,7 @@
   "airline": "Jin Air",
   "arr_time": "07:45",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:47+00:00",
+  "checked_at": "2026-08-29T21:24:28+00:00",
   "dep_time": "06:30",
   "history": {
    "2026-07-30": 242200,
@@ -1099,7 +1099,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:48+00:00",
+  "checked_at": "2026-08-29T21:24:30+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 114200,
@@ -1141,7 +1141,7 @@
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:48+00:00",
+  "checked_at": "2026-08-29T21:24:30+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 144200,
@@ -1183,7 +1183,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:50+00:00",
+  "checked_at": "2026-08-29T21:24:31+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 222200,
@@ -1225,7 +1225,7 @@
   "airline": "Jin Air",
   "arr_time": "07:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:50+00:00",
+  "checked_at": "2026-08-29T21:24:32+00:00",
   "dep_time": "06:15",
   "history": {
    "2026-07-30": 228200,
@@ -1267,7 +1267,7 @@
   "airline": "Air Seoul",
   "arr_time": "07:15",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:51+00:00",
+  "checked_at": "2026-08-29T21:24:32+00:00",
   "dep_time": "06:00",
   "history": {
    "2026-07-30": 96200,
@@ -1477,7 +1477,7 @@
   "airline": "Jin Air",
   "arr_time": "22:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:52+00:00",
+  "checked_at": "2026-08-29T21:24:32+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 156200,
@@ -1519,7 +1519,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:03:54+00:00",
+  "checked_at": "2026-08-29T21:24:34+00:00",
   "dep_time": "",
   "history": {
    "2026-07-29": 268400,
@@ -1561,7 +1561,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:54+00:00",
+  "checked_at": "2026-08-29T21:24:35+00:00",
   "dep_time": "21:10",
   "history": {
    "2026-07-30": 150200,
@@ -1603,7 +1603,7 @@
   "airline": "Jin Air",
   "arr_time": "22:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:54+00:00",
+  "checked_at": "2026-08-29T21:24:35+00:00",
   "dep_time": "21:20",
   "history": {
    "2026-07-30": 122200,
@@ -1645,7 +1645,7 @@
   "airline": "Jin Air",
   "arr_time": "22:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:56+00:00",
+  "checked_at": "2026-08-29T21:24:36+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 134200,
@@ -1684,11 +1684,11 @@
   "price": 76800
  },
  "GMP-CJU|ret|2026-09-12": {
-  "airline": "Jeju Air",
-  "arr_time": "22:05",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:56+00:00",
-  "dep_time": "20:50",
+  "airline": "Jin Air",
+  "arr_time": "22:25",
+  "carrier": "LJ",
+  "checked_at": "2026-08-29T21:24:37+00:00",
+  "dep_time": "21:10",
   "history": {
    "2026-07-30": 186200,
    "2026-07-31": 164800,
@@ -1723,17 +1723,15 @@
    "2026-08-29": 178800
   },
   "off_window": false,
-  "price": 178800
+  "price": 180800
  },
  "GMP-CJU|ret|2026-09-13": {
-  "airline": "",
-  "arr_time": "",
-  "carrier": "",
-  "checked_at": "2026-08-29T18:03:56+00:00",
-  "dep_time": "",
+  "airline": "Jeju Air",
+  "arr_time": "21:20",
+  "carrier": "7C",
+  "checked_at": "2026-08-29T21:24:37+00:00",
+  "dep_time": "20:05",
   "history": {
-   "2026-07-28": 268400,
-   "2026-07-29": 268400,
    "2026-07-30": 268400,
    "2026-07-31": 232800,
    "2026-08-01": 232800,
@@ -1762,16 +1760,17 @@
    "2026-08-24": 254000,
    "2026-08-25": 255000,
    "2026-08-26": 255000,
-   "2026-08-27": 255000
+   "2026-08-27": 255000,
+   "2026-08-29": 254000
   },
   "off_window": false,
-  "price": null
+  "price": 254000
  },
  "GMP-CJU|ret|2026-09-14": {
   "airline": "Jeju Air",
   "arr_time": "22:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:58+00:00",
+  "checked_at": "2026-08-29T21:24:38+00:00",
   "dep_time": "21:05",
   "history": {
    "2026-07-30": 144200,
@@ -1813,7 +1812,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:58+00:00",
+  "checked_at": "2026-08-29T21:24:39+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 114200,
@@ -1855,7 +1854,7 @@
   "airline": "Jin Air",
   "arr_time": "22:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:58+00:00",
+  "checked_at": "2026-08-29T21:24:39+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 114200,
@@ -1897,7 +1896,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:00+00:00",
+  "checked_at": "2026-08-29T21:24:40+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 162200,
@@ -1939,7 +1938,7 @@
   "airline": "Jin Air",
   "arr_time": "22:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:00+00:00",
+  "checked_at": "2026-08-29T21:24:42+00:00",
   "dep_time": "21:10",
   "history": {
    "2026-07-30": 268400,
@@ -1981,7 +1980,7 @@
   "airline": "Jin Air",
   "arr_time": "22:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:01+00:00",
+  "checked_at": "2026-08-29T21:24:42+00:00",
   "dep_time": "21:10",
   "history": {
    "2026-07-30": 136200,
@@ -2020,10 +2019,10 @@
   "price": 104800
  },
  "GMP-CJU|ret|2026-09-22": {
-  "airline": "Jeju Air",
+  "airline": "Jin Air",
   "arr_time": "22:35",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T18:04:02+00:00",
+  "carrier": "LJ",
+  "checked_at": "2026-08-29T21:24:43+00:00",
   "dep_time": "21:20",
   "history": {
    "2026-07-30": 110200,
@@ -2059,13 +2058,13 @@
    "2026-08-29": 86800
   },
   "off_window": false,
-  "price": 86800
+  "price": 88800
  },
  "GMP-CJU|ret|2026-09-23": {
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:02+00:00",
+  "checked_at": "2026-08-29T21:24:44+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 178200,
@@ -2107,7 +2106,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:08+00:00",
+  "checked_at": "2026-08-29T21:24:49+00:00",
   "dep_time": "",
   "history": {
    "2026-07-31": 270400
@@ -2119,7 +2118,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:09+00:00",
+  "checked_at": "2026-08-29T21:24:50+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -2129,7 +2128,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:09+00:00",
+  "checked_at": "2026-08-29T21:24:50+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 268400,
@@ -2171,7 +2170,7 @@
   "airline": "Jin Air",
   "arr_time": "22:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:09+00:00",
+  "checked_at": "2026-08-29T21:24:50+00:00",
   "dep_time": "21:10",
   "history": {
    "2026-07-30": 148200,
@@ -2213,7 +2212,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:09+00:00",
+  "checked_at": "2026-08-29T21:24:51+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 144400,
@@ -2255,7 +2254,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:05",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:04:11+00:00",
+  "checked_at": "2026-08-29T21:24:51+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 268200,
@@ -2297,7 +2296,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:11+00:00",
+  "checked_at": "2026-08-29T21:24:53+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 268400,
@@ -2335,7 +2334,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:16+00:00",
+  "checked_at": "2026-08-29T21:24:58+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 268400,
@@ -2350,7 +2349,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:16+00:00",
+  "checked_at": "2026-08-29T21:24:58+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 248200,
@@ -2392,7 +2391,7 @@
   "airline": "Jin Air",
   "arr_time": "22:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:16+00:00",
+  "checked_at": "2026-08-29T21:24:58+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 187600,
@@ -2434,7 +2433,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:16+00:00",
+  "checked_at": "2026-08-29T21:24:58+00:00",
   "dep_time": "",
   "history": {
    "2026-07-28": 268400,
@@ -2476,7 +2475,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 268400
@@ -2488,7 +2487,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 248200,
@@ -2530,7 +2529,7 @@
   "airline": "Jin Air",
   "arr_time": "22:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "21:20",
   "history": {
    "2026-07-30": 172200,
@@ -2572,7 +2571,7 @@
   "airline": "Jin Air",
   "arr_time": "22:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "21:20",
   "history": {
    "2026-07-30": 172200,
@@ -2614,7 +2613,7 @@
   "airline": "Jin Air",
   "arr_time": "22:30",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 214200,
@@ -2656,7 +2655,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:04:21+00:00",
+  "checked_at": "2026-08-29T21:25:03+00:00",
   "dep_time": "21:05",
   "history": {
    "2026-07-30": 268400,
@@ -2698,7 +2697,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:23+00:00",
+  "checked_at": "2026-08-29T21:25:04+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 180200,
@@ -2740,7 +2739,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:24+00:00",
+  "checked_at": "2026-08-29T21:25:05+00:00",
   "dep_time": "20:50",
   "history": {
    "2026-07-30": 178200,
@@ -2782,7 +2781,7 @@
   "airline": "Jin Air",
   "arr_time": "22:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:24+00:00",
+  "checked_at": "2026-08-29T21:25:06+00:00",
   "dep_time": "21:10",
   "history": {
    "2026-07-30": 178200,
@@ -2824,7 +2823,7 @@
   "airline": "Jin Air",
   "arr_time": "22:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:04:25+00:00",
+  "checked_at": "2026-08-29T21:25:06+00:00",
   "dep_time": "21:20",
   "history": {
    "2026-07-30": 212200,
@@ -2866,7 +2865,7 @@
   "airline": "Air Busan",
   "arr_time": "22:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:04:26+00:00",
+  "checked_at": "2026-08-29T21:25:08+00:00",
   "dep_time": "21:15",
   "history": {
    "2026-07-30": 269400,
@@ -2908,7 +2907,7 @@
   "airline": "Air Busan",
   "arr_time": "21:20",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:04:26+00:00",
+  "checked_at": "2026-08-29T21:25:08+00:00",
   "dep_time": "20:00",
   "history": {
    "2026-07-30": 196400,
@@ -2950,7 +2949,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:04:27+00:00",
+  "checked_at": "2026-08-29T21:25:08+00:00",
   "dep_time": "20:55",
   "history": {
    "2026-07-30": 188200,
@@ -2992,7 +2991,7 @@
   "airline": "Air Seoul",
   "arr_time": "21:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:28+00:00",
+  "checked_at": "2026-08-29T21:25:09+00:00",
   "dep_time": "20:40",
   "history": {
    "2026-07-30": 188200,
@@ -3034,7 +3033,7 @@
   "airline": "Air Seoul",
   "arr_time": "21:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:04:28+00:00",
+  "checked_at": "2026-08-29T21:25:10+00:00",
   "dep_time": "20:40",
   "history": {
    "2026-07-30": 226400,
@@ -3076,7 +3075,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:06+00:00",
+  "checked_at": "2026-08-29T21:17:59+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3118,7 +3117,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:06+00:00",
+  "checked_at": "2026-08-29T21:18:00+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3160,7 +3159,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:07+00:00",
+  "checked_at": "2026-08-29T21:18:00+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 867600,
@@ -3202,7 +3201,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:07+00:00",
+  "checked_at": "2026-08-29T21:18:01+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3244,7 +3243,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:08+00:00",
+  "checked_at": "2026-08-29T21:18:02+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3286,7 +3285,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:09+00:00",
+  "checked_at": "2026-08-29T21:18:02+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 867600,
@@ -3328,7 +3327,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:09+00:00",
+  "checked_at": "2026-08-29T21:18:04+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 867600,
@@ -3370,7 +3369,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:10+00:00",
+  "checked_at": "2026-08-29T21:18:04+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3412,7 +3411,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:10+00:00",
+  "checked_at": "2026-08-29T21:18:04+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3454,7 +3453,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:11+00:00",
+  "checked_at": "2026-08-29T21:18:06+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3496,7 +3495,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:12+00:00",
+  "checked_at": "2026-08-29T21:18:06+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -3538,7 +3537,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:13+00:00",
+  "checked_at": "2026-08-29T21:18:06+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3588,7 +3587,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:57:15+00:00",
+  "checked_at": "2026-08-29T21:18:12+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 926200,
@@ -3613,7 +3612,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:57:15+00:00",
+  "checked_at": "2026-08-29T21:18:13+00:00",
   "dep_time": "",
   "history": {
    "2026-08-20": 1074200,
@@ -3628,7 +3627,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:45",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:15+00:00",
+  "checked_at": "2026-08-29T21:18:13+00:00",
   "dep_time": "08:40",
   "history": {
    "2026-07-30": 882200,
@@ -3670,7 +3669,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:15+00:00",
+  "checked_at": "2026-08-29T21:18:13+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 905400,
@@ -3712,7 +3711,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:17+00:00",
+  "checked_at": "2026-08-29T21:18:13+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -3754,7 +3753,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:17+00:00",
+  "checked_at": "2026-08-29T21:18:14+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -3796,7 +3795,7 @@
   "airline": "ANA",
   "arr_time": "09:50",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:17+00:00",
+  "checked_at": "2026-08-29T21:18:15+00:00",
   "dep_time": "07:40",
   "history": {
    "2026-07-30": 926400,
@@ -3838,7 +3837,7 @@
   "airline": "JAL",
   "arr_time": "14:20",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:18+00:00",
+  "checked_at": "2026-08-29T21:18:15+00:00",
   "dep_time": "12:05",
   "history": {
    "2026-07-30": 926400,
@@ -3880,7 +3879,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:19+00:00",
+  "checked_at": "2026-08-29T21:18:16+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 829200,
@@ -3922,7 +3921,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:19+00:00",
+  "checked_at": "2026-08-29T21:18:16+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -3964,7 +3963,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:45",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:21+00:00",
+  "checked_at": "2026-08-29T21:18:17+00:00",
   "dep_time": "08:40",
   "history": {
    "2026-07-30": 909800,
@@ -4006,7 +4005,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:21+00:00",
+  "checked_at": "2026-08-29T21:18:17+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -4056,7 +4055,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:21+00:00",
+  "checked_at": "2026-08-29T21:18:18+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -4098,7 +4097,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:23+00:00",
+  "checked_at": "2026-08-29T21:18:19+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 790600,
@@ -4140,7 +4139,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:23+00:00",
+  "checked_at": "2026-08-29T21:18:19+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -4182,7 +4181,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:23+00:00",
+  "checked_at": "2026-08-29T21:18:21+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 829200,
@@ -4232,7 +4231,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:24+00:00",
+  "checked_at": "2026-08-29T21:18:21+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -4274,7 +4273,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:25+00:00",
+  "checked_at": "2026-08-29T21:18:21+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -4316,7 +4315,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:25+00:00",
+  "checked_at": "2026-08-29T21:18:23+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 882200,
@@ -4358,7 +4357,7 @@
   "airline": "JAL",
   "arr_time": "10:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:26+00:00",
+  "checked_at": "2026-08-29T21:18:23+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 829200,
@@ -4416,7 +4415,7 @@
   "airline": "JAL",
   "arr_time": "10:20",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:26+00:00",
+  "checked_at": "2026-08-29T21:18:23+00:00",
   "dep_time": "08:15",
   "history": {
    "2026-07-30": 882200,
@@ -4626,7 +4625,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:27+00:00",
+  "checked_at": "2026-08-29T21:18:24+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 960767,
@@ -4668,7 +4667,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:28+00:00",
+  "checked_at": "2026-08-29T21:18:24+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 1052294,
@@ -4710,7 +4709,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:28+00:00",
+  "checked_at": "2026-08-29T21:18:25+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 960767,
@@ -4752,7 +4751,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:29+00:00",
+  "checked_at": "2026-08-29T21:18:26+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -4794,7 +4793,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:30+00:00",
+  "checked_at": "2026-08-29T21:18:26+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -4836,7 +4835,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:30+00:00",
+  "checked_at": "2026-08-29T21:18:27+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 960767,
@@ -4878,7 +4877,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:31+00:00",
+  "checked_at": "2026-08-29T21:18:28+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1052294,
@@ -4920,7 +4919,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:32+00:00",
+  "checked_at": "2026-08-29T21:18:28+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 960767,
@@ -4962,7 +4961,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:32+00:00",
+  "checked_at": "2026-08-29T21:18:30+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5004,7 +5003,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:33+00:00",
+  "checked_at": "2026-08-29T21:18:30+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5054,7 +5053,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:34+00:00",
+  "checked_at": "2026-08-29T21:18:30+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1804807,
@@ -5096,7 +5095,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:34+00:00",
+  "checked_at": "2026-08-29T21:18:31+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 2169163,
@@ -5137,7 +5136,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:34+00:00",
+  "checked_at": "2026-08-29T21:18:32+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 999793,
@@ -5179,7 +5178,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:36+00:00",
+  "checked_at": "2026-08-29T21:18:32+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5221,7 +5220,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:36+00:00",
+  "checked_at": "2026-08-29T21:18:33+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5263,7 +5262,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:36+00:00",
+  "checked_at": "2026-08-29T21:18:34+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1272273,
@@ -5305,7 +5304,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:38+00:00",
+  "checked_at": "2026-08-29T21:18:34+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 2169163,
@@ -5347,7 +5346,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:38+00:00",
+  "checked_at": "2026-08-29T21:18:34+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 1087295,
@@ -5389,7 +5388,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:38+00:00",
+  "checked_at": "2026-08-29T21:18:35+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5431,7 +5430,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:40+00:00",
+  "checked_at": "2026-08-29T21:18:35+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 960767,
@@ -5473,7 +5472,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:40+00:00",
+  "checked_at": "2026-08-29T21:18:36+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1052294,
@@ -5515,7 +5514,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:40+00:00",
+  "checked_at": "2026-08-29T21:18:37+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 1052294,
@@ -5557,7 +5556,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:42+00:00",
+  "checked_at": "2026-08-29T21:18:37+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 1997310,
@@ -5599,7 +5598,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:43+00:00",
+  "checked_at": "2026-08-29T21:18:38+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1087295,
@@ -5641,7 +5640,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:43+00:00",
+  "checked_at": "2026-08-29T21:18:39+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 999793,
@@ -5691,7 +5690,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:44+00:00",
+  "checked_at": "2026-08-29T21:18:39+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1594803,
@@ -5733,7 +5732,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:44+00:00",
+  "checked_at": "2026-08-29T21:18:40+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1997310,
@@ -5775,7 +5774,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:44+00:00",
+  "checked_at": "2026-08-29T21:18:41+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 999793,
@@ -5817,7 +5816,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:46+00:00",
+  "checked_at": "2026-08-29T21:18:41+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 999793,
@@ -5859,7 +5858,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:46+00:00",
+  "checked_at": "2026-08-29T21:18:42+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 999793,
@@ -5901,7 +5900,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:46+00:00",
+  "checked_at": "2026-08-29T21:18:43+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 1052294,
@@ -5943,7 +5942,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:47+00:00",
+  "checked_at": "2026-08-29T21:18:43+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 1590778,
@@ -5985,7 +5984,7 @@
   "airline": "Korean Air",
   "arr_time": "22:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:48+00:00",
+  "checked_at": "2026-08-29T21:18:44+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 1538277,
@@ -6027,7 +6026,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:48+00:00",
+  "checked_at": "2026-08-29T21:18:45+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 999793,
@@ -6069,7 +6068,7 @@
   "airline": "ANA",
   "arr_time": "22:20",
   "carrier": "NH",
-  "checked_at": "2026-08-29T17:57:49+00:00",
+  "checked_at": "2026-08-29T21:18:45+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 999793,
@@ -6111,7 +6110,7 @@
   "airline": "JAL",
   "arr_time": "21:15",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:50+00:00",
+  "checked_at": "2026-08-29T21:18:45+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 1052294,
@@ -6153,7 +6152,7 @@
   "airline": "Korean Air",
   "arr_time": "22:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:50+00:00",
+  "checked_at": "2026-08-29T21:18:46+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 1052294,
@@ -6195,7 +6194,7 @@
   "airline": "JAL",
   "arr_time": "22:05",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:51+00:00",
+  "checked_at": "2026-08-29T21:18:47+00:00",
   "dep_time": "19:30",
   "history": {
    "2026-07-30": 1538277,
@@ -6237,7 +6236,7 @@
   "airline": "JAL",
   "arr_time": "22:05",
   "carrier": "JL",
-  "checked_at": "2026-08-29T17:57:52+00:00",
+  "checked_at": "2026-08-29T21:18:47+00:00",
   "dep_time": "19:30",
   "history": {
    "2026-07-30": 1538277,
@@ -6279,7 +6278,7 @@
   "airline": "Korean Air",
   "arr_time": "22:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:52+00:00",
+  "checked_at": "2026-08-29T21:18:48+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 999793,
@@ -6329,7 +6328,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:53+00:00",
+  "checked_at": "2026-08-29T21:18:48+00:00",
   "dep_time": "20:05",
   "history": {
    "2026-07-30": 2014811,
@@ -6371,7 +6370,7 @@
   "airline": "Korean Air",
   "arr_time": "10:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:53+00:00",
+  "checked_at": "2026-08-29T21:18:49+00:00",
   "dep_time": "09:15",
   "history": {
    "2026-07-30": 282800,
@@ -6413,7 +6412,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "09:50",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:54+00:00",
+  "checked_at": "2026-08-29T21:18:50+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 358200,
@@ -6455,7 +6454,7 @@
   "airline": "Korean Air",
   "arr_time": "10:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:55+00:00",
+  "checked_at": "2026-08-29T21:18:50+00:00",
   "dep_time": "09:15",
   "history": {
    "2026-07-30": 420400,
@@ -6497,7 +6496,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:57:55+00:00",
+  "checked_at": "2026-08-29T21:18:52+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 284200,
@@ -6539,7 +6538,7 @@
   "airline": "Korean Air",
   "arr_time": "10:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:56+00:00",
+  "checked_at": "2026-08-29T21:18:52+00:00",
   "dep_time": "09:15",
   "history": {
    "2026-07-30": 282800,
@@ -6581,7 +6580,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:57:58+00:00",
+  "checked_at": "2026-08-29T21:18:52+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 312800,
@@ -6623,7 +6622,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:57:58+00:00",
+  "checked_at": "2026-08-29T21:18:54+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 312800,
@@ -6665,7 +6664,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:57:58+00:00",
+  "checked_at": "2026-08-29T21:18:54+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 312800,
@@ -6707,7 +6706,7 @@
   "airline": "Korean Air",
   "arr_time": "10:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:59+00:00",
+  "checked_at": "2026-08-29T21:18:54+00:00",
   "dep_time": "09:15",
   "history": {
    "2026-07-30": 282800,
@@ -6744,11 +6743,11 @@
   "price": 247200
  },
  "GMP-KIX|out|2026-09-17": {
-  "airline": "",
-  "arr_time": "",
-  "carrier": "",
-  "checked_at": "2026-08-29T17:58:00+00:00",
-  "dep_time": "",
+  "airline": "Asiana Airlines",
+  "arr_time": "09:50",
+  "carrier": "OZ",
+  "checked_at": "2026-08-29T21:18:56+00:00",
+  "dep_time": "08:10",
   "history": {
    "2026-07-30": 266800,
    "2026-07-31": 266800,
@@ -6783,13 +6782,13 @@
    "2026-08-29": 384800
   },
   "off_window": false,
-  "price": null
+  "price": 384800
  },
  "GMP-KIX|out|2026-09-18": {
   "airline": "Asiana Airlines",
   "arr_time": "09:50",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:00+00:00",
+  "checked_at": "2026-08-29T21:18:56+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 302200,
@@ -6831,7 +6830,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:01+00:00",
+  "checked_at": "2026-08-29T21:18:56+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 284200,
@@ -6873,7 +6872,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:01+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 713800,
@@ -6890,7 +6889,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:01+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -6900,7 +6899,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:01+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 706400,
@@ -6942,7 +6941,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:01+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 592800,
@@ -6984,7 +6983,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:01+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 302200,
@@ -7026,7 +7025,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:02+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 396200,
@@ -7068,7 +7067,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:07+00:00",
+  "checked_at": "2026-08-29T21:19:02+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 782600,
@@ -7110,7 +7109,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:08+00:00",
+  "checked_at": "2026-08-29T21:19:03+00:00",
   "dep_time": "",
   "history": {
    "2026-07-31": 712400,
@@ -7144,7 +7143,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:09+00:00",
+  "checked_at": "2026-08-29T21:19:03+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 334200,
@@ -7186,7 +7185,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "09:50",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:09+00:00",
+  "checked_at": "2026-08-29T21:19:03+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 752800,
@@ -7228,7 +7227,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:10+00:00",
+  "checked_at": "2026-08-29T21:19:05+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 712400,
@@ -7270,7 +7269,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:11+00:00",
+  "checked_at": "2026-08-29T21:19:05+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 436200,
@@ -7312,7 +7311,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:11+00:00",
+  "checked_at": "2026-08-29T21:19:05+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 358200,
@@ -7354,7 +7353,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:12+00:00",
+  "checked_at": "2026-08-29T21:19:06+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 428200,
@@ -7396,7 +7395,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:13+00:00",
+  "checked_at": "2026-08-29T21:19:06+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 516200,
@@ -7438,7 +7437,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "09:50",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:13+00:00",
+  "checked_at": "2026-08-29T21:19:07+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 556200,
@@ -7480,7 +7479,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:14+00:00",
+  "checked_at": "2026-08-29T21:19:08+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 388200,
@@ -7522,7 +7521,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:14+00:00",
+  "checked_at": "2026-08-29T21:19:09+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 388200,
@@ -7564,7 +7563,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:15+00:00",
+  "checked_at": "2026-08-29T21:19:09+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 396200,
@@ -7606,7 +7605,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:16+00:00",
+  "checked_at": "2026-08-29T21:19:09+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 476200,
@@ -7648,7 +7647,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:58:16+00:00",
+  "checked_at": "2026-08-29T21:19:11+00:00",
   "dep_time": "08:00",
   "history": {
    "2026-07-30": 628800,
@@ -7857,7 +7856,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:16+00:00",
+  "checked_at": "2026-08-29T21:19:11+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 395157,
@@ -7899,7 +7898,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:18+00:00",
+  "checked_at": "2026-08-29T21:19:12+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 482659,
@@ -7941,7 +7940,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:18+00:00",
+  "checked_at": "2026-08-29T21:19:12+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 395157,
@@ -7983,7 +7982,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:18+00:00",
+  "checked_at": "2026-08-29T21:19:14+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 395157,
@@ -8025,7 +8024,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:19+00:00",
+  "checked_at": "2026-08-29T21:19:14+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 395157,
@@ -8067,7 +8066,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:20+00:00",
+  "checked_at": "2026-08-29T21:19:14+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 482659,
@@ -8109,7 +8108,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:20+00:00",
+  "checked_at": "2026-08-29T21:19:15+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 482659,
@@ -8151,7 +8150,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:21+00:00",
+  "checked_at": "2026-08-29T21:19:15+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 780164,
@@ -8193,7 +8192,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:22+00:00",
+  "checked_at": "2026-08-29T21:19:15+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 482659,
@@ -8235,7 +8234,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:22+00:00",
+  "checked_at": "2026-08-29T21:19:17+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 395157,
@@ -8277,7 +8276,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:23+00:00",
+  "checked_at": "2026-08-29T21:19:18+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 924001,
@@ -8317,7 +8316,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:23+00:00",
+  "checked_at": "2026-08-29T21:19:18+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 902666,
@@ -8359,7 +8358,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:24+00:00",
+  "checked_at": "2026-08-29T21:19:19+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 710163,
@@ -8401,7 +8400,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:25+00:00",
+  "checked_at": "2026-08-29T21:19:19+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 386407,
@@ -8443,7 +8442,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:26+00:00",
+  "checked_at": "2026-08-29T21:19:19+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 386407,
@@ -8485,7 +8484,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:27+00:00",
+  "checked_at": "2026-08-29T21:19:20+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 1375175,
@@ -8527,7 +8526,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:28+00:00",
+  "checked_at": "2026-08-29T21:19:20+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 1404935,
@@ -8543,7 +8542,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:28+00:00",
+  "checked_at": "2026-08-29T21:19:21+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 850165,
@@ -8585,7 +8584,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:29+00:00",
+  "checked_at": "2026-08-29T21:19:22+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 692663,
@@ -8627,7 +8626,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:29+00:00",
+  "checked_at": "2026-08-29T21:19:22+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 386407,
@@ -8669,7 +8668,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:30+00:00",
+  "checked_at": "2026-08-29T21:19:23+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 727663,
@@ -8711,7 +8710,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:31+00:00",
+  "checked_at": "2026-08-29T21:19:24+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 1060169,
@@ -8753,7 +8752,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:31+00:00",
+  "checked_at": "2026-08-29T21:19:24+00:00",
   "dep_time": "",
   "history": {
    "2026-07-28": 1394620,
@@ -8791,7 +8790,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:32+00:00",
+  "checked_at": "2026-08-29T21:19:25+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 780164,
@@ -8833,7 +8832,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:32+00:00",
+  "checked_at": "2026-08-29T21:19:26+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 692663,
@@ -8875,7 +8874,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:33+00:00",
+  "checked_at": "2026-08-29T21:19:26+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 1044540,
@@ -8917,7 +8916,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:34+00:00",
+  "checked_at": "2026-08-29T21:19:28+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 1375175,
@@ -8959,7 +8958,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:34+00:00",
+  "checked_at": "2026-08-29T21:19:28+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 780164,
@@ -9001,7 +9000,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:35+00:00",
+  "checked_at": "2026-08-29T21:19:29+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 517660,
@@ -9043,7 +9042,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:36+00:00",
+  "checked_at": "2026-08-29T21:19:30+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 692663,
@@ -9085,7 +9084,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:25",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:36+00:00",
+  "checked_at": "2026-08-29T21:19:30+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 762664,
@@ -9124,11 +9123,11 @@
   "price": 750033
  },
  "GMP-KIX|ret|2026-10-18": {
-  "airline": "Korean Air",
-  "arr_time": "21:25",
-  "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:37+00:00",
-  "dep_time": "19:35",
+  "airline": "Asiana Airlines",
+  "arr_time": "22:25",
+  "carrier": "OZ",
+  "checked_at": "2026-08-29T21:19:30+00:00",
+  "dep_time": "20:30",
   "history": {
    "2026-07-30": 832665,
    "2026-07-31": 848693,
@@ -9160,16 +9159,16 @@
    "2026-08-26": 825970,
    "2026-08-27": 824086,
    "2026-08-28": 1352259,
-   "2026-08-29": 1352400
+   "2026-08-29": 887717
   },
   "off_window": false,
-  "price": 1352400
+  "price": 887717
  },
  "GMP-KIX|ret|2026-10-19": {
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:38+00:00",
+  "checked_at": "2026-08-29T21:19:31+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 780164,
@@ -9211,7 +9210,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:38+00:00",
+  "checked_at": "2026-08-29T21:19:31+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 692663,
@@ -9253,7 +9252,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:38+00:00",
+  "checked_at": "2026-08-29T21:19:33+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 517660,
@@ -9295,7 +9294,7 @@
   "airline": "Korean Air",
   "arr_time": "21:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:39+00:00",
+  "checked_at": "2026-08-29T21:19:33+00:00",
   "dep_time": "19:35",
   "history": {
    "2026-07-30": 780164,
@@ -9337,7 +9336,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:15",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:40+00:00",
+  "checked_at": "2026-08-29T21:19:33+00:00",
   "dep_time": "20:25",
   "history": {
    "2026-07-30": 972668,
@@ -9379,7 +9378,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:15",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:41+00:00",
+  "checked_at": "2026-08-29T21:19:34+00:00",
   "dep_time": "20:25",
   "history": {
    "2026-07-30": 780164,
@@ -9421,7 +9420,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:15",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:41+00:00",
+  "checked_at": "2026-08-29T21:19:35+00:00",
   "dep_time": "20:25",
   "history": {
    "2026-07-30": 710163,
@@ -9463,7 +9462,7 @@
   "airline": "Korean Air",
   "arr_time": "21:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:42+00:00",
+  "checked_at": "2026-08-29T21:19:35+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 552660,
@@ -9505,7 +9504,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:15",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:58:43+00:00",
+  "checked_at": "2026-08-29T21:19:36+00:00",
   "dep_time": "20:25",
   "history": {
    "2026-07-30": 1375175,
@@ -10859,7 +10858,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:16+00:00",
+  "checked_at": "2026-08-29T21:17:11+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 634800,
@@ -10901,7 +10900,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:16+00:00",
+  "checked_at": "2026-08-29T21:17:13+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -10943,7 +10942,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:17+00:00",
+  "checked_at": "2026-08-29T21:17:13+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -10985,7 +10984,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:18+00:00",
+  "checked_at": "2026-08-29T21:17:13+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 546200,
@@ -11027,7 +11026,7 @@
   "airline": "Korean Air",
   "arr_time": "15:20",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:19+00:00",
+  "checked_at": "2026-08-29T21:17:14+00:00",
   "dep_time": "12:35",
   "history": {
    "2026-07-30": 772800,
@@ -11069,7 +11068,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:19+00:00",
+  "checked_at": "2026-08-29T21:17:15+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 538200,
@@ -11111,7 +11110,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:20+00:00",
+  "checked_at": "2026-08-29T21:17:15+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 634800,
@@ -11153,7 +11152,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:20+00:00",
+  "checked_at": "2026-08-29T21:17:16+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 546200,
@@ -11195,7 +11194,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:21+00:00",
+  "checked_at": "2026-08-29T21:17:17+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 634800,
@@ -11237,7 +11236,7 @@
   "airline": "Jin Air",
   "arr_time": "11:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:22+00:00",
+  "checked_at": "2026-08-29T21:17:17+00:00",
   "dep_time": "08:20",
   "history": {
    "2026-07-30": 455400,
@@ -11279,7 +11278,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "13:00",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:23+00:00",
+  "checked_at": "2026-08-29T21:17:18+00:00",
   "dep_time": "10:15",
   "history": {
    "2026-07-30": 416200,
@@ -11321,7 +11320,7 @@
   "airline": "Korean Air",
   "arr_time": "13:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:23+00:00",
+  "checked_at": "2026-08-29T21:17:19+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 456200,
@@ -11371,7 +11370,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:26+00:00",
+  "checked_at": "2026-08-29T21:17:22+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 1001400,
@@ -11404,7 +11403,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:26+00:00",
+  "checked_at": "2026-08-29T21:17:22+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 933800,
@@ -11425,7 +11424,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:26+00:00",
+  "checked_at": "2026-08-29T21:17:22+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -11467,7 +11466,7 @@
   "airline": "Jin Air",
   "arr_time": "11:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:26+00:00",
+  "checked_at": "2026-08-29T21:17:23+00:00",
   "dep_time": "08:20",
   "history": {
    "2026-07-30": 546200,
@@ -11509,7 +11508,7 @@
   "airline": "Korean Air",
   "arr_time": "15:20",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:27+00:00",
+  "checked_at": "2026-08-29T21:17:23+00:00",
   "dep_time": "12:35",
   "history": {
    "2026-07-30": 506200,
@@ -11551,7 +11550,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:27+00:00",
+  "checked_at": "2026-08-29T21:17:24+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -11593,7 +11592,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:28+00:00",
+  "checked_at": "2026-08-29T21:17:24+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -11635,7 +11634,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:29+00:00",
+  "checked_at": "2026-08-29T21:17:25+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 933800,
@@ -11677,7 +11676,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:29+00:00",
+  "checked_at": "2026-08-29T21:17:25+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 606200,
@@ -11719,7 +11718,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:30+00:00",
+  "checked_at": "2026-08-29T21:17:26+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -11761,7 +11760,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:31+00:00",
+  "checked_at": "2026-08-29T21:17:26+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 925600,
@@ -11803,7 +11802,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:31+00:00",
+  "checked_at": "2026-08-29T21:17:27+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 634800,
@@ -11845,7 +11844,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:32+00:00",
+  "checked_at": "2026-08-29T21:17:27+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 634800,
@@ -11887,7 +11886,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:33+00:00",
+  "checked_at": "2026-08-29T21:17:28+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 598200,
@@ -11929,7 +11928,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:34+00:00",
+  "checked_at": "2026-08-29T21:17:28+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 712800,
@@ -11971,7 +11970,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:34+00:00",
+  "checked_at": "2026-08-29T21:17:29+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 659400,
@@ -12013,7 +12012,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:36+00:00",
+  "checked_at": "2026-08-29T21:17:30+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 634800,
@@ -12055,7 +12054,7 @@
   "airline": "Jeju Air",
   "arr_time": "15:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:36+00:00",
+  "checked_at": "2026-08-29T21:17:30+00:00",
   "dep_time": "12:15",
   "history": {
    "2026-07-30": 448200,
@@ -12097,7 +12096,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:36+00:00",
+  "checked_at": "2026-08-29T21:17:31+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 506200,
@@ -12139,7 +12138,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:38+00:00",
+  "checked_at": "2026-08-29T21:17:32+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 506200,
@@ -12181,7 +12180,7 @@
   "airline": "Korean Air",
   "arr_time": "12:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:38+00:00",
+  "checked_at": "2026-08-29T21:17:32+00:00",
   "dep_time": "10:05",
   "history": {
    "2026-07-30": 976800,
@@ -12391,7 +12390,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:38+00:00",
+  "checked_at": "2026-08-29T21:17:33+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 1033394,
@@ -12433,7 +12432,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:40+00:00",
+  "checked_at": "2026-08-29T21:17:34+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 1033394,
@@ -12475,7 +12474,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:40+00:00",
+  "checked_at": "2026-08-29T21:17:34+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 921596,
@@ -12511,13 +12510,13 @@
    "2026-08-29": 610112
   },
   "off_window": true,
-  "price": 610112
+  "price": 663465
  },
  "ICN-CTS|ret|2026-09-08": {
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:40+00:00",
+  "checked_at": "2026-08-29T21:17:35+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 920517,
@@ -12559,7 +12558,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:42+00:00",
+  "checked_at": "2026-08-29T21:17:36+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 920517,
@@ -12601,7 +12600,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:42+00:00",
+  "checked_at": "2026-08-29T21:17:36+00:00",
   "dep_time": "14:50",
   "history": {
    "2026-07-30": 1130520,
@@ -12640,11 +12639,11 @@
   "price": 1025745
  },
  "ICN-CTS|ret|2026-09-13": {
-  "airline": "Jeju Air",
-  "arr_time": "19:10",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:42+00:00",
-  "dep_time": "16:00",
+  "airline": "T'Way Air",
+  "arr_time": "17:40",
+  "carrier": "TW",
+  "checked_at": "2026-08-29T21:17:36+00:00",
+  "dep_time": "14:30",
   "history": {
    "2026-07-30": 868016,
    "2026-07-31": 884724,
@@ -12679,13 +12678,13 @@
    "2026-08-29": 825243
   },
   "off_window": true,
-  "price": 1016279
+  "price": 825243
  },
  "ICN-CTS|ret|2026-09-14": {
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:44+00:00",
+  "checked_at": "2026-08-29T21:17:38+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 815515,
@@ -12727,7 +12726,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:44+00:00",
+  "checked_at": "2026-08-29T21:17:38+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 745514,
@@ -12769,7 +12768,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:44+00:00",
+  "checked_at": "2026-08-29T21:17:39+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 745514,
@@ -12811,7 +12810,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:46+00:00",
+  "checked_at": "2026-08-29T21:17:39+00:00",
   "dep_time": "14:50",
   "history": {
    "2026-07-30": 1130520,
@@ -12853,7 +12852,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:46+00:00",
+  "checked_at": "2026-08-29T21:17:40+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 627386,
@@ -12895,7 +12894,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:46+00:00",
+  "checked_at": "2026-08-29T21:17:40+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 464634,
@@ -12937,7 +12936,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:47+00:00",
+  "checked_at": "2026-08-29T21:17:41+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 491759,
@@ -12979,7 +12978,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:48+00:00",
+  "checked_at": "2026-08-29T21:17:42+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 417383,
@@ -13015,14 +13014,14 @@
    "2026-08-29": 429402
   },
   "off_window": true,
-  "price": 463823
+  "price": 429402
  },
  "ICN-CTS|ret|2026-09-26": {
-  "airline": "Jeju Air",
-  "arr_time": "19:10",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:48+00:00",
-  "dep_time": "16:00",
+  "airline": "Asiana Airlines",
+  "arr_time": "17:45",
+  "carrier": "OZ",
+  "checked_at": "2026-08-29T21:17:42+00:00",
+  "dep_time": "14:30",
   "history": {
    "2026-07-30": 1655529,
    "2026-07-31": 1687396,
@@ -13057,13 +13056,13 @@
    "2026-08-29": 1016279
   },
   "off_window": true,
-  "price": 1016279
+  "price": 1232271
  },
  "ICN-CTS|ret|2026-09-27": {
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:49+00:00",
+  "checked_at": "2026-08-29T21:17:42+00:00",
   "dep_time": "",
   "history": {
    "2026-07-28": 1048006,
@@ -13090,7 +13089,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:49+00:00",
+  "checked_at": "2026-08-29T21:17:44+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 1428025,
@@ -13132,7 +13131,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:50+00:00",
+  "checked_at": "2026-08-29T21:17:44+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 417383,
@@ -13174,7 +13173,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:51+00:00",
+  "checked_at": "2026-08-29T21:17:44+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 640512,
@@ -13216,7 +13215,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:51+00:00",
+  "checked_at": "2026-08-29T21:17:46+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 681637,
@@ -13258,7 +13257,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:52+00:00",
+  "checked_at": "2026-08-29T21:17:46+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 973018,
@@ -13300,7 +13299,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:48+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 1848033,
@@ -13342,7 +13341,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:48+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 1078019,
@@ -13384,7 +13383,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:48+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 640512,
@@ -13426,7 +13425,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "17:45",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:49+00:00",
   "dep_time": "14:30",
   "history": {
    "2026-07-30": 1130520,
@@ -13468,7 +13467,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "17:45",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:50+00:00",
   "dep_time": "14:30",
   "history": {
    "2026-07-30": 1340524,
@@ -13510,7 +13509,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:56+00:00",
+  "checked_at": "2026-08-29T21:17:51+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 990518,
@@ -13552,7 +13551,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:57+00:00",
+  "checked_at": "2026-08-29T21:17:51+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 745514,
@@ -13594,7 +13593,7 @@
   "airline": "Korean Air",
   "arr_time": "19:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:56:58+00:00",
+  "checked_at": "2026-08-29T21:17:52+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 674637,
@@ -13636,7 +13635,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:59+00:00",
+  "checked_at": "2026-08-29T21:17:52+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 868016,
@@ -13678,7 +13677,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:59+00:00",
+  "checked_at": "2026-08-29T21:17:53+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 681637,
@@ -13720,7 +13719,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:00+00:00",
+  "checked_at": "2026-08-29T21:17:53+00:00",
   "dep_time": "14:50",
   "history": {
    "2026-07-30": 815515,
@@ -13762,7 +13761,7 @@
   "airline": "Jeju Air",
   "arr_time": "19:10",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:57:00+00:00",
+  "checked_at": "2026-08-29T21:17:54+00:00",
   "dep_time": "16:00",
   "history": {
    "2026-07-30": 538135,
@@ -13804,7 +13803,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:01+00:00",
+  "checked_at": "2026-08-29T21:17:56+00:00",
   "dep_time": "14:50",
   "history": {
    "2026-07-30": 745514,
@@ -13846,7 +13845,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "17:45",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:57:01+00:00",
+  "checked_at": "2026-08-29T21:17:56+00:00",
   "dep_time": "14:30",
   "history": {
    "2026-07-30": 973018,
@@ -13888,7 +13887,7 @@
   "airline": "Korean Air",
   "arr_time": "20:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:02+00:00",
+  "checked_at": "2026-08-29T21:17:56+00:00",
   "dep_time": "16:50",
   "history": {
    "2026-07-30": 1253022,
@@ -13925,7 +13924,7 @@
   "airline": "Korean Air",
   "arr_time": "17:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:03+00:00",
+  "checked_at": "2026-08-29T21:17:57+00:00",
   "dep_time": "14:00",
   "history": {
    "2026-07-30": 1428025,
@@ -13967,7 +13966,7 @@
   "airline": "Korean Air",
   "arr_time": "20:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:03+00:00",
+  "checked_at": "2026-08-29T21:17:57+00:00",
   "dep_time": "16:50",
   "history": {
    "2026-07-30": 920517,
@@ -14009,7 +14008,7 @@
   "airline": "Korean Air",
   "arr_time": "17:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:04+00:00",
+  "checked_at": "2026-08-29T21:17:58+00:00",
   "dep_time": "14:00",
   "history": {
    "2026-08-07": 760130,
@@ -14033,7 +14032,7 @@
   "airline": "Korean Air",
   "arr_time": "17:15",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:57:05+00:00",
+  "checked_at": "2026-08-29T21:17:59+00:00",
   "dep_time": "14:00",
   "history": {
    "2026-07-30": 1060519,
@@ -14075,7 +14074,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:30",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:35+00:00",
+  "checked_at": "2026-08-29T21:22:24+00:00",
   "dep_time": "08:05",
   "history": {
    "2026-07-30": 159000,
@@ -14117,7 +14116,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:35+00:00",
+  "checked_at": "2026-08-29T21:22:25+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 235000,
@@ -14159,7 +14158,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:36+00:00",
+  "checked_at": "2026-08-29T21:22:25+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 273000,
@@ -14201,7 +14200,7 @@
   "airline": "Jeju Air",
   "arr_time": "08:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:37+00:00",
+  "checked_at": "2026-08-29T21:22:26+00:00",
   "dep_time": "06:30",
   "history": {
    "2026-07-30": 287000,
@@ -14243,7 +14242,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:30",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:37+00:00",
+  "checked_at": "2026-08-29T21:22:27+00:00",
   "dep_time": "08:05",
   "history": {
    "2026-07-30": 187000,
@@ -14285,7 +14284,7 @@
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:38+00:00",
+  "checked_at": "2026-08-29T21:22:27+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 217000,
@@ -14327,7 +14326,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:39+00:00",
+  "checked_at": "2026-08-29T21:22:28+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 305000,
@@ -14369,7 +14368,7 @@
   "airline": "Jeju Air",
   "arr_time": "12:40",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:39+00:00",
+  "checked_at": "2026-08-29T21:22:29+00:00",
   "dep_time": "11:10",
   "history": {
    "2026-07-30": 305000,
@@ -14411,7 +14410,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:40+00:00",
+  "checked_at": "2026-08-29T21:22:29+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 159000,
@@ -14453,7 +14452,7 @@
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:42+00:00",
+  "checked_at": "2026-08-29T21:22:30+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 159000,
@@ -14495,7 +14494,7 @@
   "airline": "Jeju Air",
   "arr_time": "11:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:42+00:00",
+  "checked_at": "2026-08-29T21:22:30+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 217000,
@@ -14535,10 +14534,10 @@
  },
  "ICN-FUK|out|2026-09-19": {
   "airline": "Jeju Air",
-  "arr_time": "12:40",
+  "arr_time": "11:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:42+00:00",
-  "dep_time": "11:10",
+  "checked_at": "2026-08-29T21:22:31+00:00",
+  "dep_time": "09:45",
   "history": {
    "2026-07-30": 277000,
    "2026-07-31": 219400,
@@ -14579,7 +14578,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:01:46+00:00",
+  "checked_at": "2026-08-29T21:22:34+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -14589,18 +14588,18 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:01:47+00:00",
+  "checked_at": "2026-08-29T21:22:35+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
   "price": null
  },
  "ICN-FUK|out|2026-09-25": {
-  "airline": "Jeju Air",
-  "arr_time": "12:40",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:47+00:00",
-  "dep_time": "11:10",
+  "airline": "Air Seoul",
+  "arr_time": "09:30",
+  "carrier": "RS",
+  "checked_at": "2026-08-29T21:22:35+00:00",
+  "dep_time": "08:05",
   "history": {
    "2026-07-30": 474800,
    "2026-07-31": 347400,
@@ -14635,13 +14634,13 @@
    "2026-08-29": 466800
   },
   "off_window": false,
-  "price": 466800
+  "price": 467400
  },
  "ICN-FUK|out|2026-09-26": {
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:47+00:00",
+  "checked_at": "2026-08-29T21:22:35+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 300200,
@@ -14683,7 +14682,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:30",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:49+00:00",
+  "checked_at": "2026-08-29T21:22:36+00:00",
   "dep_time": "08:05",
   "history": {
    "2026-07-30": 200200,
@@ -14725,7 +14724,7 @@
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:49+00:00",
+  "checked_at": "2026-08-29T21:22:37+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 341000,
@@ -14767,7 +14766,7 @@
   "airline": "Jeju Air",
   "arr_time": "08:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:49+00:00",
+  "checked_at": "2026-08-29T21:22:38+00:00",
   "dep_time": "06:30",
   "history": {
    "2026-07-30": 571400,
@@ -14809,7 +14808,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:01:50+00:00",
+  "checked_at": "2026-08-29T21:22:38+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 572400,
@@ -14843,7 +14842,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:30",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:50+00:00",
+  "checked_at": "2026-08-29T21:22:39+00:00",
   "dep_time": "08:05",
   "history": {
    "2026-07-30": 257000,
@@ -14885,7 +14884,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:51+00:00",
+  "checked_at": "2026-08-29T21:22:39+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 460200,
@@ -14927,7 +14926,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:52+00:00",
+  "checked_at": "2026-08-29T21:22:40+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 571400,
@@ -14968,7 +14967,7 @@
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:52+00:00",
+  "checked_at": "2026-08-29T21:22:41+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 433000,
@@ -15010,7 +15009,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:52+00:00",
+  "checked_at": "2026-08-29T21:22:41+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 280200,
@@ -15052,7 +15051,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:54+00:00",
+  "checked_at": "2026-08-29T21:22:42+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 360200,
@@ -15094,7 +15093,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:54+00:00",
+  "checked_at": "2026-08-29T21:22:43+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 400200,
@@ -15136,7 +15135,7 @@
   "airline": "Air Seoul",
   "arr_time": "08:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:55+00:00",
+  "checked_at": "2026-08-29T21:22:43+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 433000,
@@ -15178,7 +15177,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:56+00:00",
+  "checked_at": "2026-08-29T21:22:44+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 297000,
@@ -15220,7 +15219,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:57+00:00",
+  "checked_at": "2026-08-29T21:22:45+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 315000,
@@ -15262,7 +15261,7 @@
   "airline": "Air Busan",
   "arr_time": "13:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:57+00:00",
+  "checked_at": "2026-08-29T21:22:45+00:00",
   "dep_time": "11:30",
   "history": {
    "2026-07-30": 400200,
@@ -15304,7 +15303,7 @@
   "airline": "Air Busan",
   "arr_time": "08:55",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:58+00:00",
+  "checked_at": "2026-08-29T21:22:46+00:00",
   "dep_time": "07:20",
   "history": {
    "2026-07-30": 420200,
@@ -15346,7 +15345,7 @@
   "airline": "Jeju Air",
   "arr_time": "07:55",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:58+00:00",
+  "checked_at": "2026-08-29T21:22:47+00:00",
   "dep_time": "06:30",
   "history": {
    "2026-07-30": 265000,
@@ -15556,7 +15555,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:01:59+00:00",
+  "checked_at": "2026-08-29T21:22:47+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 504534,
@@ -15598,7 +15597,7 @@
   "airline": "Jin Air",
   "arr_time": "21:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:01:59+00:00",
+  "checked_at": "2026-08-29T21:22:48+00:00",
   "dep_time": "19:40",
   "history": {
    "2026-07-30": 495784,
@@ -15640,7 +15639,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:00+00:00",
+  "checked_at": "2026-08-29T21:22:49+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 345282,
@@ -15682,7 +15681,7 @@
   "airline": "Jin Air",
   "arr_time": "19:45",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:01+00:00",
+  "checked_at": "2026-08-29T21:22:49+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 345282,
@@ -15724,7 +15723,7 @@
   "airline": "Jin Air",
   "arr_time": "19:45",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:01+00:00",
+  "checked_at": "2026-08-29T21:22:50+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 298031,
@@ -15766,7 +15765,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:02+00:00",
+  "checked_at": "2026-08-29T21:22:51+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 408283,
@@ -15808,7 +15807,7 @@
   "airline": "Jin Air",
   "arr_time": "21:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:02+00:00",
+  "checked_at": "2026-08-29T21:22:51+00:00",
   "dep_time": "19:40",
   "history": {
    "2026-07-30": 525535,
@@ -15850,7 +15849,7 @@
   "airline": "Jin Air",
   "arr_time": "19:45",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:03+00:00",
+  "checked_at": "2026-08-29T21:22:53+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 373282,
@@ -15892,7 +15891,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:04+00:00",
+  "checked_at": "2026-08-29T21:22:53+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 358407,
@@ -15934,7 +15933,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:05+00:00",
+  "checked_at": "2026-08-29T21:22:53+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 357532,
@@ -15976,7 +15975,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:05+00:00",
+  "checked_at": "2026-08-29T21:22:54+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 778414,
@@ -16018,7 +16017,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:06+00:00",
+  "checked_at": "2026-08-29T21:22:55+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 716288,
@@ -16060,7 +16059,7 @@
   "airline": "Jin Air",
   "arr_time": "21:00",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:07+00:00",
+  "checked_at": "2026-08-29T21:22:56+00:00",
   "dep_time": "19:40",
   "history": {
    "2026-07-30": 345282,
@@ -16102,7 +16101,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:07+00:00",
+  "checked_at": "2026-08-29T21:22:56+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 280530,
@@ -16144,7 +16143,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:08+00:00",
+  "checked_at": "2026-08-29T21:22:57+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 329531,
@@ -16186,7 +16185,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:08+00:00",
+  "checked_at": "2026-08-29T21:22:57+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 679537,
@@ -16228,7 +16227,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:02:11+00:00",
+  "checked_at": "2026-08-29T21:23:01+00:00",
   "dep_time": "",
   "history": {
    "2026-08-07": 1204074,
@@ -16239,11 +16238,11 @@
   "price": null
  },
  "ICN-FUK|ret|2026-09-28": {
-  "airline": "Jeju Air",
-  "arr_time": "21:20",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:11+00:00",
-  "dep_time": "19:50",
+  "airline": "Jin Air",
+  "arr_time": "21:00",
+  "carrier": "LJ",
+  "checked_at": "2026-08-29T21:23:01+00:00",
+  "dep_time": "19:40",
   "history": {
    "2026-07-30": 525535,
    "2026-07-31": 535651,
@@ -16278,13 +16277,13 @@
    "2026-08-29": 544368
   },
   "off_window": false,
-  "price": 544368
+  "price": 614931
  },
  "ICN-FUK|ret|2026-09-29": {
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:11+00:00",
+  "checked_at": "2026-08-29T21:23:01+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 364532,
@@ -16326,7 +16325,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:12+00:00",
+  "checked_at": "2026-08-29T21:23:01+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 347032,
@@ -16368,7 +16367,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:12+00:00",
+  "checked_at": "2026-08-29T21:23:02+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 525535,
@@ -16410,7 +16409,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:13+00:00",
+  "checked_at": "2026-08-29T21:23:02+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 614786,
@@ -16452,7 +16451,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:02:15+00:00",
+  "checked_at": "2026-08-29T21:23:05+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 769639,
@@ -16471,7 +16470,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:15+00:00",
+  "checked_at": "2026-08-29T21:23:05+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 469534,
@@ -16513,7 +16512,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:15+00:00",
+  "checked_at": "2026-08-29T21:23:05+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 425783,
@@ -16555,7 +16554,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:16+00:00",
+  "checked_at": "2026-08-29T21:23:06+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 614786,
@@ -16597,7 +16596,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:02:16+00:00",
+  "checked_at": "2026-08-29T21:23:06+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 749539,
@@ -16619,7 +16618,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:17+00:00",
+  "checked_at": "2026-08-29T21:23:07+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 462534,
@@ -16661,7 +16660,7 @@
   "airline": "Jin Air",
   "arr_time": "19:45",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:18+00:00",
+  "checked_at": "2026-08-29T21:23:08+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 434533,
@@ -16703,7 +16702,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:18+00:00",
+  "checked_at": "2026-08-29T21:23:08+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 298031,
@@ -16745,7 +16744,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:19+00:00",
+  "checked_at": "2026-08-29T21:23:09+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 469534,
@@ -16787,7 +16786,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:20+00:00",
+  "checked_at": "2026-08-29T21:23:10+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 579786,
@@ -16829,7 +16828,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:21+00:00",
+  "checked_at": "2026-08-29T21:23:10+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 488784,
@@ -16871,7 +16870,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:21+00:00",
+  "checked_at": "2026-08-29T21:23:10+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 434533,
@@ -16913,7 +16912,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:23+00:00",
+  "checked_at": "2026-08-29T21:23:12+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 357532,
@@ -16955,7 +16954,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:23+00:00",
+  "checked_at": "2026-08-29T21:23:12+00:00",
   "dep_time": "20:30",
   "history": {
    "2026-07-30": 495784,
@@ -16997,7 +16996,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:23+00:00",
+  "checked_at": "2026-08-29T21:23:13+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 679537,
@@ -17039,7 +17038,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:10",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:25+00:00",
+  "checked_at": "2026-08-29T21:23:14+00:00",
   "dep_time": "20:20",
   "history": {
    "2026-07-30": 539535,
@@ -17081,7 +17080,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:10",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:25+00:00",
+  "checked_at": "2026-08-29T21:23:14+00:00",
   "dep_time": "20:20",
   "history": {
    "2026-07-30": 469534,
@@ -17123,7 +17122,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:10",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:25+00:00",
+  "checked_at": "2026-08-29T21:23:15+00:00",
   "dep_time": "20:20",
   "history": {
    "2026-07-30": 462534,
@@ -17165,7 +17164,7 @@
   "airline": "T'Way Air",
   "arr_time": "22:10",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:26+00:00",
+  "checked_at": "2026-08-29T21:23:16+00:00",
   "dep_time": "20:20",
   "history": {
    "2026-07-30": 618286,
@@ -17719,7 +17718,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:05",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:00:43+00:00",
+  "checked_at": "2026-08-29T21:21:32+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 158000,
@@ -17761,7 +17760,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:43+00:00",
+  "checked_at": "2026-08-29T21:21:34+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 178200,
@@ -17803,7 +17802,7 @@
   "airline": "Jeju Air",
   "arr_time": "11:00",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:00:44+00:00",
+  "checked_at": "2026-08-29T21:21:34+00:00",
   "dep_time": "09:05",
   "history": {
    "2026-07-30": 198200,
@@ -17845,7 +17844,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:45+00:00",
+  "checked_at": "2026-08-29T21:21:35+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 226400,
@@ -17887,7 +17886,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:05",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:00:45+00:00",
+  "checked_at": "2026-08-29T21:21:36+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 158000,
@@ -17929,7 +17928,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:00:46+00:00",
+  "checked_at": "2026-08-29T21:21:36+00:00",
   "dep_time": "07:15",
   "history": {
    "2026-07-30": 207000,
@@ -17971,7 +17970,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:47+00:00",
+  "checked_at": "2026-08-29T21:21:37+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 247000,
@@ -18013,7 +18012,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:00:47+00:00",
+  "checked_at": "2026-08-29T21:21:38+00:00",
   "dep_time": "07:15",
   "history": {
    "2026-07-30": 178200,
@@ -18055,7 +18054,7 @@
   "airline": "Air Busan",
   "arr_time": "11:30",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:48+00:00",
+  "checked_at": "2026-08-29T21:21:38+00:00",
   "dep_time": "09:40",
   "history": {
    "2026-07-30": 158000,
@@ -18097,7 +18096,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:00:49+00:00",
+  "checked_at": "2026-08-29T21:21:39+00:00",
   "dep_time": "07:15",
   "history": {
    "2026-07-30": 158000,
@@ -18139,7 +18138,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:00:49+00:00",
+  "checked_at": "2026-08-29T21:21:40+00:00",
   "dep_time": "10:50",
   "history": {
    "2026-07-30": 171000,
@@ -18181,7 +18180,7 @@
   "airline": "Air Busan",
   "arr_time": "11:30",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:50+00:00",
+  "checked_at": "2026-08-29T21:21:41+00:00",
   "dep_time": "09:40",
   "history": {
    "2026-07-30": 197000,
@@ -18223,7 +18222,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:54+00:00",
+  "checked_at": "2026-08-29T21:21:43+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 669000,
@@ -18263,7 +18262,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:54+00:00",
+  "checked_at": "2026-08-29T21:21:44+00:00",
   "dep_time": "",
   "history": {
    "2026-08-13": 681400,
@@ -18283,7 +18282,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:54+00:00",
+  "checked_at": "2026-08-29T21:21:44+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 357000,
@@ -18325,7 +18324,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:00",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:00:54+00:00",
+  "checked_at": "2026-08-29T21:21:44+00:00",
   "dep_time": "10:50",
   "history": {
    "2026-07-30": 240200,
@@ -18367,7 +18366,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:56+00:00",
+  "checked_at": "2026-08-29T21:21:45+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 173000,
@@ -18409,7 +18408,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:56+00:00",
+  "checked_at": "2026-08-29T21:21:46+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 357000,
@@ -18451,7 +18450,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:56+00:00",
+  "checked_at": "2026-08-29T21:21:46+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 556200,
@@ -18493,7 +18492,7 @@
   "airline": "Air Busan",
   "arr_time": "11:30",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:00:58+00:00",
+  "checked_at": "2026-08-29T21:21:47+00:00",
   "dep_time": "09:40",
   "history": {
    "2026-07-30": 711400,
@@ -18535,7 +18534,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:00:58+00:00",
+  "checked_at": "2026-08-29T21:21:49+00:00",
   "dep_time": "07:15",
   "history": {
    "2026-07-30": 247000,
@@ -18577,7 +18576,7 @@
   "airline": "Air Seoul",
   "arr_time": "09:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:00:58+00:00",
+  "checked_at": "2026-08-29T21:21:49+00:00",
   "dep_time": "07:15",
   "history": {
    "2026-07-30": 467000,
@@ -18619,7 +18618,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:00+00:00",
+  "checked_at": "2026-08-29T21:21:49+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 583400,
@@ -18661,7 +18660,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:00+00:00",
+  "checked_at": "2026-08-29T21:21:51+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 300200,
@@ -18703,7 +18702,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:05",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:00+00:00",
+  "checked_at": "2026-08-29T21:21:51+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 337000,
@@ -18745,7 +18744,7 @@
   "airline": "Jeju Air",
   "arr_time": "12:35",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:01+00:00",
+  "checked_at": "2026-08-29T21:21:51+00:00",
   "dep_time": "10:40",
   "history": {
    "2026-07-30": 377000,
@@ -18787,7 +18786,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:01+00:00",
+  "checked_at": "2026-08-29T21:21:53+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 397000,
@@ -18829,7 +18828,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:01+00:00",
+  "checked_at": "2026-08-29T21:21:53+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 410400,
@@ -18871,7 +18870,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:03+00:00",
+  "checked_at": "2026-08-29T21:21:53+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 326200,
@@ -18913,7 +18912,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:05",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:03+00:00",
+  "checked_at": "2026-08-29T21:21:55+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 307000,
@@ -18955,7 +18954,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:03+00:00",
+  "checked_at": "2026-08-29T21:21:55+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 337000,
@@ -18997,7 +18996,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:06+00:00",
+  "checked_at": "2026-08-29T21:21:55+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 337000,
@@ -19039,7 +19038,7 @@
   "airline": "Air Busan",
   "arr_time": "15:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:06+00:00",
+  "checked_at": "2026-08-29T21:21:56+00:00",
   "dep_time": "13:00",
   "history": {
    "2026-07-30": 342200,
@@ -19249,7 +19248,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:06+00:00",
+  "checked_at": "2026-08-29T21:21:58+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 326031,
@@ -19291,7 +19290,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:07+00:00",
+  "checked_at": "2026-08-29T21:21:58+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 378532,
@@ -19333,7 +19332,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:08+00:00",
+  "checked_at": "2026-08-29T21:21:58+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 299781,
@@ -19375,7 +19374,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:08+00:00",
+  "checked_at": "2026-08-29T21:21:59+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 296281,
@@ -19417,7 +19416,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:25",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:01:09+00:00",
+  "checked_at": "2026-08-29T21:22:00+00:00",
   "dep_time": "19:30",
   "history": {
    "2026-07-30": 282280,
@@ -19459,7 +19458,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:09+00:00",
+  "checked_at": "2026-08-29T21:22:00+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 301531,
@@ -19501,7 +19500,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:10+00:00",
+  "checked_at": "2026-08-29T21:22:01+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 418783,
@@ -19543,7 +19542,7 @@
   "airline": "Air Seoul",
   "arr_time": "20:20",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:11+00:00",
+  "checked_at": "2026-08-29T21:22:01+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 326031,
@@ -19585,7 +19584,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:25",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:01:11+00:00",
+  "checked_at": "2026-08-29T21:22:02+00:00",
   "dep_time": "19:30",
   "history": {
    "2026-07-30": 308531,
@@ -19627,7 +19626,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:12+00:00",
+  "checked_at": "2026-08-29T21:22:03+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 298031,
@@ -19669,7 +19668,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "21:40",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T18:01:14+00:00",
+  "checked_at": "2026-08-29T21:22:04+00:00",
   "dep_time": "19:45",
   "history": {
    "2026-07-30": 676037,
@@ -19711,7 +19710,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:14+00:00",
+  "checked_at": "2026-08-29T21:22:04+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 480034,
@@ -19753,7 +19752,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:14+00:00",
+  "checked_at": "2026-08-29T21:22:05+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 313781,
@@ -19795,7 +19794,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:16+00:00",
+  "checked_at": "2026-08-29T21:22:06+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 281230,
@@ -19837,7 +19836,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:55",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:17+00:00",
+  "checked_at": "2026-08-29T21:22:06+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 281230,
@@ -19879,7 +19878,7 @@
   "airline": "Jin Air",
   "arr_time": "00:15",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:01:17+00:00",
+  "checked_at": "2026-08-29T21:22:06+00:00",
   "dep_time": "22:20",
   "history": {
    "2026-07-30": 716288,
@@ -19921,7 +19920,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:01:18+00:00",
+  "checked_at": "2026-08-29T21:22:08+00:00",
   "dep_time": "",
   "history": {
    "2026-07-31": 839376,
@@ -19959,7 +19958,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:19+00:00",
+  "checked_at": "2026-08-29T21:22:08+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 523785,
@@ -20001,7 +20000,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:19+00:00",
+  "checked_at": "2026-08-29T21:22:08+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 298031,
@@ -20043,7 +20042,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:20+00:00",
+  "checked_at": "2026-08-29T21:22:10+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 289281,
@@ -20085,7 +20084,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:21+00:00",
+  "checked_at": "2026-08-29T21:22:10+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 413533,
@@ -20127,7 +20126,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:55",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:21+00:00",
+  "checked_at": "2026-08-29T21:22:10+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 690038,
@@ -20169,7 +20168,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:01:21+00:00",
+  "checked_at": "2026-08-29T21:22:11+00:00",
   "dep_time": "",
   "history": {
    "2026-07-29": 804482,
@@ -20209,7 +20208,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:23+00:00",
+  "checked_at": "2026-08-29T21:22:12+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 483534,
@@ -20251,7 +20250,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:55",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:01:23+00:00",
+  "checked_at": "2026-08-29T21:22:12+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 343532,
@@ -20293,7 +20292,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:25",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:01:24+00:00",
+  "checked_at": "2026-08-29T21:22:14+00:00",
   "dep_time": "19:30",
   "history": {
    "2026-07-30": 742538,
@@ -20335,7 +20334,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:25+00:00",
+  "checked_at": "2026-08-29T21:22:14+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 795039,
@@ -20377,7 +20376,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:25+00:00",
+  "checked_at": "2026-08-29T21:22:14+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 519235,
@@ -20419,7 +20418,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:26+00:00",
+  "checked_at": "2026-08-29T21:22:16+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 419483,
@@ -20461,7 +20460,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:27+00:00",
+  "checked_at": "2026-08-29T21:22:16+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 396032,
@@ -20503,7 +20502,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:27+00:00",
+  "checked_at": "2026-08-29T21:22:16+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 480034,
@@ -20545,7 +20544,7 @@
   "airline": "Air Seoul",
   "arr_time": "19:55",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:28+00:00",
+  "checked_at": "2026-08-29T21:22:18+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 599736,
@@ -20587,7 +20586,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:29+00:00",
+  "checked_at": "2026-08-29T21:22:18+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 483534,
@@ -20629,7 +20628,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:30+00:00",
+  "checked_at": "2026-08-29T21:22:18+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 445033,
@@ -20671,7 +20670,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:30+00:00",
+  "checked_at": "2026-08-29T21:22:20+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 413533,
@@ -20713,7 +20712,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:31+00:00",
+  "checked_at": "2026-08-29T21:22:21+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 445033,
@@ -20755,7 +20754,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:32+00:00",
+  "checked_at": "2026-08-29T21:22:21+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 623536,
@@ -20797,7 +20796,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:32+00:00",
+  "checked_at": "2026-08-29T21:22:21+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 536035,
@@ -20839,7 +20838,7 @@
   "airline": "Jin Air",
   "arr_time": "01:40",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:01:33+00:00",
+  "checked_at": "2026-08-29T21:22:22+00:00",
   "dep_time": "23:25",
   "history": {
    "2026-07-30": 448533,
@@ -20881,7 +20880,7 @@
   "airline": "Air Busan",
   "arr_time": "20:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:01:34+00:00",
+  "checked_at": "2026-08-29T21:22:23+00:00",
   "dep_time": "18:10",
   "history": {
    "2026-07-30": 431033,
@@ -20923,7 +20922,7 @@
   "airline": "Air Seoul",
   "arr_time": "20:05",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:01:34+00:00",
+  "checked_at": "2026-08-29T21:22:23+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 623536,
@@ -20965,7 +20964,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:38+00:00",
+  "checked_at": "2026-08-29T21:20:30+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -20975,7 +20974,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:38+00:00",
+  "checked_at": "2026-08-29T21:20:30+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 452800,
@@ -21017,7 +21016,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:40+00:00",
+  "checked_at": "2026-08-29T21:20:31+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21027,7 +21026,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:40+00:00",
+  "checked_at": "2026-08-29T21:20:31+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 674800,
@@ -21069,7 +21068,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:43+00:00",
+  "checked_at": "2026-08-29T21:20:35+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21079,7 +21078,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:43+00:00",
+  "checked_at": "2026-08-29T21:20:35+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 452800,
@@ -21121,7 +21120,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:44+00:00",
+  "checked_at": "2026-08-29T21:20:35+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21131,7 +21130,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:44+00:00",
+  "checked_at": "2026-08-29T21:20:35+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 452800,
@@ -21173,7 +21172,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:47+00:00",
+  "checked_at": "2026-08-29T21:20:39+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21183,7 +21182,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:47+00:00",
+  "checked_at": "2026-08-29T21:20:39+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 452800,
@@ -21225,7 +21224,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:48+00:00",
+  "checked_at": "2026-08-29T21:20:40+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21235,7 +21234,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:48+00:00",
+  "checked_at": "2026-08-29T21:20:40+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 536800,
@@ -21277,7 +21276,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:54+00:00",
+  "checked_at": "2026-08-29T21:20:45+00:00",
   "dep_time": "",
   "history": {
    "2026-07-25": 596800,
@@ -21318,7 +21317,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:54+00:00",
+  "checked_at": "2026-08-29T21:20:45+00:00",
   "dep_time": "",
   "history": {
    "2026-07-25": 706600,
@@ -21348,7 +21347,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:54+00:00",
+  "checked_at": "2026-08-29T21:20:45+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -21358,7 +21357,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:54+00:00",
+  "checked_at": "2026-08-29T21:20:46+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 476800,
@@ -21400,7 +21399,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:55+00:00",
+  "checked_at": "2026-08-29T21:20:46+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 452800,
@@ -21442,7 +21441,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:55+00:00",
+  "checked_at": "2026-08-29T21:20:46+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 644800,
@@ -21483,7 +21482,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:56+00:00",
+  "checked_at": "2026-08-29T21:20:47+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 674800,
@@ -21525,7 +21524,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:57+00:00",
+  "checked_at": "2026-08-29T21:20:47+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 706600,
@@ -21567,7 +21566,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:57+00:00",
+  "checked_at": "2026-08-29T21:20:47+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 488800,
@@ -21609,7 +21608,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:58+00:00",
+  "checked_at": "2026-08-29T21:20:49+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 656800,
@@ -21651,7 +21650,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:58+00:00",
+  "checked_at": "2026-08-29T21:20:49+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 596800,
@@ -21693,7 +21692,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:59+00:00",
+  "checked_at": "2026-08-29T21:20:49+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 488800,
@@ -21743,7 +21742,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:00+00:00",
+  "checked_at": "2026-08-29T21:20:51+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 488800,
@@ -21785,7 +21784,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:01+00:00",
+  "checked_at": "2026-08-29T21:20:51+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 488800,
@@ -21827,7 +21826,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:01+00:00",
+  "checked_at": "2026-08-29T21:20:51+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 488800,
@@ -21869,7 +21868,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:02+00:00",
+  "checked_at": "2026-08-29T21:20:53+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 620800,
@@ -21919,7 +21918,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:02+00:00",
+  "checked_at": "2026-08-29T21:20:53+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 488800,
@@ -21961,7 +21960,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:03+00:00",
+  "checked_at": "2026-08-29T21:20:53+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 488800,
@@ -22003,7 +22002,7 @@
   "airline": "Korean Air",
   "arr_time": "18:05",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:04+00:00",
+  "checked_at": "2026-08-29T21:20:55+00:00",
   "dep_time": "16:35",
   "history": {
    "2026-07-30": 488800,
@@ -22045,7 +22044,7 @@
   "airline": "Korean Air",
   "arr_time": "17:55",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:04+00:00",
+  "checked_at": "2026-08-29T21:20:55+00:00",
   "dep_time": "16:20",
   "history": {
    "2026-07-30": 488800,
@@ -22087,7 +22086,7 @@
   "airline": "Jeju Air",
   "arr_time": "14:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:00:05+00:00",
+  "checked_at": "2026-08-29T21:20:56+00:00",
   "dep_time": "12:40",
   "history": {
    "2026-07-30": 680800,
@@ -22201,7 +22200,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:06+00:00",
+  "checked_at": "2026-08-29T21:20:57+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 633162,
@@ -22243,7 +22242,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:09+00:00",
+  "checked_at": "2026-08-29T21:20:59+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22253,7 +22252,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:09+00:00",
+  "checked_at": "2026-08-29T21:21:00+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22263,7 +22262,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:09+00:00",
+  "checked_at": "2026-08-29T21:21:00+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 580661,
@@ -22305,7 +22304,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:13+00:00",
+  "checked_at": "2026-08-29T21:21:04+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22315,7 +22314,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:13+00:00",
+  "checked_at": "2026-08-29T21:21:04+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 720663,
@@ -22357,7 +22356,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:14+00:00",
+  "checked_at": "2026-08-29T21:21:05+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22367,7 +22366,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:15+00:00",
+  "checked_at": "2026-08-29T21:21:06+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22377,7 +22376,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:15+00:00",
+  "checked_at": "2026-08-29T21:21:07+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 580661,
@@ -22419,7 +22418,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:18+00:00",
+  "checked_at": "2026-08-29T21:21:11+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22437,7 +22436,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:19+00:00",
+  "checked_at": "2026-08-29T21:21:11+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 754929,
@@ -22479,7 +22478,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:20+00:00",
+  "checked_at": "2026-08-29T21:21:11+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -22489,7 +22488,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:20+00:00",
+  "checked_at": "2026-08-29T21:21:11+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 633162,
@@ -22531,7 +22530,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:21+00:00",
+  "checked_at": "2026-08-29T21:21:13+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 440658,
@@ -22573,7 +22572,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:21+00:00",
+  "checked_at": "2026-08-29T21:21:13+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 440658,
@@ -22623,7 +22622,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:25+00:00",
+  "checked_at": "2026-08-29T21:21:16+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 1093840,
@@ -22652,7 +22651,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:25+00:00",
+  "checked_at": "2026-08-29T21:21:16+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 1263173,
@@ -22694,7 +22693,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:25+00:00",
+  "checked_at": "2026-08-29T21:21:16+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 440658,
@@ -22736,7 +22735,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:25+00:00",
+  "checked_at": "2026-08-29T21:21:16+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 668162,
@@ -22778,7 +22777,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:26+00:00",
+  "checked_at": "2026-08-29T21:21:16+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 370657,
@@ -22828,7 +22827,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:30+00:00",
+  "checked_at": "2026-08-29T21:21:20+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 646864,
@@ -22868,7 +22867,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:30+00:00",
+  "checked_at": "2026-08-29T21:21:20+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 370657,
@@ -22910,7 +22909,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:30+00:00",
+  "checked_at": "2026-08-29T21:21:20+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 1263173,
@@ -22952,7 +22951,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:32+00:00",
+  "checked_at": "2026-08-29T21:21:22+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 1040203,
@@ -22970,7 +22969,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:32+00:00",
+  "checked_at": "2026-08-29T21:21:22+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 545660,
@@ -23012,7 +23011,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:32+00:00",
+  "checked_at": "2026-08-29T21:21:22+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 808165,
@@ -23054,7 +23053,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:32+00:00",
+  "checked_at": "2026-08-29T21:21:22+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 738163,
@@ -23096,7 +23095,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:34+00:00",
+  "checked_at": "2026-08-29T21:21:24+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 475659,
@@ -23138,7 +23137,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:34+00:00",
+  "checked_at": "2026-08-29T21:21:24+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 475659,
@@ -23180,7 +23179,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:34+00:00",
+  "checked_at": "2026-08-29T21:21:24+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 475659,
@@ -23230,7 +23229,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:36+00:00",
+  "checked_at": "2026-08-29T21:21:26+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 738163,
@@ -23272,7 +23271,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:36+00:00",
+  "checked_at": "2026-08-29T21:21:26+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 528160,
@@ -23314,7 +23313,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:36+00:00",
+  "checked_at": "2026-08-29T21:21:26+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 475659,
@@ -23356,7 +23355,7 @@
   "airline": "Korean Air",
   "arr_time": "20:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:37+00:00",
+  "checked_at": "2026-08-29T21:21:27+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 598161,
@@ -23398,7 +23397,7 @@
   "airline": "Korean Air",
   "arr_time": "21:00",
   "carrier": "KE",
-  "checked_at": "2026-08-29T18:00:38+00:00",
+  "checked_at": "2026-08-29T21:21:28+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 475659,
@@ -23440,7 +23439,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:40+00:00",
+  "checked_at": "2026-08-29T21:21:30+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 754138,
@@ -23456,7 +23455,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:40+00:00",
+  "checked_at": "2026-08-29T21:21:30+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -23466,7 +23465,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:40+00:00",
+  "checked_at": "2026-08-29T21:21:30+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -23476,7 +23475,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:41+00:00",
+  "checked_at": "2026-08-29T21:21:30+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -23486,7 +23485,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:41+00:00",
+  "checked_at": "2026-08-29T21:21:32+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -23496,7 +23495,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:00:42+00:00",
+  "checked_at": "2026-08-29T21:21:32+00:00",
   "dep_time": "",
   "history": {},
   "off_window": false,
@@ -23514,7 +23513,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:28+00:00",
+  "checked_at": "2026-08-29T21:16:26+00:00",
   "dep_time": "09:10",
   "history": {
    "2026-07-30": 398200,
@@ -23556,7 +23555,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:28+00:00",
+  "checked_at": "2026-08-29T21:16:26+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 602400,
@@ -23597,7 +23596,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:28+00:00",
+  "checked_at": "2026-08-29T21:16:26+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 694400,
@@ -23639,7 +23638,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:29+00:00",
+  "checked_at": "2026-08-29T21:16:28+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 323400,
@@ -23681,7 +23680,7 @@
   "airline": "Korean Air",
   "arr_time": "12:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:55:30+00:00",
+  "checked_at": "2026-08-29T21:16:28+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 602400,
@@ -23723,7 +23722,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:30+00:00",
+  "checked_at": "2026-08-29T21:16:28+00:00",
   "dep_time": "09:10",
   "history": {
    "2026-07-30": 544800,
@@ -23765,7 +23764,7 @@
   "airline": "Korean Air",
   "arr_time": "12:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:55:31+00:00",
+  "checked_at": "2026-08-29T21:16:29+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 323400,
@@ -23807,7 +23806,7 @@
   "airline": "Korean Air",
   "arr_time": "12:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:55:32+00:00",
+  "checked_at": "2026-08-29T21:16:29+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 646400,
@@ -23857,7 +23856,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:32+00:00",
+  "checked_at": "2026-08-29T21:16:30+00:00",
   "dep_time": "09:10",
   "history": {
    "2026-07-30": 484800,
@@ -23896,11 +23895,11 @@
   "price": 714800
  },
  "ICN-NGO|out|2026-09-17": {
-  "airline": "Jeju Air",
-  "arr_time": "11:30",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:33+00:00",
-  "dep_time": "09:30",
+  "airline": "Asiana Airlines",
+  "arr_time": "10:55",
+  "carrier": "OZ",
+  "checked_at": "2026-08-29T21:16:31+00:00",
+  "dep_time": "09:10",
   "history": {
    "2026-07-30": 694400,
    "2026-07-31": 658800,
@@ -23934,13 +23933,13 @@
    "2026-08-29": 515200
   },
   "off_window": false,
-  "price": 515200
+  "price": 799200
  },
  "ICN-NGO|out|2026-09-18": {
   "airline": "Korean Air",
   "arr_time": "12:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:55:34+00:00",
+  "checked_at": "2026-08-29T21:16:31+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 602400,
@@ -23982,7 +23981,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:34+00:00",
+  "checked_at": "2026-08-29T21:16:31+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 602400,
@@ -24024,7 +24023,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:55:38+00:00",
+  "checked_at": "2026-08-29T21:16:34+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 765000,
@@ -24062,7 +24061,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:55:38+00:00",
+  "checked_at": "2026-08-29T21:16:36+00:00",
   "dep_time": "",
   "history": {
    "2026-07-31": 636800,
@@ -24084,10 +24083,10 @@
   "price": null
  },
  "ICN-NGO|out|2026-09-25": {
-  "airline": "Jin Air",
+  "airline": "Jeju Air",
   "arr_time": "09:25",
-  "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:38+00:00",
+  "carrier": "7C",
+  "checked_at": "2026-08-29T21:16:36+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 563400,
@@ -24120,16 +24119,16 @@
    "2026-08-26": 482800,
    "2026-08-27": 482800,
    "2026-08-28": 446800,
-   "2026-08-29": 446800
+   "2026-08-29": 413200
   },
   "off_window": false,
-  "price": 446800
+  "price": 413200
  },
  "ICN-NGO|out|2026-09-26": {
   "airline": "Jeju Air",
   "arr_time": "11:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:38+00:00",
+  "checked_at": "2026-08-29T21:16:36+00:00",
   "dep_time": "09:30",
   "history": {
    "2026-07-30": 446200,
@@ -24179,7 +24178,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:40+00:00",
+  "checked_at": "2026-08-29T21:16:36+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 556200,
@@ -24221,7 +24220,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:40+00:00",
+  "checked_at": "2026-08-29T21:16:37+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 563400,
@@ -24263,7 +24262,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:40+00:00",
+  "checked_at": "2026-08-29T21:16:38+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 763800,
@@ -24305,7 +24304,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:41+00:00",
+  "checked_at": "2026-08-29T21:16:38+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 763800,
@@ -24347,7 +24346,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:42+00:00",
+  "checked_at": "2026-08-29T21:16:39+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 366200,
@@ -24383,13 +24382,13 @@
    "2026-08-29": 267200
   },
   "off_window": false,
-  "price": 267200
+  "price": 283200
  },
  "ICN-NGO|out|2026-10-08": {
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:42+00:00",
+  "checked_at": "2026-08-29T21:16:40+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 563400,
@@ -24431,7 +24430,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:43+00:00",
+  "checked_at": "2026-08-29T21:16:40+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 763800,
@@ -24473,7 +24472,7 @@
   "airline": "Jeju Air",
   "arr_time": "09:25",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:43+00:00",
+  "checked_at": "2026-08-29T21:16:41+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 515400,
@@ -24523,7 +24522,7 @@
   "airline": "Jeju Air",
   "arr_time": "11:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:44+00:00",
+  "checked_at": "2026-08-29T21:16:42+00:00",
   "dep_time": "09:30",
   "history": {
    "2026-07-30": 479400,
@@ -24565,7 +24564,7 @@
   "airline": "Jeju Air",
   "arr_time": "11:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:45+00:00",
+  "checked_at": "2026-08-29T21:16:42+00:00",
   "dep_time": "09:30",
   "history": {
    "2026-07-30": 563400,
@@ -24607,7 +24606,7 @@
   "airline": "Jeju Air",
   "arr_time": "11:30",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:46+00:00",
+  "checked_at": "2026-08-29T21:16:43+00:00",
   "dep_time": "09:30",
   "history": {
    "2026-07-30": 563400,
@@ -24649,7 +24648,7 @@
   "airline": "Korean Air",
   "arr_time": "12:30",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:55:46+00:00",
+  "checked_at": "2026-08-29T21:16:44+00:00",
   "dep_time": "10:35",
   "history": {
    "2026-07-30": 611400,
@@ -24691,7 +24690,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:47+00:00",
+  "checked_at": "2026-08-29T21:16:44+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 563400,
@@ -24733,7 +24732,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:48+00:00",
+  "checked_at": "2026-08-29T21:16:44+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 563400,
@@ -24775,7 +24774,7 @@
   "airline": "Jin Air",
   "arr_time": "09:25",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:48+00:00",
+  "checked_at": "2026-08-29T21:16:45+00:00",
   "dep_time": "07:30",
   "history": {
    "2026-07-30": 479400,
@@ -24816,7 +24815,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "10:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:49+00:00",
+  "checked_at": "2026-08-29T21:16:46+00:00",
   "dep_time": "09:10",
   "history": {
    "2026-07-30": 515400,
@@ -24858,7 +24857,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:55",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:50+00:00",
+  "checked_at": "2026-08-29T21:16:46+00:00",
   "dep_time": "09:10",
   "history": {
    "2026-07-30": 407400,
@@ -25039,7 +25038,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:50+00:00",
+  "checked_at": "2026-08-29T21:16:47+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 860141,
@@ -25081,7 +25080,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:51+00:00",
+  "checked_at": "2026-08-29T21:16:48+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-08-04": 600727,
@@ -25118,7 +25117,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:52+00:00",
+  "checked_at": "2026-08-29T21:16:48+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-04": 529213,
@@ -25150,7 +25149,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:52+00:00",
+  "checked_at": "2026-08-29T21:16:48+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 437508,
@@ -25191,7 +25190,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:52+00:00",
+  "checked_at": "2026-08-29T21:16:50+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 416508,
@@ -25229,7 +25228,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:54+00:00",
+  "checked_at": "2026-08-29T21:16:50+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 790139,
@@ -25271,7 +25270,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:54+00:00",
+  "checked_at": "2026-08-29T21:16:50+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-31": 596021,
@@ -25312,7 +25311,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:54+00:00",
+  "checked_at": "2026-08-29T21:16:51+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-31": 433087,
@@ -25353,7 +25352,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:55+00:00",
+  "checked_at": "2026-08-29T21:16:52+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-05": 437918,
@@ -25387,7 +25386,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:56+00:00",
+  "checked_at": "2026-08-29T21:16:52+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-03": 454192,
@@ -25433,7 +25432,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:55:56+00:00",
+  "checked_at": "2026-08-29T21:16:53+00:00",
   "dep_time": "",
   "history": {
    "2026-08-07": 831504,
@@ -25458,7 +25457,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:55:57+00:00",
+  "checked_at": "2026-08-29T21:16:53+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 1182698,
@@ -25481,7 +25480,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:55:57+00:00",
+  "checked_at": "2026-08-29T21:16:54+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-08-04": 627081,
@@ -25517,7 +25516,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:58+00:00",
+  "checked_at": "2026-08-29T21:16:56+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 574011,
@@ -25559,7 +25558,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:55:59+00:00",
+  "checked_at": "2026-08-29T21:16:56+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 356657,
@@ -25601,7 +25600,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:55:59+00:00",
+  "checked_at": "2026-08-29T21:16:56+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 878166,
@@ -25643,7 +25642,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:00+00:00",
+  "checked_at": "2026-08-29T21:16:57+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-03": 983512,
@@ -25671,7 +25670,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:01+00:00",
+  "checked_at": "2026-08-29T21:16:58+00:00",
   "dep_time": "",
   "history": {
    "2026-07-28": 827046,
@@ -25713,7 +25712,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:55",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:01+00:00",
+  "checked_at": "2026-08-29T21:16:58+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 468659,
@@ -25752,11 +25751,11 @@
   "price": 484476
  },
  "ICN-NGO|ret|2026-09-30": {
-  "airline": "Jeju Air",
-  "arr_time": "20:15",
-  "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:02+00:00",
-  "dep_time": "18:00",
+  "airline": "Jin Air",
+  "arr_time": "21:05",
+  "carrier": "LJ",
+  "checked_at": "2026-08-29T21:16:59+00:00",
+  "dep_time": "19:00",
   "history": {
    "2026-07-30": 647512,
    "2026-07-31": 440222,
@@ -25791,13 +25790,13 @@
    "2026-08-29": 350750
   },
   "off_window": false,
-  "price": 350750
+  "price": 370026
  },
  "ICN-NGO|ret|2026-10-03": {
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:03+00:00",
+  "checked_at": "2026-08-29T21:16:59+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 1367649,
@@ -25838,7 +25837,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:03+00:00",
+  "checked_at": "2026-08-29T21:17:00+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 1455151,
@@ -25880,7 +25879,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:04+00:00",
+  "checked_at": "2026-08-29T21:17:00+00:00",
   "dep_time": "",
   "history": {
    "2026-07-28": 890583,
@@ -25921,7 +25920,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:05+00:00",
+  "checked_at": "2026-08-29T21:17:02+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 689513,
@@ -25963,7 +25962,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:05+00:00",
+  "checked_at": "2026-08-29T21:17:02+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-04": 627081,
@@ -26000,7 +25999,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:06+00:00",
+  "checked_at": "2026-08-29T21:17:02+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 1455151,
@@ -26041,7 +26040,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:07+00:00",
+  "checked_at": "2026-08-29T21:17:03+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 945017,
@@ -26083,7 +26082,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:07+00:00",
+  "checked_at": "2026-08-29T21:17:04+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 1455151,
@@ -26125,7 +26124,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:07+00:00",
+  "checked_at": "2026-08-29T21:17:04+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-04": 890780,
@@ -26154,7 +26153,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:08+00:00",
+  "checked_at": "2026-08-29T21:17:05+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-04": 836409,
@@ -26188,7 +26187,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:09+00:00",
+  "checked_at": "2026-08-29T21:17:06+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-08-04": 909448,
@@ -26225,7 +26224,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:09+00:00",
+  "checked_at": "2026-08-29T21:17:06+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 773514,
@@ -26267,7 +26266,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:11+00:00",
+  "checked_at": "2026-08-29T21:17:06+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 561410,
@@ -26309,7 +26308,7 @@
   "airline": "Jeju Air",
   "arr_time": "20:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T17:56:11+00:00",
+  "checked_at": "2026-08-29T21:17:07+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 947642,
@@ -26350,7 +26349,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:56:11+00:00",
+  "checked_at": "2026-08-29T21:17:07+00:00",
   "dep_time": "",
   "history": {
    "2026-08-05": 886477,
@@ -26383,7 +26382,7 @@
   "airline": "Jin Air",
   "arr_time": "21:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:12+00:00",
+  "checked_at": "2026-08-29T21:17:08+00:00",
   "dep_time": "19:00",
   "history": {
    "2026-07-30": 878166,
@@ -26425,7 +26424,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:30",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:13+00:00",
+  "checked_at": "2026-08-29T21:17:09+00:00",
   "dep_time": "18:20",
   "history": {
    "2026-07-30": 1087645,
@@ -26467,7 +26466,7 @@
   "airline": "Jin Air",
   "arr_time": "22:15",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:13+00:00",
+  "checked_at": "2026-08-29T21:17:09+00:00",
   "dep_time": "20:00",
   "history": {
    "2026-08-04": 594458,
@@ -26504,7 +26503,7 @@
   "airline": "Jin Air",
   "arr_time": "22:15",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:56:14+00:00",
+  "checked_at": "2026-08-29T21:17:10+00:00",
   "dep_time": "20:00",
   "history": {
    "2026-07-30": 947642,
@@ -26546,7 +26545,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:30",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:15+00:00",
+  "checked_at": "2026-08-29T21:17:11+00:00",
   "dep_time": "18:20",
   "history": {
    "2026-08-04": 561835,
@@ -26591,7 +26590,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:30",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:56:15+00:00",
+  "checked_at": "2026-08-29T21:17:11+00:00",
   "dep_time": "18:20",
   "history": {
    "2026-07-30": 1455151,
@@ -26633,7 +26632,7 @@
   "airline": "Air Busan",
   "arr_time": "10:00",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:02:27+00:00",
+  "checked_at": "2026-08-29T21:23:16+00:00",
   "dep_time": "07:10",
   "history": {
    "2026-07-30": 252200,
@@ -26675,7 +26674,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:28+00:00",
+  "checked_at": "2026-08-29T21:23:17+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 272200,
@@ -26717,7 +26716,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:28+00:00",
+  "checked_at": "2026-08-29T21:23:18+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 292200,
@@ -26759,7 +26758,7 @@
   "airline": "Air Seoul",
   "arr_time": "11:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:29+00:00",
+  "checked_at": "2026-08-29T21:23:19+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 322200,
@@ -26801,7 +26800,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:30+00:00",
+  "checked_at": "2026-08-29T21:23:19+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 252200,
@@ -26843,7 +26842,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:30+00:00",
+  "checked_at": "2026-08-29T21:23:19+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 286400,
@@ -26885,7 +26884,7 @@
   "airline": "Air Seoul",
   "arr_time": "11:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:31+00:00",
+  "checked_at": "2026-08-29T21:23:20+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 292200,
@@ -26927,7 +26926,7 @@
   "airline": "Air Seoul",
   "arr_time": "11:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:32+00:00",
+  "checked_at": "2026-08-29T21:23:20+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 326400,
@@ -26969,7 +26968,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:33+00:00",
+  "checked_at": "2026-08-29T21:23:21+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 224000,
@@ -27011,7 +27010,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:34+00:00",
+  "checked_at": "2026-08-29T21:23:22+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 263800,
@@ -27053,7 +27052,7 @@
   "airline": "Jin Air",
   "arr_time": "10:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:34+00:00",
+  "checked_at": "2026-08-29T21:23:23+00:00",
   "dep_time": "07:55",
   "history": {
    "2026-07-30": 292200,
@@ -27095,7 +27094,7 @@
   "airline": "ZIPAIR Tokyo",
   "arr_time": "15:30",
   "carrier": "ZG",
-  "checked_at": "2026-08-29T18:02:35+00:00",
+  "checked_at": "2026-08-29T21:23:23+00:00",
   "dep_time": "12:55",
   "history": {
    "2026-07-30": 303800,
@@ -27137,7 +27136,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:02:38+00:00",
+  "checked_at": "2026-08-29T21:23:27+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 792200,
@@ -27173,7 +27172,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T18:02:40+00:00",
+  "checked_at": "2026-08-29T21:23:27+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 829400,
@@ -27210,7 +27209,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:40+00:00",
+  "checked_at": "2026-08-29T21:23:27+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 496400,
@@ -27246,13 +27245,13 @@
    "2026-08-29": 497000
   },
   "off_window": false,
-  "price": 542600
+  "price": 502600
  },
  "ICN-NRT|out|2026-09-26": {
   "airline": "Jin Air",
   "arr_time": "10:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:40+00:00",
+  "checked_at": "2026-08-29T21:23:27+00:00",
   "dep_time": "07:55",
   "history": {
    "2026-07-30": 382200,
@@ -27294,7 +27293,7 @@
   "airline": "T'Way Air",
   "arr_time": "12:55",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:40+00:00",
+  "checked_at": "2026-08-29T21:23:29+00:00",
   "dep_time": "10:20",
   "history": {
    "2026-07-30": 272200,
@@ -27336,7 +27335,7 @@
   "airline": "Jeju Air",
   "arr_time": "12:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:42+00:00",
+  "checked_at": "2026-08-29T21:23:29+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 443800,
@@ -27378,7 +27377,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:42+00:00",
+  "checked_at": "2026-08-29T21:23:29+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 523800,
@@ -27420,7 +27419,7 @@
   "airline": "Air Premia",
   "arr_time": "11:20",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:42+00:00",
+  "checked_at": "2026-08-29T21:23:31+00:00",
   "dep_time": "08:50",
   "history": {
    "2026-07-30": 683800,
@@ -27462,7 +27461,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:44+00:00",
+  "checked_at": "2026-08-29T21:23:31+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 294000,
@@ -27504,7 +27503,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:44+00:00",
+  "checked_at": "2026-08-29T21:23:31+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 422200,
@@ -27546,7 +27545,7 @@
   "airline": "Air Premia",
   "arr_time": "13:30",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:44+00:00",
+  "checked_at": "2026-08-29T21:23:33+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 683800,
@@ -27588,7 +27587,7 @@
   "airline": "Air Premia",
   "arr_time": "11:20",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:46+00:00",
+  "checked_at": "2026-08-29T21:23:33+00:00",
   "dep_time": "08:50",
   "history": {
    "2026-07-30": 296200,
@@ -27630,7 +27629,7 @@
   "airline": "T'Way Air",
   "arr_time": "11:05",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:46+00:00",
+  "checked_at": "2026-08-29T21:23:34+00:00",
   "dep_time": "08:35",
   "history": {
    "2026-07-30": 234000,
@@ -27672,7 +27671,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:46+00:00",
+  "checked_at": "2026-08-29T21:23:35+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 288200,
@@ -27714,7 +27713,7 @@
   "airline": "Air Premia",
   "arr_time": "11:20",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:48+00:00",
+  "checked_at": "2026-08-29T21:23:35+00:00",
   "dep_time": "08:50",
   "history": {
    "2026-07-30": 354000,
@@ -27756,7 +27755,7 @@
   "airline": "Air Premia",
   "arr_time": "11:20",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:49+00:00",
+  "checked_at": "2026-08-29T21:23:35+00:00",
   "dep_time": "08:50",
   "history": {
    "2026-07-30": 383800,
@@ -27798,7 +27797,7 @@
   "airline": "Air Seoul",
   "arr_time": "10:40",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:49+00:00",
+  "checked_at": "2026-08-29T21:23:37+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 390800,
@@ -27840,7 +27839,7 @@
   "airline": "Jin Air",
   "arr_time": "10:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:50+00:00",
+  "checked_at": "2026-08-29T21:23:37+00:00",
   "dep_time": "07:55",
   "history": {
    "2026-07-30": 314000,
@@ -27882,7 +27881,7 @@
   "airline": "Air Premia",
   "arr_time": "11:20",
   "carrier": "YP",
-  "checked_at": "2026-08-29T18:02:51+00:00",
+  "checked_at": "2026-08-29T21:23:37+00:00",
   "dep_time": "08:50",
   "history": {
    "2026-07-30": 354000,
@@ -27924,7 +27923,7 @@
   "airline": "Jin Air",
   "arr_time": "10:35",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:02:51+00:00",
+  "checked_at": "2026-08-29T21:23:39+00:00",
   "dep_time": "07:55",
   "history": {
    "2026-07-30": 374000,
@@ -27966,7 +27965,7 @@
   "airline": "Jeju Air",
   "arr_time": "10:35",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:52+00:00",
+  "checked_at": "2026-08-29T21:23:39+00:00",
   "dep_time": "08:10",
   "history": {
    "2026-07-30": 394000,
@@ -28176,7 +28175,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:45",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:53+00:00",
+  "checked_at": "2026-08-29T21:23:39+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 372232,
@@ -28218,7 +28217,7 @@
   "airline": "Ethiopian",
   "arr_time": "23:05",
   "carrier": "ET",
-  "checked_at": "2026-08-29T18:02:54+00:00",
+  "checked_at": "2026-08-29T21:23:40+00:00",
   "dep_time": "20:40",
   "history": {
    "2026-07-30": 426483,
@@ -28260,7 +28259,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:54+00:00",
+  "checked_at": "2026-08-29T21:23:41+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 463059,
@@ -28302,7 +28301,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:56+00:00",
+  "checked_at": "2026-08-29T21:23:41+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 365232,
@@ -28344,7 +28343,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:45",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:56+00:00",
+  "checked_at": "2026-08-29T21:23:42+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 349307,
@@ -28386,7 +28385,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:56+00:00",
+  "checked_at": "2026-08-29T21:23:43+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 389732,
@@ -28428,7 +28427,7 @@
   "airline": "Air Busan",
   "arr_time": "22:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:02:58+00:00",
+  "checked_at": "2026-08-29T21:23:43+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 480734,
@@ -28470,7 +28469,7 @@
   "airline": "Air Seoul",
   "arr_time": "00:45",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:02:58+00:00",
+  "checked_at": "2026-08-29T21:23:43+00:00",
   "dep_time": "22:05",
   "history": {
    "2026-07-30": 463059,
@@ -28512,7 +28511,7 @@
   "airline": "T'Way Air",
   "arr_time": "21:45",
   "carrier": "TW",
-  "checked_at": "2026-08-29T18:02:58+00:00",
+  "checked_at": "2026-08-29T21:23:45+00:00",
   "dep_time": "18:55",
   "history": {
    "2026-07-30": 382732,
@@ -28554,7 +28553,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:02:59+00:00",
+  "checked_at": "2026-08-29T21:23:45+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 365232,
@@ -28594,10 +28593,10 @@
  },
  "ICN-NRT|ret|2026-09-19": {
   "airline": "Jeju Air",
-  "arr_time": "21:20",
+  "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:00+00:00",
-  "dep_time": "18:30",
+  "checked_at": "2026-08-29T21:23:45+00:00",
+  "dep_time": "19:50",
   "history": {
    "2026-07-30": 900566,
    "2026-07-31": 917901,
@@ -28638,7 +28637,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:01+00:00",
+  "checked_at": "2026-08-29T21:23:47+00:00",
   "dep_time": "18:30",
   "history": {
    "2026-07-30": 480734,
@@ -28680,7 +28679,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:02+00:00",
+  "checked_at": "2026-08-29T21:23:47+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 382732,
@@ -28722,7 +28721,7 @@
   "airline": "Air Busan",
   "arr_time": "22:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:03:02+00:00",
+  "checked_at": "2026-08-29T21:23:48+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 321481,
@@ -28764,7 +28763,7 @@
   "airline": "Air Busan",
   "arr_time": "22:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:03:02+00:00",
+  "checked_at": "2026-08-29T21:23:49+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 349307,
@@ -28806,7 +28805,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "22:15",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T18:03:04+00:00",
+  "checked_at": "2026-08-29T21:23:49+00:00",
   "dep_time": "19:45",
   "history": {
    "2026-07-30": 480734,
@@ -28848,7 +28847,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:04+00:00",
+  "checked_at": "2026-08-29T21:23:50+00:00",
   "dep_time": "18:30",
   "history": {
    "2026-07-30": 856816,
@@ -28890,7 +28889,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:05+00:00",
+  "checked_at": "2026-08-29T21:23:51+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 673237,
@@ -28932,7 +28931,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:06+00:00",
+  "checked_at": "2026-08-29T21:23:51+00:00",
   "dep_time": "18:30",
   "history": {
    "2026-07-30": 321481,
@@ -28974,7 +28973,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:06+00:00",
+  "checked_at": "2026-08-29T21:23:53+00:00",
   "dep_time": "18:30",
   "history": {
    "2026-07-30": 286481,
@@ -29016,7 +29015,7 @@
   "airline": "Air Busan",
   "arr_time": "22:35",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:03:07+00:00",
+  "checked_at": "2026-08-29T21:23:53+00:00",
   "dep_time": "19:55",
   "history": {
    "2026-07-30": 330231,
@@ -29058,7 +29057,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:20",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:08+00:00",
+  "checked_at": "2026-08-29T21:23:53+00:00",
   "dep_time": "18:30",
   "history": {
    "2026-07-30": 457809,
@@ -29100,7 +29099,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:08+00:00",
+  "checked_at": "2026-08-29T21:23:55+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 856816,
@@ -29142,7 +29141,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:09+00:00",
+  "checked_at": "2026-08-29T21:23:55+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 508734,
@@ -29184,7 +29183,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:10+00:00",
+  "checked_at": "2026-08-29T21:23:55+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 366807,
@@ -29226,7 +29225,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:10+00:00",
+  "checked_at": "2026-08-29T21:23:57+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 673237,
@@ -29268,7 +29267,7 @@
   "airline": "Jin Air",
   "arr_time": "20:55",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T18:03:11+00:00",
+  "checked_at": "2026-08-29T21:23:57+00:00",
   "dep_time": "18:25",
   "history": {
    "2026-07-30": 856816,
@@ -29310,7 +29309,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:11+00:00",
+  "checked_at": "2026-08-29T21:23:57+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 580991,
@@ -29352,7 +29351,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:12+00:00",
+  "checked_at": "2026-08-29T21:23:59+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 473734,
@@ -29394,7 +29393,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:13+00:00",
+  "checked_at": "2026-08-29T21:23:59+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 457809,
@@ -29436,7 +29435,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:14+00:00",
+  "checked_at": "2026-08-29T21:24:00+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 527810,
@@ -29478,7 +29477,7 @@
   "airline": "Ethiopian",
   "arr_time": "23:05",
   "carrier": "ET",
-  "checked_at": "2026-08-29T18:03:14+00:00",
+  "checked_at": "2026-08-29T21:24:00+00:00",
   "dep_time": "20:40",
   "history": {
    "2026-07-30": 545310,
@@ -29520,7 +29519,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:16+00:00",
+  "checked_at": "2026-08-29T21:24:00+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 501734,
@@ -29562,7 +29561,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:16+00:00",
+  "checked_at": "2026-08-29T21:24:01+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 447483,
@@ -29604,7 +29603,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:45",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:17+00:00",
+  "checked_at": "2026-08-29T21:24:02+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 473734,
@@ -29646,7 +29645,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:50",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:18+00:00",
+  "checked_at": "2026-08-29T21:24:02+00:00",
   "dep_time": "20:10",
   "history": {
    "2026-07-30": 480734,
@@ -29688,7 +29687,7 @@
   "airline": "Air Seoul",
   "arr_time": "22:30",
   "carrier": "RS",
-  "checked_at": "2026-08-29T18:03:18+00:00",
+  "checked_at": "2026-08-29T21:24:03+00:00",
   "dep_time": "20:00",
   "history": {
    "2026-07-30": 582236,
@@ -29730,7 +29729,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:19+00:00",
+  "checked_at": "2026-08-29T21:24:04+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 519952,
@@ -29772,7 +29771,7 @@
   "airline": "Air Busan",
   "arr_time": "22:05",
   "carrier": "BX",
-  "checked_at": "2026-08-29T18:03:20+00:00",
+  "checked_at": "2026-08-29T21:24:04+00:00",
   "dep_time": "19:05",
   "history": {
    "2026-07-30": 473734,
@@ -29814,7 +29813,7 @@
   "airline": "Jeju Air",
   "arr_time": "21:15",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:20+00:00",
+  "checked_at": "2026-08-29T21:24:06+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 510309,
@@ -29856,7 +29855,7 @@
   "airline": "Jeju Air",
   "arr_time": "22:50",
   "carrier": "7C",
-  "checked_at": "2026-08-29T18:03:22+00:00",
+  "checked_at": "2026-08-29T21:24:06+00:00",
   "dep_time": "19:50",
   "history": {
    "2026-07-30": 900566,
@@ -29898,7 +29897,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:43+00:00",
+  "checked_at": "2026-08-29T21:19:38+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 556800,
@@ -29939,7 +29938,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:44+00:00",
+  "checked_at": "2026-08-29T21:19:38+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 868800,
@@ -29981,7 +29980,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:45+00:00",
+  "checked_at": "2026-08-29T21:19:38+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 508800,
@@ -30023,7 +30022,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:45+00:00",
+  "checked_at": "2026-08-29T21:19:39+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 912800,
@@ -30065,7 +30064,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:45+00:00",
+  "checked_at": "2026-08-29T21:19:39+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 508800,
@@ -30107,7 +30106,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:46+00:00",
+  "checked_at": "2026-08-29T21:19:40+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 419400,
@@ -30146,11 +30145,11 @@
   "price": 362800
  },
  "ICN-OKA|out|2026-09-11": {
-  "airline": "Jin Air",
-  "arr_time": "12:05",
-  "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:46+00:00",
-  "dep_time": "09:45",
+  "airline": "Korean Air",
+  "arr_time": "11:50",
+  "carrier": "KE",
+  "checked_at": "2026-08-29T21:19:41+00:00",
+  "dep_time": "09:20",
   "history": {
    "2026-07-30": 736800,
    "2026-07-31": 356600,
@@ -30185,13 +30184,13 @@
    "2026-08-29": 316600
   },
   "off_window": false,
-  "price": 386800
+  "price": 651200
  },
  "ICN-OKA|out|2026-09-12": {
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:47+00:00",
+  "checked_at": "2026-08-29T21:19:41+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 736800,
@@ -30241,7 +30240,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:48+00:00",
+  "checked_at": "2026-08-29T21:19:42+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 508800,
@@ -30283,7 +30282,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:49+00:00",
+  "checked_at": "2026-08-29T21:19:43+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 676800,
@@ -30325,7 +30324,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:49+00:00",
+  "checked_at": "2026-08-29T21:19:43+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 592800,
@@ -30367,7 +30366,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:51+00:00",
+  "checked_at": "2026-08-29T21:19:44+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 912800,
@@ -30409,7 +30408,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:53+00:00",
+  "checked_at": "2026-08-29T21:19:47+00:00",
   "dep_time": "",
   "history": {
    "2026-07-29": 897200,
@@ -30439,7 +30438,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:58:53+00:00",
+  "checked_at": "2026-08-29T21:19:47+00:00",
   "dep_time": "",
   "history": {
    "2026-07-31": 867400,
@@ -30457,7 +30456,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:53+00:00",
+  "checked_at": "2026-08-29T21:19:47+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 976800,
@@ -30499,7 +30498,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:55+00:00",
+  "checked_at": "2026-08-29T21:19:48+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 976800,
@@ -30541,7 +30540,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:58:55+00:00",
+  "checked_at": "2026-08-29T21:19:49+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 592800,
@@ -30583,7 +30582,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:58:55+00:00",
+  "checked_at": "2026-08-29T21:19:49+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 786400,
@@ -30622,7 +30621,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:57+00:00",
+  "checked_at": "2026-08-29T21:19:50+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 897200,
@@ -30664,7 +30663,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:57+00:00",
+  "checked_at": "2026-08-29T21:19:51+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 959400,
@@ -30702,7 +30701,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:57+00:00",
+  "checked_at": "2026-08-29T21:19:51+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 706400,
@@ -30744,7 +30743,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:58:59+00:00",
+  "checked_at": "2026-08-29T21:19:51+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 866400,
@@ -30786,7 +30785,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:59:00+00:00",
+  "checked_at": "2026-08-29T21:19:52+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 897200,
@@ -30828,7 +30827,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:00+00:00",
+  "checked_at": "2026-08-29T21:19:53+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 784800,
@@ -30878,7 +30877,7 @@
   "airline": "Korean Air",
   "arr_time": "11:50",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:01+00:00",
+  "checked_at": "2026-08-29T21:19:53+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 491400,
@@ -30920,7 +30919,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:59:02+00:00",
+  "checked_at": "2026-08-29T21:19:55+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 671400,
@@ -30962,7 +30961,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:02+00:00",
+  "checked_at": "2026-08-29T21:19:55+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 706400,
@@ -31004,7 +31003,7 @@
   "airline": "T'Way Air",
   "arr_time": "13:35",
   "carrier": "TW",
-  "checked_at": "2026-08-29T17:59:02+00:00",
+  "checked_at": "2026-08-29T21:19:55+00:00",
   "dep_time": "11:00",
   "history": {
    "2026-07-30": 706400,
@@ -31046,7 +31045,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:03+00:00",
+  "checked_at": "2026-08-29T21:19:57+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 526400,
@@ -31088,7 +31087,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:04+00:00",
+  "checked_at": "2026-08-29T21:19:57+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 563400,
@@ -31130,7 +31129,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:04+00:00",
+  "checked_at": "2026-08-29T21:19:57+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 904800,
@@ -31172,7 +31171,7 @@
   "airline": "Jin Air",
   "arr_time": "12:05",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:05+00:00",
+  "checked_at": "2026-08-29T21:19:58+00:00",
   "dep_time": "09:45",
   "history": {
    "2026-07-30": 526400,
@@ -31222,7 +31221,7 @@
   "airline": "Jin Air",
   "arr_time": "11:40",
   "carrier": "LJ",
-  "checked_at": "2026-08-29T17:59:06+00:00",
+  "checked_at": "2026-08-29T21:19:59+00:00",
   "dep_time": "09:20",
   "history": {
    "2026-07-30": 420200,
@@ -31428,7 +31427,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:07+00:00",
+  "checked_at": "2026-08-29T21:19:59+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -31466,7 +31465,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:07+00:00",
+  "checked_at": "2026-08-29T21:20:00+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -31508,7 +31507,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:07+00:00",
+  "checked_at": "2026-08-29T21:20:01+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -31550,7 +31549,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:09+00:00",
+  "checked_at": "2026-08-29T21:20:01+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -31589,7 +31588,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:09+00:00",
+  "checked_at": "2026-08-29T21:20:02+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -31631,7 +31630,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:10+00:00",
+  "checked_at": "2026-08-29T21:20:03+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 755664,
@@ -31673,7 +31672,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:10+00:00",
+  "checked_at": "2026-08-29T21:20:03+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -31712,7 +31711,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:10+00:00",
+  "checked_at": "2026-08-29T21:20:03+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -31753,7 +31752,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:12+00:00",
+  "checked_at": "2026-08-29T21:20:04+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -31795,7 +31794,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:12+00:00",
+  "checked_at": "2026-08-29T21:20:05+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -31843,7 +31842,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:12+00:00",
+  "checked_at": "2026-08-29T21:20:05+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 965667,
@@ -31885,7 +31884,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:14+00:00",
+  "checked_at": "2026-08-29T21:20:06+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 808165,
@@ -31927,7 +31926,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:14+00:00",
+  "checked_at": "2026-08-29T21:20:07+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 755664,
@@ -31969,7 +31968,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:14+00:00",
+  "checked_at": "2026-08-29T21:20:08+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -32011,7 +32010,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:16+00:00",
+  "checked_at": "2026-08-29T21:20:08+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -32053,7 +32052,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:17+00:00",
+  "checked_at": "2026-08-29T21:20:09+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-08-05": 2618487,
@@ -32089,7 +32088,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:19+00:00",
+  "checked_at": "2026-08-29T21:20:11+00:00",
   "dep_time": "",
   "history": {
    "2026-07-25": 939186,
@@ -32105,7 +32104,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:19+00:00",
+  "checked_at": "2026-08-29T21:20:11+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 878166,
@@ -32145,7 +32144,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:19+00:00",
+  "checked_at": "2026-08-29T21:20:11+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 703163,
@@ -32187,7 +32186,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:20+00:00",
+  "checked_at": "2026-08-29T21:20:11+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 650662,
@@ -32229,7 +32228,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:21+00:00",
+  "checked_at": "2026-08-29T21:20:13+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 930667,
@@ -32271,7 +32270,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:21+00:00",
+  "checked_at": "2026-08-29T21:20:14+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 1333174,
@@ -32313,7 +32312,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:22+00:00",
+  "checked_at": "2026-08-29T21:20:14+00:00",
   "dep_time": "",
   "history": {
    "2026-07-29": 1685463,
@@ -32327,7 +32326,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:22+00:00",
+  "checked_at": "2026-08-29T21:20:15+00:00",
   "dep_time": "",
   "history": {
    "2026-07-27": 1091398,
@@ -32366,7 +32365,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:23+00:00",
+  "checked_at": "2026-08-29T21:20:15+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 808165,
@@ -32408,7 +32407,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:27+00:00",
+  "checked_at": "2026-08-29T21:20:18+00:00",
   "dep_time": "",
   "history": {
    "2026-07-26": 1701727,
@@ -32448,7 +32447,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:27+00:00",
+  "checked_at": "2026-08-29T21:20:20+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 1665680,
@@ -32479,7 +32478,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:27+00:00",
+  "checked_at": "2026-08-29T21:20:20+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 860666,
@@ -32520,7 +32519,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:27+00:00",
+  "checked_at": "2026-08-29T21:20:20+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 755664,
@@ -32562,7 +32561,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:29+00:00",
+  "checked_at": "2026-08-29T21:20:20+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 860666,
@@ -32604,7 +32603,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:29+00:00",
+  "checked_at": "2026-08-29T21:20:21+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 913166,
@@ -32646,7 +32645,7 @@
   "airline": "",
   "arr_time": "",
   "carrier": "",
-  "checked_at": "2026-08-29T17:59:29+00:00",
+  "checked_at": "2026-08-29T21:20:22+00:00",
   "dep_time": "",
   "history": {
    "2026-07-30": 965667,
@@ -32687,7 +32686,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:30+00:00",
+  "checked_at": "2026-08-29T21:20:23+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 755664,
@@ -32729,7 +32728,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:31+00:00",
+  "checked_at": "2026-08-29T21:20:23+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 860666,
@@ -32771,7 +32770,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:31+00:00",
+  "checked_at": "2026-08-29T21:20:23+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 685663,
@@ -32813,7 +32812,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:35",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:32+00:00",
+  "checked_at": "2026-08-29T21:20:24+00:00",
   "dep_time": "18:15",
   "history": {
    "2026-07-30": 965667,
@@ -32855,7 +32854,7 @@
   "airline": "Asiana Airlines",
   "arr_time": "20:30",
   "carrier": "OZ",
-  "checked_at": "2026-08-29T17:59:33+00:00",
+  "checked_at": "2026-08-29T21:20:25+00:00",
   "dep_time": "18:00",
   "history": {
    "2026-07-30": 965667,
@@ -32897,7 +32896,7 @@
   "airline": "Korean Air",
   "arr_time": "20:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:33+00:00",
+  "checked_at": "2026-08-29T21:20:26+00:00",
   "dep_time": "18:05",
   "history": {
    "2026-07-30": 860666,
@@ -32939,7 +32938,7 @@
   "airline": "Korean Air",
   "arr_time": "20:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:34+00:00",
+  "checked_at": "2026-08-29T21:20:26+00:00",
   "dep_time": "18:05",
   "history": {
    "2026-07-30": 720663,
@@ -32981,7 +32980,7 @@
   "airline": "Korean Air",
   "arr_time": "20:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:34+00:00",
+  "checked_at": "2026-08-29T21:20:27+00:00",
   "dep_time": "18:05",
   "history": {
    "2026-07-30": 685663,
@@ -33023,7 +33022,7 @@
   "airline": "Korean Air",
   "arr_time": "20:25",
   "carrier": "KE",
-  "checked_at": "2026-08-29T17:59:35+00:00",
+  "checked_at": "2026-08-29T21:20:28+00:00",
   "dep_time": "18:05",
   "history": {
    "2026-07-30": 808165,
