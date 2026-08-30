@@ -10,42 +10,42 @@
    553
   ],
   "495657895:h": [
-   "7f5d9aab349b",
-   "593d03801880",
-   "38d9e6c01b78",
-   "0cc17e733e0b",
-   "e0f90cb75037",
-   "e2dbb961a42a"
+   "04ba72384c3e",
+   "bd14ec994476",
+   "6c18791bcd08",
+   "06a973e3ec5c",
+   "f82a2d2d52db",
+   "ce2817332a41"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-30T01:40:28+00:00",
+ "cycle_started_at": "2026-08-30T07:28:55+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-30T01:40:28+00:00",
+ "last_cycle_done_at": "2026-08-30T07:28:55+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 740,
   "legs_new": 0,
-  "legs_ok": 661,
+  "legs_ok": 653,
   "naver_new": 0,
-  "rt_asked": 78,
-  "rt_cheaper": 1,
-  "rt_ok": 1,
-  "rt_pool": 343
+  "rt_asked": 133,
+  "rt_cheaper": 43,
+  "rt_ok": 61,
+  "rt_pool": 329
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-30",
  "naver_dstat": {
   "out": [
    3,
-   129,
+   119,
    0
   ],
   "out·왕복형": [
    3,
-   129,
+   119,
    0
   ],
   "out·왕복형(재시도)": [
@@ -55,12 +55,12 @@
   ],
   "ret": [
    7,
-   202,
+   197,
    0
   ],
   "ret·왕복형": [
    7,
-   202,
+   197,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -76,14 +76,9 @@
  },
  "naver_last_run": "2026-08-30",
  "naver_remain": 0,
- "naver_runs": 4,
+ "naver_runs": 5,
  "naver_total": 99,
  "recent_runs": [
-  {
-   "at": "2026-08-27T23:13:31+00:00",
-   "attempted": 790,
-   "failed": 0
-  },
   {
    "at": "2026-08-28T07:14:34+00:00",
    "attempted": 790,
@@ -128,18 +123,23 @@
    "at": "2026-08-30T01:49:15+00:00",
    "attempted": 740,
    "failed": 0
+  },
+  {
+   "at": "2026-08-30T07:37:22+00:00",
+   "attempted": 740,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 3,
+  "legs1": 378,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 1,
-  "gain_sum": 130990,
-  "ok": 1,
-  "targets": 78
+  "cheaper": 43,
+  "gain_sum": 8660480,
+  "ok": 61,
+  "targets": 133
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
