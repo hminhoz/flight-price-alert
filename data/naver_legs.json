@@ -630,11 +630,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-04": {
-  "airline": "진에어",
-  "at": "2026-08-19T23:57:34+00:00",
+  "airline": "이스타항공",
+  "at": "2026-08-31T06:27:51+00:00",
   "card_cond": false,
-  "dep_time": "21:15",
-  "price": 256200,
+  "dep_time": "21:10",
+  "price": 256800,
   "seat": "일반석",
   "source": "naver"
  },

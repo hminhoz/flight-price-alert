@@ -9,41 +9,41 @@
    559
   ],
   "495657895:h": [
-   "d5fa0ee1b618",
-   "d7c4ed81769c",
-   "de4611d385eb",
-   "7844c48803b0",
-   "52a01a3de8e7"
+   "7cf5dcfecae9",
+   "55bed5d670ae",
+   "40abc1678cfd",
+   "6dc8e6e0a884",
+   "20f2c8b408f1"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-08-30T23:54:38+00:00",
+ "cycle_started_at": "2026-08-31T06:14:14+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-08-30T23:54:38+00:00",
+ "last_cycle_done_at": "2026-08-31T06:14:14+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 740,
   "legs_new": 0,
-  "legs_ok": 656,
+  "legs_ok": 650,
   "naver_new": 0,
-  "rt_asked": 73,
-  "rt_cheaper": 2,
-  "rt_ok": 4,
-  "rt_pool": 332
+  "rt_asked": 95,
+  "rt_cheaper": 25,
+  "rt_ok": 28,
+  "rt_pool": 331
  },
  "naver_cursor": 63,
  "naver_day": "2026-08-31",
  "naver_dstat": {
   "out": [
    3,
-   123,
+   126,
    0
   ],
   "out·왕복형": [
    3,
-   123,
+   126,
    0
   ],
   "out·왕복형(재시도)": [
@@ -53,35 +53,30 @@
   ],
   "ret": [
    6,
-   195,
-   0
+   209,
+   1
   ],
   "ret·왕복형": [
    6,
-   195,
+   209,
    0
   ],
   "ret·왕복형(재시도)": [
    4,
-   0,
+   3,
    0
   ],
   "세션1": [
    9,
-   400,
-   4
+   500,
+   5
   ]
  },
  "naver_last_run": "2026-08-31",
  "naver_remain": 0,
- "naver_runs": 2,
+ "naver_runs": 3,
  "naver_total": 98,
  "recent_runs": [
-  {
-   "at": "2026-08-29T14:50:41+00:00",
-   "attempted": 770,
-   "failed": 0
-  },
   {
    "at": "2026-08-29T18:04:28+00:00",
    "attempted": 740,
@@ -126,18 +121,23 @@
    "at": "2026-08-31T00:03:19+00:00",
    "attempted": 740,
    "failed": 0
+  },
+  {
+   "at": "2026-08-31T06:23:03+00:00",
+   "attempted": 740,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 23,
+  "legs1": 110,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 2,
-  "gain_sum": 103380,
-  "ok": 4,
-  "targets": 73
+  "cheaper": 25,
+  "gain_sum": 13457843,
+  "ok": 28,
+  "targets": 95
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
