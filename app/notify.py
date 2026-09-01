@@ -12,6 +12,7 @@ from .engine import Alert
 from .links import (google_flights_url, google_oneway_url,
                     google_roundtrip_url, naver_url, naver_leg_url)
 from .settings import Settings
+from .search import parse_time_str
 
 log = logging.getLogger(__name__)
 
@@ -57,8 +58,13 @@ def _sources(c) -> tuple:
 
 
 
-def _leg_time(leg: dict, mark_src: bool = False) -> str:
+def _leg_time(leg: dict, window=None, mark_src: bool = False) -> str:
     """출발 시각. 선호 시간대 밖이면 ⚠.
+
+    ⚠는 **저장된 플래그가 아니라 지금 설정의 선호 창으로** 판정한다 (v2.52).
+    플래그는 검색 당시 규칙으로 찍히므로, 창을 바꾼 뒤 다음 실전 실행까지
+    옛 ⚠가 digest·고정판에 남았다(실사용 보고: 삿포로·가고시마 preferred 전환 뒤
+    /digest에 ⚠). 설정에서 매번 계산하면 세 화면이 즉시·항상 같다.
 
     출처는 **두 편이 서로 다를 때만** 시각 옆에 붙인다. 같으면 항목 끝에
     한 번만 적는 게 짧고 읽기 쉽다 — `06:00(네이버)/21:15(네이버)`는
@@ -70,8 +76,15 @@ def _leg_time(leg: dict, mark_src: bool = False) -> str:
     # 텔레그램은 이모지를 단어 경계로 보아 그 뒤의 `/19`를 **봇 명령어로
     # 자동 인식**한다 — 파랗게 되고 누르면 채팅창에 입력된다(실사용 보고,
     # 가고시마 16:20⚠/19:05). 앞에 붙이면 슬래시 앞뒤가 항상 숫자라 안전하다.
-    mark = "⚠" if leg.get("off_window") else ""
-    return f"{mark}{leg.get('dep_time', '?')}"
+    dep = leg.get("dep_time", "?")
+    mark = ""
+    if window is not None:
+        t = parse_time_str(dep) if dep and dep != "?" else None
+        if t is not None and not (window[0] <= t <= window[1]):
+            mark = "⚠"
+    elif leg.get("off_window"):
+        mark = "⚠"                         # 창을 안 넘긴 호출은 종전대로
+    return f"{mark}{dep}"
 
 
 def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
@@ -96,7 +109,7 @@ def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
 
     head = (f"<b>{round(price / n):,}</b>  {when} {c.nights}박"
             + (_airport_note(c) if airport else ""))
-    body = (f"    {_leg_time(c.out_leg)}/{_leg_time(c.ret_leg)} "
+    body = (f"    {_leg_time(c.out_leg, ow)}/{_leg_time(c.ret_leg, rw)} "
             f"{_airlines(c)}{_cond(c)}{_buy_note(cfg, c)}{note}")
     return [head, body]
 
@@ -304,7 +317,8 @@ _AIRLINE_BY_CODE = {
     # 동남아 (v2.46)
     "CX": "캐세이", "UO": "홍콩익스프레스", "HX": "홍콩항공", "NX": "에어마카오",
     "VN": "베트남항공", "VJ": "비엣젯", "QH": "뱀부", "TG": "타이항공",
-    "XJ": "타이에어아시아X", "SL": "타이라이온", "VZ": "타이비엣젯", "WE": "타이스마일",
+    "XJ": "타이에어아시아X", "FD": "타이에어아시아", "SL": "타이라이온", "VZ": "타이비엣젯",
+    "WE": "타이스마일",
 }
 # 코드를 못 얻은 경우를 위한 이름 보조 매핑
 _AIRLINE_BY_NAME = {
@@ -317,7 +331,7 @@ _AIRLINE_BY_NAME = {
     "Cathay Pacific": "캐세이", "HK Express": "홍콩익스프레스", "Hong Kong Airlines": "홍콩항공",
     "Air Macau": "에어마카오", "Vietnam Airlines": "베트남항공", "VietJet Air": "비엣젯",
     "Vietjet": "비엣젯", "Bamboo Airways": "뱀부", "Thai Airways": "타이항공",
-    "Thai AirAsia X": "타이에어아시아X", "Thai Lion Air": "타이라이온",
+    "Thai AirAsia X": "타이에어아시아X", "Thai AirAsia": "타이에어아시아", "Thai Lion Air": "타이라이온",
     "Thai Vietjet Air": "타이비엣젯",
     # 네이버는 한글 정식 사명을 준다 — 구글 쪽 코드 매핑과 같은 짧은 이름으로
     # 맞춘다. 같은 항공사가 편에 따라 "티웨이"/"티웨이항공"으로 갈리던 것 (v2.46)

@@ -833,20 +833,41 @@ def test_time_histogram():
 
 
 def test_off_window_mark_is_short():
-    """선호 시간 밖 표시는 시각 옆 ⚠ 한 글자로 (v1.35)."""
+    """선호 시간 밖 표시는 시각 옆 ⚠ 한 글자로 (v1.35).
+
+    v2.52: ⚠는 저장된 플래그가 아니라 **지금 설정의 선호 창**으로 판정한다.
+    창을 바꾼 뒤 다음 실전 실행까지 옛 ⚠가 digest·고정판에 남았기 때문.
+    """
+    import re as _re
+    from app import notify as N
     cfg = load()
-    r = [x for x in cfg.routes if x.key == "ICN-KOJ"][0]
-    c = engine.Combo(route=r, dep=dt.date(2026, 8, 12), nights=3, price=900_000,
-                     out_leg={"price": 1, "airline": "대한항공",
-                              "dep_time": "16:20", "carrier": "KE",
-                              "off_window": True},
-                     ret_leg={"price": 1, "airline": "대한항공",
-                              "dep_time": "18:55", "carrier": "KE"})
-    a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
-    msg = format_alerts(cfg, [a])[0]
-    assert "⚠16:20/18:55" in msg, msg         # 조건 밖인 쪽에만 ⚠ (시각 앞, v2.44)
-    assert "선호 시간대 밖입니다" not in msg      # 긴 설명 줄은 삭제
-    print("OK 선호시간 밖 표시: 해당 시각 옆 ⚠ 한 글자")
+
+    def mk(key, out_t, ret_t, flag=False):
+        r = [x for x in cfg.routes if x.key == key][0]
+        return engine.Combo(route=r, dep=dt.date(2026, 9, 12), nights=3, price=900_000,
+                            out_leg={"price": 1, "airline": "대한항공", "dep_time": out_t,
+                                     "carrier": "KE", "off_window": flag},
+                            ret_leg={"price": 1, "airline": "대한항공", "dep_time": ret_t,
+                                     "carrier": "KE", "off_window": flag})
+
+    def body(c):
+        a = engine.Alert(kind="baseline", combo=c, baseline=950_000, prev_min=None)
+        return _re.sub(r"<[^>]+>", "", format_alerts(cfg, [a])[0])
+
+    # 일반 노선에서 창 밖 시각 → 그쪽에만 ⚠ (시각 앞, v2.44). 플래그는 없어도 된다
+    m = body(mk("ICN-KIX", "16:20", "18:55"))
+    assert "⚠16:20/18:55" in m, m
+    assert "선호 시간대 밖입니다" not in m
+    # 가고시마 16:20·삿포로 16:20은 각자의 선호 창 안 → 저장된 ⚠ 플래그가 남아 있어도 안 붙는다
+    m = body(mk("ICN-KOJ", "16:20", "18:55", flag=True))
+    assert "16:20/18:55" in m and "⚠" not in m, m
+    c = mk("ICN-CTS", "07:10", "16:20", flag=True)
+    m = body(c)
+    assert "07:10/16:20" in m and "⚠" not in m, m
+    # 세 화면이 같은 판정을 쓴다
+    for txt in (N.format_board(cfg, [c], "x") + N.format_digest(cfg, [c], "")):
+        assert "⚠" not in txt, txt[:200]
+    print("OK 선호시간 밖 표시: 설정 창으로 판정 · 옛 플래그 무시 · 세 화면 동일")
 
 
 def test_time_hist_persisted():
