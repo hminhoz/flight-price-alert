@@ -559,8 +559,14 @@ def process(cfg: Settings, state: State, combos: list[Combo],
         b = state.baselines.get(c.unit)
         if not b or "baseline" not in b:
             continue
-        if b.get("_seeded") == today.isoformat():
-            continue          # 오늘 처음 생긴 단위 — 비교 대상이 없다
+        # 새로 생긴 단위는 observation_days 동안 심기만 한다 (v2.45).
+        # 전에는 첫날만 건너뛰었는데, 둘째 날은 왕복 실가가 채워지면서
+        # pay가 내려가 "싸졌다"고 오판한다 — 시세가 아니라 데이터가 찬 것이다.
+        # 가동 초기 전체 관측기간과 같은 길이를 단위별로도 둔다.
+        seeded = b.get("_seeded")
+        if seeded and today < (dt.date.fromisoformat(seeded)
+                               + dt.timedelta(days=cfg.observation_days)):
+            continue
         is_record = c.pay <= b["alltime_min"] and b.get("alltime_min_at") == now_iso \
             and todays_min.get(c.unit) == c.pay
         # 기준가와 같기만 해도 알리면 '특가 아닌 알림'이 대부분이 된다 (v1.42).

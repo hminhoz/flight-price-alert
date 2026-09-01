@@ -60,6 +60,7 @@ search:
                               # (네 방향 다리를 이미 다 수집하므로 짝만 다르게 짓는다)
   city_groups:                # 같은 도시의 복수 공항을 하나로 묶어 교차 허용
     도쿄: [HND, NRT]           # 하네다로 들어가 나리타로 나오기
+    방콕: [BKK, DMK]           # 수완나품·돈므앙 (v2.45). 기준가·고정판도 한 도시로
   exclude_departures: []      # 출발일 제외. 예: ["2026-09-24", "2026-10-01~2026-10-05"]
   exclude_weekdays: ["일", "월", "화"]  # 출발 요일 제외 (귀국편은 무관)
   adults: 2
@@ -110,6 +111,19 @@ routes:
   # 제주: 구글에 한국 국내선 데이터가 없다고 판정했으나(v1.10) 그 판정도
   # 파서 실패에 근거했을 수 있어 한 번 확인한다. 통계 보고 아니면 다시 끈다.
   - { origin: GMP, destination: CJU, label: "김포-제주", domestic: true }
+  # ---- 동남아 (v2.45, 2026-09-01) ----
+  # 전부 인천 출발 — 김포 국제선은 도쿄·오사카·나고야·타이베이·상하이·베이징뿐.
+  # 시간창은 전역 그대로(가는 편 06~13시 / 오는 편 18~24시). 동남아 귀국편은
+  # 00~02시 출발도 많지만 넓히지 않기로 결정. 21~23시대 편만 잡힌다.
+  # 노선별 시간 분포는 몇 번 돈 뒤 실행 로그 "시간 분포"에서 확인할 것 —
+  # 가격 확보가 지나치게 적은 노선이 나오면 그때 override를 검토한다.
+  - { origin: ICN, destination: HKG, label: "인천-홍콩" }
+  - { origin: ICN, destination: MFM, label: "인천-마카오" }
+  - { origin: ICN, destination: HAN, label: "인천-하노이" }
+  - { origin: ICN, destination: DAD, label: "인천-다낭" }
+  - { origin: ICN, destination: SGN, label: "인천-호치민" }
+  - { origin: ICN, destination: BKK, label: "인천-방콕" }      # 수완나품
+  - { origin: ICN, destination: DMK, label: "인천-돈므앙" }    # city_groups로 방콕에 묶임
   # ---- 여전히 휴면 ----
   # - { origin: ICN, destination: HND, label: "인천-하네다" }
   #   야간 전용 노선이라 조건상 불가. 밤에 인천 출발 → 새벽 하네다 도착,

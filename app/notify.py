@@ -26,7 +26,9 @@ def _d(date) -> str:
 
 _AIRPORT_KO = {"ICN": "인천", "GMP": "김포", "HND": "하네다", "NRT": "나리타",
                "KIX": "간사이", "NGO": "나고야", "CJU": "제주", "CTS": "삿포로",
-               "FUK": "후쿠오카", "OKA": "오키나와", "KOJ": "가고시마"}
+               "FUK": "후쿠오카", "OKA": "오키나와", "KOJ": "가고시마",
+               "HKG": "홍콩", "MFM": "마카오", "HAN": "하노이", "DAD": "다낭",
+               "SGN": "호치민", "BKK": "수완나품", "DMK": "돈므앙"}
 
 
 def _ko(code: str) -> str:
@@ -38,8 +40,13 @@ def _airport_note(c) -> str:
     b = c.back
     if not c.is_cross:
         return f" · {_ko(c.route.origin)} 왕복"
-    return (f" · ⇄ {_ko(c.route.origin)} 출발 / {_ko(b.origin)} 귀국"
-            f"{'' if b.destination == c.route.destination else f' ({_ko(c.route.destination)} 입 / {_ko(b.destination)} 출)'}")
+    dest_note = ("" if b.destination == c.route.destination
+                 else f" ({_ko(c.route.destination)} 입 / {_ko(b.destination)} 출)")
+    if b.origin == c.route.origin:
+        # 서울 쪽은 같고 현지 공항만 다른 교차 (방콕 수완나품↔돈므앙, v2.45).
+        # "인천 출발 / 인천 귀국"은 같은 말을 두 번 하는 것이라 왕복으로 적는다.
+        return f" · {_ko(c.route.origin)} 왕복{dest_note}"
+    return f" · ⇄ {_ko(c.route.origin)} 출발 / {_ko(b.origin)} 귀국{dest_note}"
 
 
 def _sources(c) -> tuple:
@@ -637,8 +644,17 @@ def upsert_board(texts, ids: dict) -> dict:
         resent = len(mids) != len(texts)
         if resent:
             for mid in mids:
-                _post(token, "deleteMessage",
-                      {"chat_id": chat_id, "message_id": mid})
+                r = _post(token, "deleteMessage",
+                          {"chat_id": chat_id, "message_id": mid})
+                if r is None:
+                    # 텔레그램은 **보낸 지 48시간 지난 메시지를 봇이 못 지운다.**
+                    # 고정판은 몇 주 전에 보낸 걸 계속 수정해 쓰므로 거의 항상
+                    # 여기에 걸린다 (v2.45, 6통→12통 때 발견). 수정은 기한이
+                    # 없으니 옛 통을 짧은 안내로 바꿔 옛 시세가 남지 않게 한다.
+                    _post(token, "editMessageText", {
+                        "chat_id": chat_id, "message_id": mid,
+                        "text": "(옛 고정판 — 새 고정판은 상단 📌를 누르세요)",
+                        "disable_web_page_preview": True})
             mids, hs = [], []
         new_ids, new_hs = [], []
         for i, (text, dg) in enumerate(zip(texts, digests)):

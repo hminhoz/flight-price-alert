@@ -169,6 +169,7 @@ def main():
     test_time_histogram()
     test_bundle_gap_filter()
     test_cycle_progress()
+    test_airport_note_same_seoul_side_cross()
 
     print("\n=== 전체 통과 ===")
 
@@ -1112,11 +1113,18 @@ def test_board_ids_compact():
 
     seq = [112]
     pinned = []
+    fail_delete = [False]
+    edited = []
 
     def fake_post(token, method, payload):
         calls.append(method)
         if method == "pinChatMessage":
             pinned.append(payload["message_id"])
+            return {"ok": True}
+        if method == "deleteMessage" and fail_delete[0]:
+            return None                    # 48시간 지난 메시지: 텔레그램이 거부
+        if method == "editMessageText":
+            edited.append(payload["text"])
             return {"ok": True}
         if method != "sendMessage":
             return {"ok": True}
@@ -1160,6 +1168,16 @@ def test_board_ids_compact():
         calls.clear()                      # 줄어들 때도 남는 통을 지운다
         ids = N.upsert_board("한 통으로", ids)
         assert calls.count("deleteMessage") == 2 and len(ids["999"]) == 1, (calls, ids)
+
+        # 48시간 지난 통은 삭제가 거부된다 → 옛 시세가 남지 않게 안내문으로 수정 (v2.45)
+        calls.clear()
+        fail_delete[0] = True
+        ids = N.upsert_board(["한 통", "두 통"], ids)
+        i = calls.index("deleteMessage")
+        assert calls[i + 1] == "editMessageText", calls
+        assert edited[-1] == "(옛 고정판 — 새 고정판은 상단 📌를 누르세요)", edited
+        assert len(ids["999"]) == 2 and pinned[-1] == ids["999"][0]
+        fail_delete[0] = False
 
         # 전문은 저장하지 않는다 (해시만)
         assert not any(str(k).endswith(":text") for k in ids), ids
@@ -1724,7 +1742,15 @@ def test_unit_is_city():
     today = dt.date(2026, 8, 20)
     assert engine.process(cfg, st, [mk(icn, price=100_000)], today) == [], "새 단위가 알렸다"
     assert st.baselines[mk(icn).unit].get("_seeded") == today.isoformat()
-    print("OK 기준가 단위: 도시×월 하나 · 새 단위는 첫날 알리지 않음")
+
+    # 둘째 날도 안 알린다 — 왕복 실가가 채워지며 pay가 내려가는 건 시세가 아니라
+    # 데이터가 찬 것이다 (v2.45, 동남아 7노선 추가 때). observation_days 뒤부터.
+    d2 = today + dt.timedelta(days=1)
+    assert engine.process(cfg, st, [mk(icn, price=50_000)], d2) == [], "새 단위가 둘째 날 알렸다"
+    d3 = today + dt.timedelta(days=cfg.observation_days)
+    got = engine.process(cfg, st, [mk(icn, price=30_000)], d3)
+    assert len(got) == 1, "관측기간이 지났는데 안 알렸다"
+    print("OK 기준가 단위: 도시×월 하나 · 새 단위는 observation_days 동안 알리지 않음")
 
 
 def test_verify_targets_catch_skew():
@@ -2043,49 +2069,6 @@ def test_window_override():
           f"ICN-CTS 오는편 {cts[0]:%H:%M}~ (선호 창은 전역 유지)")
 
 
-def test_fallback_window_is_last_resort():
-    """양보 시간창은 선호 시간대가 비었을 때만 쓰인다 (v1.33)."""
-    import datetime as _dt
-    from app import search as S
-
-    class _T:
-        def __init__(self, h):
-            self.time = [h, 0]
-
-    class _Seg:
-        def __init__(self, h):
-            self.departure, self.arrival = _T(h), _T(h + 2)
-            self.from_airport = type("A", (), {"code": "ICN", "name": "I"})()
-            self.to_airport = type("A", (), {"code": "KOJ", "name": "K"})()
-
-    class _It:
-        def __init__(self, h, price):
-            self.flights, self.price, self.airlines = [_Seg(h)], price, ["KE"]
-            self.type = "KE"
-
-    pref = (_dt.time(6, 0), _dt.time(13, 0))
-    fb = (_dt.time(6, 0), _dt.time(17, 0))
-    orig = S._do_fetch
-    try:
-        # 오전 편이 있으면 더 싼 오후 편이 있어도 오전을 고른다
-        S._do_fetch = lambda *a, **k: [_It(9, 500_000), _It(16, 400_000)]
-        r = S.search_leg("ICN", "KOJ", "2026-08-01", adults=2, window=pref,
-                         fallback_window=fb, retries=1)
-        assert r and r.price == 500_000 and not r.off_window, r
-
-        # 오전 편이 없을 때만 양보하고, 양보했음을 표시한다
-        S._do_fetch = lambda *a, **k: [_It(16, 400_000)]
-        r = S.search_leg("ICN", "KOJ", "2026-08-01", adults=2, window=pref,
-                         fallback_window=fb, retries=1)
-        assert r and r.price == 400_000 and r.off_window, r
-
-        # 양보 창이 없는 노선은 기존과 동일하게 '없음' 처리
-        r = S.search_leg("ICN", "KOJ", "2026-08-01", adults=2, window=pref,
-                         fallback_window=None, retries=1)
-        assert r is None, r
-    finally:
-        S._do_fetch = orig
-    print("OK 양보 동작: 선호 우선 · 비었을 때만 양보 · 양보 시 표시")
 
 
 def test_roundtrip_verification():
@@ -2144,6 +2127,35 @@ def test_display_selection():
     cheapest = min(a.combo.price for a in alerts)
     assert min(a.combo.price for a in picked) == cheapest, "최저가가 선별에서 누락"
     print(f"OK 검증 대상 선별: 알림 {len(alerts)}건 → 왕복 쿼리 {len(picked)}건")
+
+
+
+
+def test_airport_note_same_seoul_side_cross():
+    """서울 쪽 공항이 같고 현지 공항만 다른 교차는 '왕복'으로 적는다 (v2.45).
+
+    방콕은 인천-수완나품 / 인천-돈므앙이라 교차해도 서울 쪽은 인천뿐이다.
+    '⇄ 인천 출발 / 인천 귀국'은 같은 말을 두 번 하는 셈이다.
+    도쿄(김포-하네다 / 인천-나리타)처럼 서울 쪽이 다르면 종전 표기 그대로.
+    """
+    from app.notify import _airport_note
+    cfg = load()
+    bkk = [r for r in cfg.routes if r.key == "ICN-BKK"][0]
+    dmk = [r for r in cfg.routes if r.key == "ICN-DMK"][0]
+    hnd = [r for r in cfg.routes if r.key == "GMP-HND"][0]
+    nrt = [r for r in cfg.routes if r.key == "ICN-NRT"][0]
+
+    def mk(route, back):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=1,
+            out_leg={"price": 1, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": 1, "dep_time": "19:40", "airline": "X"},
+            ret_route=back, city=engine._seoul_group(cfg, route))
+
+    assert _airport_note(mk(bkk, dmk)) == " · 인천 왕복 (수완나품 입 / 돈므앙 출)"
+    assert _airport_note(mk(bkk, None)) == " · 인천 왕복"
+    assert _airport_note(mk(hnd, nrt)) == " · ⇄ 김포 출발 / 인천 귀국 (하네다 입 / 나리타 출)"
+    print("OK 교차 표기: 서울 쪽 같으면 '왕복', 다르면 '⇄ 출발/귀국'")
 
 
 if __name__ == "__main__":
