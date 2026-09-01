@@ -238,22 +238,35 @@ def _foot(cfg, body: str) -> str:
     return " · ".join(parts)
 
 
-def pack(cfg, title: str, blocks: list[str], lead: str = "") -> list[str]:
+def pack(cfg, title: str, blocks: list, lead: str = "") -> list[str]:
     """도시 블록들을 텔레그램 한 통 한도에 맞게 나눈다. **분할 규칙도 공용.**
 
     통이 여러 개면 **모든 통의 제목에** `i/총`을 붙인다 (첫 통만 번호가 없어
     "1/3은 왜 없지?"가 됐던 적이 있다). 번호가 이어짐을 말해주므로
     "아래로 계속" 같은 안내 줄은 두지 않는다.
+
+    블록은 문자열이거나 `(나라, 문자열)`. 나라가 있으면 **그 나라의 첫 블록
+    앞에 나라 줄**을 붙이고, 한 나라가 다음 통으로 넘어가면 그 통 첫머리에
+    나라 줄을 다시 붙인다 — 통을 따로 열어도 어느 나라인지 보이게 (v2.46).
+    나라 줄을 독립 블록으로 두면 통 끝에 나라 줄만 남고 도시는 다음 통으로
+    갈리는 수가 있어 블록에 붙여 넣는다.
     """
     msgs: list[list[str]] = []
     cur: list[str] = []
-    for b in blocks:
+    cur_country = None
+    for item in blocks:
+        country, b = item if isinstance(item, tuple) else (None, item)
+        if country and country != cur_country:
+            b = f"<b>{country}</b>\n\n{b}"
         cand = cur + ["", b] if cur else [b]
         if cur and len("\n".join(cand)) + len(title) + 90 > _SAFE_LEN:
             msgs.append(cur)
+            if country and country == cur_country:      # 나라가 통을 넘어간다
+                b = f"<b>{country}</b>\n\n{b}"
             cur = [b]
         else:
             cur = cand
+        cur_country = country
     msgs.append(cur)
 
     total = len(msgs)
@@ -288,6 +301,10 @@ _AIRLINE_BY_CODE = {
     "TW": "티웨이", "BX": "에어부산", "RS": "에어서울", "ZE": "이스타",
     "YP": "에어프레미아", "4V": "파라타",
     "MM": "피치", "NH": "ANA", "JL": "JAL", "ZG": "집에어", "IJ": "스프링재팬",
+    # 동남아 (v2.46)
+    "CX": "캐세이", "UO": "홍콩익스프레스", "HX": "홍콩항공", "NX": "에어마카오",
+    "VN": "베트남항공", "VJ": "비엣젯", "QH": "뱀부", "TG": "타이항공",
+    "XJ": "타이에어아시아X", "SL": "타이라이온", "VZ": "타이비엣젯", "WE": "타이스마일",
 }
 # 코드를 못 얻은 경우를 위한 이름 보조 매핑
 _AIRLINE_BY_NAME = {
@@ -297,6 +314,15 @@ _AIRLINE_BY_NAME = {
     "Air Premia": "에어프레미아", "Peach Aviation": "피치", "Peach": "피치",
     "ZIPAIR Tokyo": "집에어", "ZIPAIR": "집에어",
     "All Nippon Airways": "ANA", "Japan Airlines": "JAL",
+    "Cathay Pacific": "캐세이", "HK Express": "홍콩익스프레스", "Hong Kong Airlines": "홍콩항공",
+    "Air Macau": "에어마카오", "Vietnam Airlines": "베트남항공", "VietJet Air": "비엣젯",
+    "Vietjet": "비엣젯", "Bamboo Airways": "뱀부", "Thai Airways": "타이항공",
+    "Thai AirAsia X": "타이에어아시아X", "Thai Lion Air": "타이라이온",
+    "Thai Vietjet Air": "타이비엣젯",
+    # 네이버는 한글 정식 사명을 준다 — 구글 쪽 코드 매핑과 같은 짧은 이름으로
+    # 맞춘다. 같은 항공사가 편에 따라 "티웨이"/"티웨이항공"으로 갈리던 것 (v2.46)
+    "티웨이항공": "티웨이", "파라타항공": "파라타", "이스타항공": "이스타",
+    "아시아나항공": "아시아나",
 }
 
 
@@ -510,13 +536,23 @@ def _screen(cfg: Settings, combos: list, month: int | None, *,
                 else "아직 비교할 조합이 없습니다.")
         return [f"{title}\n\n{miss}"]
 
-    # 싼 도시부터 (역시 실제 지불액 기준)
+    # 나라 순서(config `countries`) → 나라 안에서는 싼 도시부터 (실제 지불액).
+    # 나라 묶음이 없으면 전체를 싼 도시부터 (v2.46 이전 동작).
+    order = list(cfg.countries)
+    def country_of(route) -> str:
+        for name, codes in cfg.countries.items():
+            if route.destination in codes:
+                return name
+        return "기타"
+    def rank(v):
+        c = country_of(v[0].route)
+        return (order.index(c) if c in order else len(order),
+                min(x.pay for x in v))
     blocks = []
-    for city_combos in sorted(by_city.values(),
-                              key=lambda v: min(x.pay for x in v)):
+    for city_combos in sorted(by_city.values(), key=rank):
         picked = pick_dates(city_combos, top_n)
-        blocks.append(city_block(cfg, picked,
-                                 city_label(cfg, picked[0].route)))
+        block = city_block(cfg, picked, city_label(cfg, picked[0].route))
+        blocks.append((country_of(picked[0].route), block) if order else block)
     return pack(cfg, title, blocks, lead=status)
 
 
@@ -642,6 +678,7 @@ def upsert_board(texts, ids: dict) -> dict:
         # 2/3·3/3은 한참 아래에 떨어졌다(실측 message_id 112 vs 166·167).
         # "연달아 붙어 있다"는 전제가 그때 깨진다.
         resent = len(mids) != len(texts)
+        old_mids = list(mids)
         if resent:
             for mid in mids:
                 r = _post(token, "deleteMessage",
@@ -675,12 +712,19 @@ def upsert_board(texts, ids: dict) -> dict:
                 "disable_notification": True})
             if r and r.get("message_id"):
                 new_ids.append(r["message_id"]); new_hs.append(dg)
-        # 새로 보냈으면 **첫 통을 봇이 직접 고정한다.**
-        # 통 수가 바뀔 때마다 사람이 다시 고정하게 둘 수는 없다. 나머지 통은
-        # 바로 아래 붙어 있으므로 고정은 1통이면 충분하다.
-        if resent and new_ids:
-            _post(token, "pinChatMessage",
-                  {"chat_id": chat_id, "message_id": new_ids[0],
-                   "disable_notification": True})
+        # 새로 보냈으면 **모든 통을 봇이 직접 고정한다** (v2.46, 전엔 첫 통만).
+        # 통 수가 바뀔 때마다 사람이 다시 고정하게 둘 수는 없다.
+        # 옛 통은 하나씩 고정 해제한다 — unpinAll은 사람이 따로 고정한 것까지
+        # 지운다. 새 통은 **마지막 통부터 거꾸로** 고정한다: 텔레그램 상단
+        # 📌는 가장 최근 고정을 먼저 보여주고 누를 때마다 그 전 것으로 넘어가므로
+        # 거꾸로 고정해야 📌를 누를 때 1/12 → 2/12 → … 순서가 된다.
+        if resent:
+            for mid in old_mids:
+                _post(token, "unpinChatMessage",
+                      {"chat_id": chat_id, "message_id": mid})
+            for mid in reversed(new_ids):
+                _post(token, "pinChatMessage",
+                      {"chat_id": chat_id, "message_id": mid,
+                       "disable_notification": True})
         out[chat_id], out[f"{chat_id}:h"] = new_ids, new_hs
     return out

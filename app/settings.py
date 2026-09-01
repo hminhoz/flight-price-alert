@@ -72,6 +72,7 @@ class Settings:
     exclude_airlines: tuple = ()
     cross_airports: bool = True
     city_groups: dict = field(default_factory=dict, repr=False)
+    countries: dict = field(default_factory=dict, repr=False)   # 나라 → 공항 목록 (표시 순서)
     concurrency: int = 3
     leg_freshness_days: int = 3  # 콤보 계산 시 다리(leg) 가격의 최대 허용 나이
 
@@ -204,6 +205,8 @@ def load(path: Path | None = None) -> Settings:
             str(x).strip().upper() for x in (s.get("exclude_airlines") or [])),
         cross_airports=bool(s.get("cross_airports", True)),
         city_groups={k: list(v) for k, v in (s.get("city_groups") or {}).items()},
+        countries={str(k): [str(x).upper() for x in v]
+                   for k, v in (s.get("countries") or {}).items()},
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,

@@ -170,6 +170,7 @@ def main():
     test_bundle_gap_filter()
     test_cycle_progress()
     test_airport_note_same_seoul_side_cross()
+    test_board_grouped_by_country()
 
     print("\n=== 전체 통과 ===")
 
@@ -1115,11 +1116,15 @@ def test_board_ids_compact():
     pinned = []
     fail_delete = [False]
     edited = []
+    unpinned = []
 
     def fake_post(token, method, payload):
         calls.append(method)
         if method == "pinChatMessage":
             pinned.append(payload["message_id"])
+            return {"ok": True}
+        if method == "unpinChatMessage":
+            unpinned.append(payload["message_id"])
             return {"ok": True}
         if method == "deleteMessage" and fail_delete[0]:
             return None                    # 48시간 지난 메시지: 텔레그램이 거부
@@ -1157,9 +1162,11 @@ def test_board_ids_compact():
         calls.clear()
         ids = N.upsert_board(["바뀐 내용", "둘째 통"], ids)
         assert calls == ["deleteMessage", "sendMessage", "sendMessage",
-                         "pinChatMessage"], calls
+                         "unpinChatMessage", "pinChatMessage", "pinChatMessage"], calls
         assert ids["999"] == [114, 115], ids          # 연달아 발송돼 붙어 있다
-        assert pinned == [114], "새로 보냈으면 첫 통을 봇이 고정해야 한다"
+        # 모든 통을 고정하되 **거꾸로** — 📌를 누르면 1/2 → 2/2 순서가 되게 (v2.46)
+        assert pinned == [115, 114], "새로 보냈으면 모든 통을 마지막부터 고정해야 한다"
+        assert unpinned == [113], "옛 통은 하나씩 고정 해제"
 
         calls.clear(); pinned.clear()      # 내용만 바뀌면 고정은 건드리지 않는다
         ids = N.upsert_board(["다시 바뀐 내용", "둘째 통"], ids)
@@ -1176,7 +1183,7 @@ def test_board_ids_compact():
         i = calls.index("deleteMessage")
         assert calls[i + 1] == "editMessageText", calls
         assert edited[-1] == "(옛 고정판 — 새 고정판은 상단 📌를 누르세요)", edited
-        assert len(ids["999"]) == 2 and pinned[-1] == ids["999"][0]
+        assert len(ids["999"]) == 2 and pinned[-1] == ids["999"][0]   # 1통이 마지막 고정
         fail_delete[0] = False
 
         # 전문은 저장하지 않는다 (해시만)
@@ -2156,6 +2163,49 @@ def test_airport_note_same_seoul_side_cross():
     assert _airport_note(mk(bkk, None)) == " · 인천 왕복"
     assert _airport_note(mk(hnd, nrt)) == " · ⇄ 김포 출발 / 인천 귀국 (하네다 입 / 나리타 출)"
     print("OK 교차 표기: 서울 쪽 같으면 '왕복', 다르면 '⇄ 출발/귀국'")
+
+
+def test_board_grouped_by_country():
+    """고정판·전체시세는 나라별로 묶고, 나라 안에서만 싼 도시부터 (v2.46).
+
+    전에는 도시 전체를 싼 순으로 늘어놓아 일본 도시 사이에 다른 나라가 끼었다.
+    나라 순서는 config `countries`의 순서. 한 나라가 통을 넘어가면 다음 통
+    첫머리에 나라 줄을 다시 붙인다.
+    """
+    import re
+    from app.notify import format_board, pack
+    cfg = load()
+    assert list(cfg.countries)[:2] == ["🇰🇷 국내", "🇯🇵 일본"], cfg.countries
+
+    def r(key):
+        return [x for x in cfg.routes if x.key == key][0]
+
+    def mk(route, price):
+        return engine.Combo(
+            route=route, dep=dt.date(2026, 9, 10), nights=3, price=price,
+            out_leg={"price": price // 2, "dep_time": "07:30", "airline": "X"},
+            ret_leg={"price": price - price // 2, "dep_time": "19:40", "airline": "X"},
+            ret_route=None, city=engine._seoul_group(cfg, route))
+
+    # 방콕이 제일 싸고 후쿠오카가 제일 비싸도 나라 순서가 우선이다
+    combos = [mk(r("ICN-BKK"), 100_000), mk(r("ICN-FUK"), 300_000),
+              mk(r("ICN-KIX"), 200_000), mk(r("GMP-CJU"), 250_000),
+              mk(r("ICN-HAN"), 150_000)]
+    text = "\n".join(re.sub(r"<[^>]+>", "", m) for m in format_board(cfg, combos, "x"))
+    order = [n for n in ["🇰🇷 국내", "🇯🇵 일본", "🇻🇳 베트남", "🇹🇭 태국"] if n in text]
+    assert order == ["🇰🇷 국내", "🇯🇵 일본", "🇻🇳 베트남", "🇹🇭 태국"], text
+    assert text.index("🇰🇷 국내") < text.index("🇯🇵 일본") < text.index("🇻🇳 베트남") < text.index("🇹🇭 태국")
+    # 일본 안에서는 싼 오사카가 후쿠오카보다 먼저
+    assert text.index("오사카") < text.index("후쿠오카"), text
+    # 나라 줄은 나라의 첫 도시 앞에 한 번만 (오사카·후쿠오카 사이엔 없다)
+    assert text.count("🇯🇵 일본") == 1, text
+
+    # 통을 넘어가면 다음 통 첫머리에 나라 줄을 다시 붙인다
+    big = "x" * 3000
+    msgs = pack(cfg, "T", [("🇯🇵 일본", big), ("🇯🇵 일본", big), ("🇹🇭 태국", "y")])
+    assert len(msgs) == 2 and all("🇯🇵 일본" in m for m in msgs), [m[:40] for m in msgs]
+    assert msgs[1].index("🇯🇵 일본") < msgs[1].index("🇹🇭 태국")
+    print("OK 나라별 묶음: 나라 순서 → 나라 안 싼 도시부터 · 통 넘어가면 나라 줄 반복")
 
 
 if __name__ == "__main__":
