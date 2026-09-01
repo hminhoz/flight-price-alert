@@ -596,12 +596,12 @@
  },
  "SGN|2026-09": {
   "_seeded": "2026-09-01",
-  "alltime_min": 972482,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 972482,
+  "alltime_min": 959676,
+  "alltime_min_at": "2026-09-01T05:02:17+00:00",
+  "alltime_min_prev": 972482,
+  "baseline": 959676,
   "daily_min": {
-   "2026-09-01": 972482
+   "2026-09-01": 959676
   }
  },
  "SGN|2026-10": {
