@@ -241,12 +241,12 @@
  },
  "HAN|2026-09": {
   "_seeded": "2026-09-01",
-  "alltime_min": 562132,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 562132,
+  "alltime_min": 552605,
+  "alltime_min_at": "2026-09-01T10:47:17+00:00",
+  "alltime_min_prev": 562132,
+  "baseline": 552605,
   "daily_min": {
-   "2026-09-01": 562132
+   "2026-09-01": 552605
   }
  },
  "HAN|2026-10": {
@@ -689,12 +689,12 @@
  },
  "방콕|2026-09": {
   "_seeded": "2026-09-01",
-  "alltime_min": 1060000,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 1060000,
+  "alltime_min": 1027403,
+  "alltime_min_at": "2026-09-01T10:47:17+00:00",
+  "alltime_min_prev": 1060000,
+  "baseline": 1027403,
   "daily_min": {
-   "2026-09-01": 1060000
+   "2026-09-01": 1027403
   }
  },
  "방콕|2026-10": {
