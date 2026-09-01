@@ -251,12 +251,12 @@
  },
  "HAN|2026-10": {
   "_seeded": "2026-09-01",
-  "alltime_min": 620395,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 620395,
+  "alltime_min": 552085,
+  "alltime_min_at": "2026-09-01T05:57:17+00:00",
+  "alltime_min_prev": 620395,
+  "baseline": 552085,
   "daily_min": {
-   "2026-09-01": 620395
+   "2026-09-01": 552085
   }
  },
  "HKG|2026-09": {
@@ -428,22 +428,22 @@
  },
  "MFM|2026-09": {
   "_seeded": "2026-09-01",
-  "alltime_min": 849960,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 849960,
+  "alltime_min": 849773,
+  "alltime_min_at": "2026-09-01T05:57:17+00:00",
+  "alltime_min_prev": 849960,
+  "baseline": 849773,
   "daily_min": {
-   "2026-09-01": 849960
+   "2026-09-01": 849773
   }
  },
  "MFM|2026-10": {
   "_seeded": "2026-09-01",
-  "alltime_min": 849960,
-  "alltime_min_at": "2026-09-01T03:05:41+00:00",
-  "alltime_min_prev": null,
-  "baseline": 849960,
+  "alltime_min": 849773,
+  "alltime_min_at": "2026-09-01T05:57:17+00:00",
+  "alltime_min_prev": 849960,
+  "baseline": 849773,
   "daily_min": {
-   "2026-09-01": 849960
+   "2026-09-01": 849773
   }
  },
  "NGO|2026-08": {
@@ -596,12 +596,12 @@
  },
  "SGN|2026-09": {
   "_seeded": "2026-09-01",
-  "alltime_min": 959676,
-  "alltime_min_at": "2026-09-01T05:02:17+00:00",
-  "alltime_min_prev": 972482,
-  "baseline": 959676,
+  "alltime_min": 891000,
+  "alltime_min_at": "2026-09-01T05:57:17+00:00",
+  "alltime_min_prev": 959676,
+  "baseline": 891000,
   "daily_min": {
-   "2026-09-01": 959676
+   "2026-09-01": 891000
   }
  },
  "SGN|2026-10": {
