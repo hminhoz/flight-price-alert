@@ -171,6 +171,8 @@ def main():
     test_cycle_progress()
     test_airport_note_same_seoul_side_cross()
     test_board_grouped_by_country()
+    test_roundtrip_uses_effective_window()
+    test_return_arrives_same_day()
 
     print("\n=== 전체 통과 ===")
 
@@ -2052,13 +2054,18 @@ def test_window_override():
     판정해 알림에 표시하는 기준으로 쓴다.
     """
     cfg = load()
-    # 선호 창은 노선과 무관하게 항상 전역값이어야 한다
+    # 선호 창은 노선과 무관하게 전역값 — 단 `preferred: true`로 자기 선호 창을
+    # 가진 노선(동남아 오는 편, v2.48)은 예외다. 그 노선엔 양보 창이 없다.
     for r in cfg.routes:
-        assert cfg.window_for(r.key, "out") == cfg.outbound_window, r.key
-        assert cfg.window_for(r.key, "ret") == cfg.return_window, r.key
+        for d, glob in (("out", cfg.outbound_window), ("ret", cfg.return_window)):
+            if cfg.route_preferred.get(r.key, {}).get(d):
+                assert cfg.fallback_window_for(r.key, d) is None, (r.key, d)
+                assert cfg.window_for(r.key, d) != glob, (r.key, d)
+                continue
+            assert cfg.window_for(r.key, d) == glob, (r.key, d)
 
     relaxed = [r.key for r in cfg.routes if cfg.has_window_override(r.key)]
-    assert relaxed, "넓힌 창이 설정된 노선이 없다 (테스트 전제 붕괴)"
+    assert relaxed, "노선 창이 설정된 노선이 없다 (테스트 전제 붕괴)"
     for key in relaxed:
         for d, glob in (("out", cfg.outbound_window), ("ret", cfg.return_window)):
             fb = cfg.fallback_window_for(key, d)
@@ -2068,12 +2075,16 @@ def test_window_override():
             assert fb[0] <= glob[0] and fb[1] >= glob[1], (key, d, fb, glob)
             assert fb != glob, f"{key} {d}: 넓힌 창이 전역값과 같아 무의미"
 
-    koj = cfg.fallback_window_for("ICN-KOJ", "out")
-    cts = cfg.fallback_window_for("ICN-CTS", "ret")
-    assert koj and koj[1] > cfg.outbound_window[1], "가고시마 넓힌 창 미설정"
-    assert cts and cts[0] < cfg.return_window[0], "삿포로 넓힌 창 미설정"
-    print(f"OK 넓힌 창 설정: ICN-KOJ 가는편 ~{koj[1]:%H:%M}, "
-          f"ICN-CTS 오는편 {cts[0]:%H:%M}~ (선호 창은 전역 유지)")
+    # 삿포로·가고시마는 v2.50부터 **선호 창**이다 — 실측 잡힌 편이 거의 전부
+    # 선호 밖(⚠)이라 표시가 정보가 아니라 소음이었다. 양보 창은 없어야 한다.
+    koj = cfg.window_for("ICN-KOJ", "out")
+    cts = cfg.window_for("ICN-CTS", "ret")
+    assert koj[1] > cfg.outbound_window[1] and cfg.fallback_window_for("ICN-KOJ", "out") is None
+    assert cts[0] < cfg.return_window[0] and cfg.fallback_window_for("ICN-CTS", "ret") is None
+    # 삿포로 latest는 실측 당일 도착 한계(소요 최대 3h15 → 20:45) 안 (v2.51)
+    assert cts[1] <= dt.time(20, 45), cts
+    print(f"OK 노선 창: ICN-KOJ 가는편 ~{koj[1]:%H:%M}, "
+          f"ICN-CTS 오는편 {cts[0]:%H:%M}~ (선호 창, ⚠ 없음)")
 
 
 
@@ -2206,6 +2217,82 @@ def test_board_grouped_by_country():
     assert len(msgs) == 2 and all("🇯🇵 일본" in m for m in msgs), [m[:40] for m in msgs]
     assert msgs[1].index("🇯🇵 일본") < msgs[1].index("🇹🇭 태국")
     print("OK 나라별 묶음: 나라 순서 → 나라 안 싼 도시부터 · 통 넘어가면 나라 줄 반복")
+
+
+def test_roundtrip_uses_effective_window():
+    """왕복 실가 조회는 선호 창 ∪ 양보 창을 넘긴다 (v2.47).
+
+    선호 창(전역)만 넘기면 양보 창으로 잡히는 노선은 왕복 조회가 항상 0건이다.
+    실측: 7/31 이후 삿포로·가고시마 왕복 실가 0건, 매 실행 58건 헛질문.
+    """
+    import pathlib
+    cfg = load()
+    g_out, g_ret = cfg.window_for("ICN-KIX", "out"), cfg.window_for("ICN-KIX", "ret")
+    assert cfg.effective_window("ICN-KIX", "ret") == g_ret          # override 없음 → 전역
+    cts = cfg.effective_window("ICN-CTS", "ret")
+    assert cts == (dt.time(14, 0), dt.time(20, 30)), cts            # 14:00~20:30 (v2.51)
+    koj = cfg.effective_window("ICN-KOJ", "out")
+    assert koj[0] == g_out[0] and koj[1] == dt.time(17, 0), koj    # ~17시 로 넓힘
+    # 왕복 조회 호출부가 실제로 effective_window를 쓴다 (window_for로 되돌리면 재발)
+    src = pathlib.Path(__file__).resolve().parent.parent / "main.py"
+    body = src.read_text()
+    calls = [seg for seg in body.split("search_roundtrip(")[1:]]
+    assert len(calls) >= 2
+    for seg in calls:
+        head = seg[:700]
+        assert "effective_window" in head and "window_for(" not in head, head[:200]
+    print("OK 왕복 조회 시간창: 선호 ∪ 양보 (삿포로 14시~ · 가고시마 ~17시)")
+
+
+def test_return_arrives_same_day():
+    """오는 편은 인천 도착이 당일이어야 한다 (v2.48).
+
+    사용자 목표는 "돌아오는 날 밤 12시 전 도착". 18시 이후 출발 규칙은 일본
+    (2시간)에서만 그 뜻이었고, 동남아는 21~23시 출발이 전부 익일 새벽 도착이었다
+    (실측 방콕·하노이·다낭·호치민 100%). 출발 현지시각 < 도착 한국시각이면 당일.
+    """
+    from types import SimpleNamespace as NS
+    from app.search import _pick_best
+    cfg = load()
+    assert cfg.return_arrive_same_day
+
+    def item(price, dep, arr):
+        leg = NS(departure=NS(time=dep), arrival=NS(time=arr))
+        return NS(flights=[leg], price=price, type="7C", airlines=[NS(name="Jeju Air")])
+
+    win = (dt.time(11, 0), dt.time(23, 59))
+    results = [item(100_000, "23:10", "06:30"),   # 싸지만 익일 도착
+               item(150_000, "12:40", "19:50"),   # 당일 도착
+               item(140_000, "21:30", "05:00")]   # 익일 도착
+    got = _pick_best(results, win, True, "2026-09-10", "BKK", "ICN",
+                     count_hist=False, same_day=True)
+    assert got and got.dep_time == "12:40" and got.price == 150_000, got
+    # 규칙을 끄면 예전처럼 최저가(익일 도착)가 뽑힌다 — 규칙이 실제로 작동함을 확인
+    old = _pick_best(results, win, True, "2026-09-10", "BKK", "ICN",
+                     count_hist=False, same_day=False)
+    assert old and old.dep_time == "23:10", old
+    # 일본 저녁 편(21:15 → 23:30)은 당일이라 통과
+    jp = _pick_best([item(120_000, "21:15", "23:30")], (dt.time(18, 0), dt.time(23, 59)),
+                    True, "2026-09-10", "KIX", "ICN", count_hist=False, same_day=True)
+    assert jp and jp.dep_time == "21:15", jp
+
+    # 동남아 노선 창: 당일 도착 한계 안 (홍콩 ~18:59 · 하노이/다낭 ~17:30 · 호치민/방콕 ~16:30)
+    # 실측 최악 소요+시차로 계산한 당일 도착 한계(홍콩 19:20 · 마카오 19:25 · 하노이 17:25 ·
+    # 다낭 17:05 · 호치민 16:45 · 방콕 16:30)보다 latest가 이르거나 같아야 한다.
+    limit = {"ICN-HKG": (19, 20), "ICN-MFM": (19, 25), "ICN-HAN": (17, 25),
+             "ICN-DAD": (17, 5), "ICN-SGN": (16, 45), "ICN-BKK": (16, 30)}
+    lim = {"ICN-HKG": (14, 0, 18, 59), "ICN-MFM": (18, 0, 19, 20), "ICN-HAN": (12, 0, 17, 0),
+           "ICN-DAD": (13, 0, 17, 0), "ICN-SGN": (12, 0, 16, 30), "ICN-BKK": (11, 0, 16, 0)}
+    for key, (h1, m1, h2, m2) in lim.items():
+        w = cfg.window_for(key, "ret")
+        assert w == (dt.time(h1, m1), dt.time(h2, m2)), (key, w)
+        assert w[1] <= dt.time(*limit[key]), (key, w[1], limit[key])
+        assert cfg.effective_window(key, "ret") == w             # 왕복 조회도 같은 창
+    # main이 오는 편에만 same_day를 켠다
+    import pathlib
+    body = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
+    assert 'same_day=cfg.return_arrive_same_day and leg.direction == "ret"' in body
+    print("OK 당일 도착 규칙: 익일 도착 편 배제 · 동남아 오는 편 창은 낮 시간대")
 
 
 if __name__ == "__main__":

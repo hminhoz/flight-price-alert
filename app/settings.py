@@ -78,6 +78,8 @@ class Settings:
 
     # 노선별 시간창 override: {route_key: {"out": (lo, hi), "ret": (lo, hi)}}
     route_windows: dict = field(default_factory=dict, repr=False)
+    route_preferred: dict = field(default_factory=dict, repr=False)  # {route: {dir: True}} 창이 '선호'인 노선
+    return_arrive_same_day: bool = True   # 오는 편은 인천 도착이 당일 24시 이전 (v2.48)
     live_board: bool = True
     board_top_n: int = 8
     digest_top_n: int = 3
@@ -103,11 +105,35 @@ class Settings:
         고르는 바람에 오전 편이 있는 날에도 더 싼 오후 편을 집어왔다.
         사용자 의도는 '선호 시간대에 아무것도 없을 때만 양보'였다.
         """
+        if self.route_preferred.get(route_key, {}).get(direction):
+            # 노선 창이 **선호 창 자체**인 노선 (v2.48). 동남아처럼 전역 창(18시~)이
+            # 노선 사정에 아예 안 맞을 때 쓴다. 양보 창이 아니므로 ⚠도 안 붙는다.
+            return self.route_windows[route_key][direction]
         return self.outbound_window if direction == "out" else self.return_window
+
+    def effective_window(self, route_key: str,
+                         direction: str) -> tuple[dt.time, dt.time]:
+        """선호 창과 양보 창을 **합친** 창. 왕복 실가 조회에 쓴다 (v2.47).
+
+        왕복 조회는 구글 요청에 출발 시각 범위를 심는다(tfs 필드 8·9). 거기에
+        `window_for`(항상 전역 선호 창)를 넘기고 있어서, 양보 창으로만 잡히는
+        노선은 왕복 조회가 **항상 0건**이었다 — 삿포로 오는 편(14~16시 운항,
+        선호 창 18시~)과 가고시마 가는 편(16시 운항, 선호 창 ~13시). 7/31 이후
+        두 노선의 왕복 실가가 한 건도 없었고, '모르는 것 먼저' 규칙 때문에
+        매 실행 58건이 맨 앞에서 실패하며 예산을 먹고 있었다.
+        조합의 편은 선호 창 아니면 양보 창 안에 있으므로 둘을 합친 창이면 된다.
+        """
+        lo, hi = self.window_for(route_key, direction)
+        fb = self.fallback_window_for(route_key, direction)
+        if fb:
+            lo, hi = min(lo, fb[0]), max(hi, fb[1])
+        return lo, hi
 
     def fallback_window_for(self, route_key: str,
                             direction: str) -> tuple[dt.time, dt.time] | None:
         """선호 시간창에 편이 없을 때만 쓰는 **양보** 시간창. 없으면 None."""
+        if self.route_preferred.get(route_key, {}).get(direction):
+            return None                      # 선호 창인 노선엔 양보 창이 없다
         return self.route_windows.get(route_key, {}).get(direction)
 
     def has_window_override(self, route_key: str) -> bool:
@@ -164,6 +190,7 @@ def load(path: Path | None = None) -> Settings:
     # 노선 정의에서 시간창 override 키를 분리한 뒤 Route를 만든다
     routes: list[Route] = []
     route_windows: dict[str, dict[str, tuple[dt.time, dt.time]]] = {}
+    route_preferred: dict[str, dict[str, bool]] = {}
     for item in raw["routes"]:
         spec = dict(item)
         overrides = {k: spec.pop(k) for k in _WINDOW_KEYS if k in spec}
@@ -177,6 +204,8 @@ def load(path: Path | None = None) -> Settings:
             lo = _parse_time(o["earliest"]) if "earliest" in o else base[0]
             hi = _parse_time(o["latest"]) if "latest" in o else base[1]
             route_windows.setdefault(route.key, {})[direction] = (lo, hi)
+            if o.get("preferred"):
+                route_preferred.setdefault(route.key, {})[direction] = True
 
     return Settings(
         period_start=dt.date.fromisoformat(s["period"]["start"]),
@@ -210,6 +239,8 @@ def load(path: Path | None = None) -> Settings:
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,
+        route_preferred=route_preferred,
+        return_arrive_same_day=bool(s.get("return_arrive_same_day", True)),
         live_board=bool(al.get("live_board", True)),
         board_top_n=max(1, int(al.get("board_top_n", 8))),
         digest_top_n=max(1, int(al.get("digest_top_n", 3))),

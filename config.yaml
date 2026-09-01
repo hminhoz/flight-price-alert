@@ -14,6 +14,10 @@ search:
   return_departure:           # 오는 편 출발 시각 범위
     earliest: "18:00"
     latest: "23:59"
+  return_arrive_same_day: true  # 오는 편은 **인천 도착이 당일 24시 이전**이어야 한다 (v2.48).
+                              # 18시 이후 출발 규칙의 원래 뜻이 이것이었다(일본은 2시간이라
+                              # 같은 밤 도착). 동남아는 비행+시차 4.5~8시간이라 밤 출발이
+                              # 전부 익일 새벽 도착 → 노선별 창을 낮으로 옮기고 이 규칙으로 거른다.
   direct_only: true
   # 네이버 보조 수집 (v1.69). 국내선에서만 이득이 확인돼 제주만 대상.
   #   실측 2026-07-26: 김포-제주 -29% / 오사카 +10% / 후쿠오카 -2%
@@ -91,7 +95,13 @@ routes:
   - { origin: ICN, destination: CTS, label: "인천-삿포로",
       # CTS→ICN 은 저녁 출발편이 거의 없음 (실측: 오는 편 가격 확보 1/58)
       # 15:00 으로는 14:30 출발편이 30분 차이로 탈락 → 14:00 (v1.12.1)
-      return_departure: { earliest: "14:00" } }
+      # 19~20시 편은 드물어 실측 잡힌 40건 전부 14·16시대 = 전부 ⚠였다.
+      # 이 창을 선호 창으로 삼아 ⚠를 없앤다 (v2.50)
+      # [예외 시간대 근거, v2.51 실측] 출발 시각대 11·12·14·16(압도적)·19·20(드묾).
+      #   14시대 KE 14:00/14:50·OZ 14:30 → 17시대 도착 / 16시대 7C 16:00·KE 16:20 → 19시대.
+      #   소요 2h35~3h15 → 당일 도착 한계 20:45 → latest 20:30. 16시 편이 없는 날에
+      #   14시 편이 대신하도록 earliest 14:00 (16:00으로 좁히면 그런 날 오는 편이 빈다).
+      return_departure: { earliest: "14:00", latest: "20:30", preferred: true } }
   - { origin: GMP, destination: HND, label: "김포-하네다" }
   # 김포발 일본 취항지는 도쿄·오사카·나고야 셋뿐 (한국공항공사 기준).
   # 인천만 넣고 김포 짝을 빠뜨렸던 두 노선을 채운다.
@@ -105,7 +115,13 @@ routes:
   - { origin: ICN, destination: KOJ, label: "인천-가고시마",
       # ICN→KOJ 출발편은 12:47·15:45 등 오후 편중 (실측: 가는 편 0/39)
       # 16:00 으로는 대한항공 16:20 편이 20분 차이로 탈락 → 17:00 (v1.12.1)
-      outbound_departure: { latest: "17:00" } }
+      # 실측 잡힌 24건 중 23건이 16시대 = 거의 전부 ⚠였다. 선호 창으로 (v2.50)
+      # [예외 시간대 근거, v2.51 실측] 출발 시각대 08(드묾)·12(드묾)·16(거의 전부).
+      #   KE 16:20/16:35 → 17:55/18:05 도착 = 첫날은 저녁 도착. 스케줄이 선택지를 안 준다.
+      #   오는 편은 전역 창으로 충분: 18:55/19:05 KE → 20:50/21:00 도착 (한계 22:05).
+      #   얇은 노선이라 가격 없는 날이 절반쯤(가는 편 11/33 · 오는 편 22/38)인데 요일과
+      #   무관하게 흩어져 있어 스케줄이 아니라 구글 응답 문제로 보인다.
+      outbound_departure: { latest: "17:00", preferred: true } }
   # ---- 시험 부활 (v1.21) ----
   # 구글이 이 노선들에 간헐적으로 오류를 주지만, 실측상 9번 중 5번은 정상
   # 데이터가 왔다. 관대 파서(app/gparse.py)가 그걸 건질 수 있으므로 켜본다.
@@ -123,13 +139,30 @@ routes:
   # 00~02시 출발도 많지만 넓히지 않기로 결정. 21~23시대 편만 잡힌다.
   # 노선별 시간 분포는 몇 번 돈 뒤 실행 로그 "시간 분포"에서 확인할 것 —
   # 가격 확보가 지나치게 적은 노선이 나오면 그때 override를 검토한다.
-  - { origin: ICN, destination: HKG, label: "인천-홍콩" }
-  - { origin: ICN, destination: MFM, label: "인천-마카오" }
-  - { origin: ICN, destination: HAN, label: "인천-하노이" }
-  - { origin: ICN, destination: DAD, label: "인천-다낭" }
-  - { origin: ICN, destination: SGN, label: "인천-호치민" }
-  - { origin: ICN, destination: BKK, label: "인천-방콕" }      # 수완나품
-  - { origin: ICN, destination: DMK, label: "인천-돈므앙" }    # city_groups로 방콕에 묶임
+  # 오는 편 창은 **당일 도착이 가능한 낮 시간대**로 옮긴다 (v2.48). `preferred: true`는
+  # 이 창이 양보 창이 아니라 그 노선의 선호 창이라는 뜻(⚠ 안 붙음, 창 안 최저가).
+  # latest = 인천 당일 도착 한계. 실측 소요+시차(오는 편 41건씩): 홍콩 4h25~4h40 ·
+  # 마카오 4h35 · 하노이 5h55~6h35 · 다낭 6h15~6h55 · 호치민 6h45~7h15 · 방콕 7h00~7h30.
+  # 최악값 기준 한계 = 홍콩 19:20 · 마카오 19:25 · 하노이 17:25 · 다낭 17:05 · 호치민 16:45 ·
+  # 방콕 16:30 → 그보다 이르게 잡는다. 진짜 방어선은 return_arrive_same_day(도착 시각으로
+  # 판정)이고, 이 latest는 왕복 실가 조회가 익일 편을 묻지 않게 하는 용도.
+  # earliest = 마지막 1~2개 출발 무리를 잡을 만큼.
+  # 실측 출발 시각대 — 홍콩 12·13·14·16·17 / 하노이 12·13·16 / 다낭 11·13~16 /
+  # 호치민 12~15 / 방콕 07·09·11·12 (오후 편 없음, 이후는 21시~새벽뿐).
+  - { origin: ICN, destination: HKG, label: "인천-홍콩",
+      return_departure: { earliest: "14:00", latest: "18:59", preferred: true } }
+  - { origin: ICN, destination: MFM, label: "인천-마카오",   # 18:10 편이 22:45 도착. 13~15시대도 있음
+      return_departure: { earliest: "18:00", latest: "19:20", preferred: true } }
+  - { origin: ICN, destination: HAN, label: "인천-하노이",
+      return_departure: { earliest: "12:00", latest: "17:00", preferred: true } }
+  - { origin: ICN, destination: DAD, label: "인천-다낭",
+      return_departure: { earliest: "13:00", latest: "17:00", preferred: true } }
+  - { origin: ICN, destination: SGN, label: "인천-호치민",
+      return_departure: { earliest: "12:00", latest: "16:30", preferred: true } }
+  - { origin: ICN, destination: BKK, label: "인천-방콕",      # 수완나품
+      return_departure: { earliest: "11:00", latest: "16:00", preferred: true } }
+  - { origin: ICN, destination: DMK, label: "인천-돈므앙" }    # city_groups로 방콕에 묶임.
+                              # 돈므앙→인천은 02시 출발뿐이라 오는 편은 안 잡힌다(가는 편·교차용)
   # ---- 여전히 휴면 ----
   # - { origin: ICN, destination: HND, label: "인천-하네다" }
   #   야간 전용 노선이라 조건상 불가. 밤에 인천 출발 → 새벽 하네다 도착,

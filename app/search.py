@@ -109,8 +109,11 @@ def search_leg(
     currency: str = "KRW",
     direct_only: bool = True,
     retries: int = 3,
+    same_day: bool = False,
 ) -> LegResult | None:
     """해당 날짜·방향의 조건 만족 최저가 1건 반환. 조건 만족 편이 없으면 None.
+
+    same_day=True 면 **도착이 출발과 같은 날**인 편만 고른다 (오는 편용, v2.48).
 
     반환 None 과 예외를 구분한다:
       - None: 검색은 성공했으나 조건(시간대/직항) 만족 항공편 없음
@@ -143,7 +146,8 @@ def search_leg(
                                  origin, dest)
                     results = _do_fetch(origin, dest, date, adults, currency,
                                         max_stops=stops, korea_market=True)
-            best = _pick_best(results, window, direct_only, date, origin, dest)
+            best = _pick_best(results, window, direct_only, date, origin, dest,
+                              same_day=same_day)
             if best is not None:
                 # 넓힌 창을 쓰는 노선(가고시마·삿포로)은 그 창 안에서 최저가를
                 # 고른다. 그 노선들은 애초에 선호 시간대 편이 7~11%뿐이라
@@ -405,6 +409,10 @@ def search_roundtrip(
                 continue
         if best is not None:
             return best
+        # 예외 없이 **0건**인 경우도 남긴다. 예외만 기록하니 삿포로·가고시마가
+        # 한 달 넘게 매번 0건이어도 로그에 아무 흔적이 없었다 (v2.47).
+        log.info("RTVERIFY %s-%s %s/%s 결과 0건(korea=%s, 항목 %d)",
+                 origin, dest, dep_date, ret_date, korea_market, len(results or []))
     return None
 
 
@@ -444,10 +452,10 @@ def parse_time_str(s: str | None) -> dt.time | None:
 
 
 def _pick_best(results, window, direct_only, date, origin="?", dest="?",
-               count_hist: bool = True) -> LegResult | None:
+               count_hist: bool = True, same_day: bool = False) -> LegResult | None:
     lo, hi = window
     best: LegResult | None = None
-    n_items = n_direct = n_price = n_time = 0
+    n_items = n_direct = n_price = n_time = n_next = 0
     for item in results or []:
         try:
             n_items += 1
@@ -472,6 +480,17 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
             if t is None or not (lo <= t <= hi):
                 n_time += 1
                 continue
+            # **익일 도착 배제** (v2.48). 사용자 목표는 "돌아오는 날 밤 12시 전
+            # 인천 도착"인데 18시 이후 출발 규칙은 일본(2시간)에서만 그 뜻이었다.
+            # 동남아는 비행 4.5~5.5시간 + 시차 1~2시간이라 21~23시 출발이 전부
+            # 다음 날 새벽 도착이었다(실측 방콕·하노이·다낭·호치민 100%, 홍콩
+            # 19시 이후 100%). 출발 현지시각 < 도착 한국시각이면 당일이다 —
+            # 이 노선들은 비행+시차가 4.5~8시간이라 자정을 넘기면 반드시
+            # 도착 시각이 출발 시각보다 작아진다.
+            at = parse_time(arr)
+            if same_day and at is not None and at < t:
+                n_next += 1
+                continue
             airlines = getattr(item, "airlines", None) or []
             a0 = airlines[0] if airlines else None
             name = getattr(a0, "name", None) or (str(a0) if a0 is not None else "?")
@@ -494,9 +513,9 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
     if best is None and n_items and (origin, dest) not in _diag_logged:
         _diag_logged.add((origin, dest))
         sample = repr(results[0])[:400]
-        log.info("DIAG %s-%s %s: 항목 %d개 전원 탈락 (직항아님 %d · 가격파싱 %d · 시간창밖 %d, "
-                 "시간창 %s~%s) 샘플=%s",
-                 origin, dest, date, n_items, n_direct, n_price, n_time,
+        log.info("DIAG %s-%s %s: 항목 %d개 전원 탈락 (직항아님 %d · 가격파싱 %d · 시간창밖 %d · "
+                 "익일도착 %d, 시간창 %s~%s) 샘플=%s",
+                 origin, dest, date, n_items, n_direct, n_price, n_time, n_next,
                  lo.strftime("%H:%M"), hi.strftime("%H:%M"), sample)
     return best
 

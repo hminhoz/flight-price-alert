@@ -169,6 +169,7 @@ def main() -> int:
                 preferred_window=preferred if widened else None,
                 currency=cfg.currency,
                 direct_only=cfg.direct_only, retries=cfg.retry,
+                same_day=cfg.return_arrive_same_day and leg.direction == "ret",
             ), None
         except Exception as e:  # noqa: BLE001 - 분류는 아래에서
             return leg, None, e
@@ -422,8 +423,10 @@ def main() -> int:
                     c.route.origin, c.route.destination,
                     c.dep.isoformat(), c.ret.isoformat(),
                     adults=cfg.adults,
-                    out_window=cfg.window_for(c.route.key, "out"),
-                    ret_window=cfg.window_for(c.route.key, "ret"),
+                    # 선호 창이 아니라 **양보 창까지 합친 창**을 넘긴다. 선호 창만
+                    # 넘기면 삿포로·가고시마는 왕복 조회가 항상 0건이었다 (v2.47).
+                    out_window=cfg.effective_window(c.route.key, "out"),
+                    ret_window=cfg.effective_window(c.route.key, "ret"),
                     currency=cfg.currency, direct_only=cfg.direct_only,
                 )
             except Exception:  # noqa: BLE001 - 검증 실패가 알림을 막지 않는다
@@ -741,7 +744,8 @@ def main() -> int:
                 c.route.origin, c.route.destination,
                 c.dep.isoformat(), c.ret.isoformat(),
                 adults=cfg.adults,
-                out_window=cfg.window_for(c.route.key, "out"),
+                out_window=cfg.effective_window(c.route.key, "out"),
+                ret_window=cfg.effective_window(c.route.key, "ret"),
                 currency=cfg.currency, direct_only=cfg.direct_only,
                 diag=True,
             )
