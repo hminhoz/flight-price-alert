@@ -323,15 +323,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-09-01": {
-  "airline": "파라타항공",
-  "at": "2026-08-29T21:33:54+00:00",
-  "card_cond": false,
-  "dep_time": "21:15",
-  "price": 75000,
-  "seat": "특가석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-09-02": {
   "airline": "파라타항공",
   "at": "2026-09-01T03:01:37+00:00",
