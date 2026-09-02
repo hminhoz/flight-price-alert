@@ -12,32 +12,32 @@
    662
   ],
   "495657895:h": [
-   "159efa03a2be",
-   "73b23029e488",
-   "607d482ce7d7",
-   "decfb9dc3044",
-   "a4312e7e501f",
-   "525c50f35b06",
-   "77176692d5de",
-   "0dbdc5e05c2a"
+   "98c7306670f7",
+   "fa32bd68a0e6",
+   "4c1a8f6ff0be",
+   "93c80c383039",
+   "9d06cabf6085",
+   "80cca81ff09c",
+   "3b906e2a59ad",
+   "8dc0d228d74d"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-02T09:55:08+00:00",
+ "cycle_started_at": "2026-09-02T10:20:08+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-02T09:55:08+00:00",
+ "last_cycle_done_at": "2026-09-02T10:20:08+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1258,
   "legs_new": 0,
-  "legs_ok": 1087,
+  "legs_ok": 1088,
   "naver_new": 0,
-  "rt_asked": 35,
-  "rt_cheaper": 25,
-  "rt_ok": 30,
-  "rt_pool": 510
+  "rt_asked": 9,
+  "rt_cheaper": 1,
+  "rt_ok": 4,
+  "rt_pool": 512
  },
  "naver_cursor": 63,
  "naver_day": "2026-09-02",
@@ -59,12 +59,12 @@
   ],
   "ret": [
    1,
-   10,
+   11,
    0
   ],
   "ret·왕복형": [
    1,
-   10,
+   11,
    0
   ],
   "세션1": [
@@ -75,14 +75,9 @@
  },
  "naver_last_run": "2026-09-02",
  "naver_remain": 0,
- "naver_runs": 5,
+ "naver_runs": 6,
  "naver_total": 96,
  "recent_runs": [
-  {
-   "at": "2026-09-01T04:56:31+00:00",
-   "attempted": 1258,
-   "failed": 0
-  },
   {
    "at": "2026-09-01T05:55:34+00:00",
    "attempted": 1258,
@@ -127,21 +122,26 @@
    "at": "2026-09-02T10:09:58+00:00",
    "attempted": 1258,
    "failed": 0
+  },
+  {
+   "at": "2026-09-02T10:34:44+00:00",
+   "attempted": 1258,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 87,
+  "legs1": 20,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 25,
-  "gain_sum": 9982586,
-  "ok": 30,
-  "targets": 35
+  "cheaper": 1,
+  "gain_sum": 173085,
+  "ok": 4,
+  "targets": 9
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159630
+ "tg_offset": 74159638
 }
