@@ -324,7 +324,28 @@ _AIRLINE_BY_CODE = {
     "VN": "베트남항공", "VJ": "비엣젯", "QH": "뱀부", "TG": "타이항공",
     "XJ": "에어아시아X", "FD": "에어아시아", "SL": "타이라이온", "VZ": "타이비엣젯",
     "WE": "타이스마일",
+    # 실데이터에서 미등록으로 걸린 것 + 이 노선들에 뜰 만한 것 (v2.54)
+    "9G": "선푸꾸옥", "VU": "비엣트래블", "BL": "퍼시픽", "ET": "에티오피아",
+    "HB": "그레이터베이", "RF": "에어로케이", "TR": "스쿠트", "AK": "에어아시아",
+    "D7": "에어아시아X", "SQ": "싱가포르",
 }
+
+AIRLINE_MAX_LEN = 6   # 표시 별명 길이 상한(한글 기준). 둘째 줄 `가는편/오는편`이 한 줄에 들어가는 한계
+_GENERIC_WORDS = ("Airways", "Airlines", "Airline", "Aviation", "Air", "Co.", "Ltd.", "Ltd")
+_unknown_seen: set = set()
+
+
+def _shorten_unknown(name: str) -> str:
+    """등록 안 된 항공사명은 'Airways/Airlines/Air' 같은 일반어를 떼고 그대로 쓴다.
+    억지로 자르면(`Sun PhuQ`) 못 알아보니 길더라도 이름은 남긴다. 대신 로그에
+    **미등록 항공사**로 남겨 다음 판에 별명을 등록한다 (v2.54)."""
+    words = [w for w in name.split() if w not in _GENERIC_WORDS]
+    short = " ".join(words) or name
+    if name not in _unknown_seen:
+        _unknown_seen.add(name)
+        log.warning("미등록 항공사 %r → %r 로 표시. _AIRLINE_BY_CODE에 %d자 이내 별명을 등록할 것",
+                    name, short, AIRLINE_MAX_LEN)
+    return short
 # 코드를 못 얻은 경우를 위한 이름 보조 매핑
 _AIRLINE_BY_NAME = {
     "Korean Air": "대한항공", "Asiana Airlines": "아시아나", "Jeju Air": "제주항공",
@@ -337,18 +358,24 @@ _AIRLINE_BY_NAME = {
     "Air Macau": "에어마카오", "Vietnam Airlines": "베트남항공", "VietJet Air": "비엣젯",
     "Vietjet": "비엣젯", "Bamboo Airways": "뱀부", "Thai Airways": "타이항공",
     "Thai AirAsia X": "에어아시아X", "Thai AirAsia": "에어아시아", "Thai Lion Air": "타이라이온",
-    "Thai Vietjet Air": "타이비엣젯",
+    "Thai Vietjet Air": "타이비엣젯", "Sun PhuQuoc Airways": "선푸꾸옥",
+    "Ethiopian": "에티오피아", "Ethiopian Airlines": "에티오피아",
     # 네이버는 한글 정식 사명을 준다 — 구글 쪽 코드 매핑과 같은 짧은 이름으로
     # 맞춘다. 같은 항공사가 편에 따라 "티웨이"/"티웨이항공"으로 갈리던 것 (v2.46)
     "티웨이항공": "티웨이", "파라타항공": "파라타", "이스타항공": "이스타",
     "아시아나항공": "아시아나",
+    # 이미 짧은 한글명도 등록해 둔다 — 안 하면 '미등록' 경고가 헛되이 뜬다 (v2.54)
+    "대한항공": "대한항공", "제주항공": "제주항공", "진에어": "진에어", "에어서울": "에어서울",
+    "에어부산": "에어부산", "에어프레미아": "에어프레미아", "에어로케이": "에어로케이",
 }
 
 
 def _ko_air(name: str, code: str = "") -> str:
-    return (_AIRLINE_BY_CODE.get((code or "").strip().upper())
-            or _AIRLINE_BY_NAME.get((name or "").strip())
-            or name)
+    known = (_AIRLINE_BY_CODE.get((code or "").strip().upper())
+             or _AIRLINE_BY_NAME.get((name or "").strip()))
+    if known:
+        return known
+    return _shorten_unknown(name) if name else name
 
 
 

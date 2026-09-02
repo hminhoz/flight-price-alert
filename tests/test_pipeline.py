@@ -879,8 +879,12 @@ def test_off_window_mark_is_short():
     assert "12:05/12:25" in m and "⚠" not in m, m
     # 항공사 별명은 6자 이내 (v2.53) — `타이에어아시아/아시아나`가 줄을 넘겼다
     assert "에어아시아/아시아나" in m, m
-    for name in N._AIRLINE_BY_CODE.values():
-        assert len(name) <= 6, name
+    for name in list(N._AIRLINE_BY_CODE.values()) + list(N._AIRLINE_BY_NAME.values()):
+        assert len(name) <= N.AIRLINE_MAX_LEN, name
+    # 실데이터에서 걸렸던 것(v2.54): 선푸꾸옥(9G)·에티오피아(ET). 미등록은 일반어만 떼고 남긴다
+    assert N._ko_air("Sun PhuQuoc Airways", "9G") == "선푸꾸옥"
+    assert N._ko_air("Ethiopian", "ET") == "에티오피아"
+    assert N._ko_air("Some New Airways", "ZZ") == "Some New"
     print("OK 선호시간 밖 표시: 설정 창으로 판정 · 옛 플래그 무시 · 세 화면 동일")
 
 
