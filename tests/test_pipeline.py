@@ -173,6 +173,7 @@ def main():
     test_board_grouped_by_country()
     test_roundtrip_uses_effective_window()
     test_return_arrives_same_day()
+    test_run_status_rt_fraction_same_set()
 
     print("\n=== 전체 통과 ===")
 
@@ -2332,6 +2333,38 @@ def test_return_arrives_same_day():
     body = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
     assert 'same_day=cfg.return_arrive_same_day and leg.direction == "ret"' in body
     print("OK 당일 도착 규칙: 익일 도착 편 배제 · 동남아 오는 편 창은 낮 시간대")
+
+
+def test_run_status_rt_fraction_same_set():
+    """상태줄 `왕복 확보/대상`의 분자·분모는 같은 집합(확인 풀)에서 센다 (v2.55).
+
+    풀 밖 조합에 붙은 옛 실가까지 세면 `590/532`처럼 분자가 커진다.
+    """
+    cfg = load()
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.time_hist = {}, {}, {}, {}
+    st.naver_legs, st.rt_prices = {}, {}
+    st.meta = {"last_run": {"legs": 10, "legs_ok": 10, "rt_pool": 1, "rt_asked": 1, "rt_ok": 1}}
+    kix = [x for x in cfg.routes if x.key == "ICN-KIX"][0]
+
+    def mk(i, price, rt):
+        return engine.Combo(route=kix, dep=dt.date(2026, 9, 10 + i), nights=3, price=price,
+                            out_leg={"price": price // 2, "dep_time": "07:30"},
+                            ret_leg={"price": price - price // 2, "dep_time": "19:40"},
+                            city="KIX", rt_price=rt, rt_at="2026-09-01T00:00:00+00:00")
+
+    # 풀은 도시별 상위 verify_per_city개. 그보다 많은 조합 전부에 rt를 붙여도
+    # 분자는 풀 크기를 넘지 못한다.
+    n = cfg.verify_per_city + 5
+    combos = [mk(i, 300_000 + i * 1000, 250_000) for i in range(n)]
+    pool = engine.verify_pool(cfg, combos)
+    s = engine.run_status(cfg, st, combos)
+    import re
+    m = re.search(r"왕복 ([\d,]+)/", s)
+    assert m, s
+    known = int(m.group(1).replace(",", ""))
+    assert known == len(pool) <= n - 5, (known, len(pool), s)
+    print("OK 상태줄 왕복 분자/분모: 같은 집합(확인 풀)에서 센다")
 
 
 if __name__ == "__main__":

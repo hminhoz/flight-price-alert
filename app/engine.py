@@ -440,8 +440,11 @@ def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
                           nv_total, r.get("naver_new"))
                      + f" {m.get('naver_runs', 0)}/{cfg.naver_runs_per_day}회")
     if r.get("rt_pool"):
-        known = sum(1 for c in combos
-                    if not c.is_cross and c.rt_price is not None)
+        # 분자도 **풀 안**에서만 센다 (v2.55). 전엔 전체 조합에서 rt가 붙은 것을
+        # 세어 풀(도시별 상위 + 배율 대상, 매 실행 바뀜)을 벗어난 조합의 옛 실가까지
+        # 들어갔다 → `왕복 590/532`처럼 분자가 분모보다 컸다(실사용 보고).
+        # 분모와 같은 집합에서 세야 '확보/대상'이 된다.
+        known = sum(1 for c in verify_pool(cfg, combos) if c.rt_price is not None)
         # 물어본 게 있으면 결과가 0이어도 적는다 — 전부 실패한 실행이
         # '아무것도 안 한 실행'처럼 보이면 안 된다.
         got = r.get("rt_ok", 0) if r.get("rt_asked") else None
