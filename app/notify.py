@@ -103,7 +103,10 @@ def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
     if rt_cheaper is None:
         rt_cheaper = bool(c.rt_price and c.rt_price < c.price)
     ow = cfg.window_for(c.route.key, "out")
-    rw = cfg.window_for(c.route.key, "ret")
+    # 오는 편 창은 **오는 편 노선**의 것 (v2.53). 교차 조합(돈므앙 입 / 수완나품 출)은
+    # 오는 편이 다른 노선이라 c.route(가는 편)의 창으로 판정하면 방콕 12:25에 ⚠가
+    # 붙었다 (실사용 보고, v2.52 직후).
+    rw = cfg.window_for(c.back.key, "ret")
 
     when = _date_links(cfg, c, rt_cheaper)
 
@@ -123,7 +126,7 @@ def _date_links(cfg, c, rt_cheaper: bool) -> str:
     이제 링크 자체가 예약처를 가리키므로 어느 편인지 적을 이유가 없다.
     """
     ow = cfg.window_for(c.route.key, "out")
-    rw = cfg.window_for(c.route.key, "ret")
+    rw = cfg.window_for(c.back.key, "ret")     # 오는 편 창은 오는 편 노선의 것 (v2.53)
     so, sr = _sources(c)
 
     def rng(u: str) -> str:
@@ -313,11 +316,13 @@ _AIRLINE_BY_CODE = {
     "KE": "대한항공", "OZ": "아시아나", "7C": "제주항공", "LJ": "진에어",
     "TW": "티웨이", "BX": "에어부산", "RS": "에어서울", "ZE": "이스타",
     "YP": "에어프레미아", "4V": "파라타",
-    "MM": "피치", "NH": "ANA", "JL": "JAL", "ZG": "집에어", "IJ": "스프링재팬",
+    "MM": "피치", "NH": "ANA", "JL": "JAL", "ZG": "집에어", "IJ": "스프링",
     # 동남아 (v2.46)
-    "CX": "캐세이", "UO": "홍콩익스프레스", "HX": "홍콩항공", "NX": "에어마카오",
+    # 이름은 **6자 이내 별명**으로 (v2.53). 둘째 줄에 두 항공사가 `/`로 붙어
+    # `타이에어아시아/아시아나`처럼 길어지면 폰에서 줄이 넘어간다.
+    "CX": "캐세이", "UO": "홍콩익스", "HX": "홍콩항공", "NX": "에어마카오",
     "VN": "베트남항공", "VJ": "비엣젯", "QH": "뱀부", "TG": "타이항공",
-    "XJ": "타이에어아시아X", "FD": "타이에어아시아", "SL": "타이라이온", "VZ": "타이비엣젯",
+    "XJ": "에어아시아X", "FD": "에어아시아", "SL": "타이라이온", "VZ": "타이비엣젯",
     "WE": "타이스마일",
 }
 # 코드를 못 얻은 경우를 위한 이름 보조 매핑
@@ -328,10 +333,10 @@ _AIRLINE_BY_NAME = {
     "Air Premia": "에어프레미아", "Peach Aviation": "피치", "Peach": "피치",
     "ZIPAIR Tokyo": "집에어", "ZIPAIR": "집에어",
     "All Nippon Airways": "ANA", "Japan Airlines": "JAL",
-    "Cathay Pacific": "캐세이", "HK Express": "홍콩익스프레스", "Hong Kong Airlines": "홍콩항공",
+    "Cathay Pacific": "캐세이", "HK Express": "홍콩익스", "Hong Kong Airlines": "홍콩항공",
     "Air Macau": "에어마카오", "Vietnam Airlines": "베트남항공", "VietJet Air": "비엣젯",
     "Vietjet": "비엣젯", "Bamboo Airways": "뱀부", "Thai Airways": "타이항공",
-    "Thai AirAsia X": "타이에어아시아X", "Thai AirAsia": "타이에어아시아", "Thai Lion Air": "타이라이온",
+    "Thai AirAsia X": "에어아시아X", "Thai AirAsia": "에어아시아", "Thai Lion Air": "타이라이온",
     "Thai Vietjet Air": "타이비엣젯",
     # 네이버는 한글 정식 사명을 준다 — 구글 쪽 코드 매핑과 같은 짧은 이름으로
     # 맞춘다. 같은 항공사가 편에 따라 "티웨이"/"티웨이항공"으로 갈리던 것 (v2.46)

@@ -867,6 +867,20 @@ def test_off_window_mark_is_short():
     # 세 화면이 같은 판정을 쓴다
     for txt in (N.format_board(cfg, [c], "x") + N.format_digest(cfg, [c], "")):
         assert "⚠" not in txt, txt[:200]
+    # 교차 조합은 **오는 편 노선**의 창으로 판정한다 (v2.53). 돈므앙으로 가고
+    # 수완나품에서 오면 오는 편 창은 방콕(11~16시)이지 돈므앙(전역 18시~)이 아니다.
+    dmk = [x for x in cfg.routes if x.key == "ICN-DMK"][0]
+    bkk = [x for x in cfg.routes if x.key == "ICN-BKK"][0]
+    x = engine.Combo(route=dmk, dep=dt.date(2026, 10, 23), nights=3, price=1_000_000,
+                     out_leg={"price": 1, "airline": "Thai AirAsia", "dep_time": "12:05", "carrier": "FD"},
+                     ret_leg={"price": 1, "airline": "Asiana Airlines", "dep_time": "12:25", "carrier": "OZ"},
+                     ret_route=bkk, city=engine._seoul_group(cfg, dmk))
+    m = body(x)
+    assert "12:05/12:25" in m and "⚠" not in m, m
+    # 항공사 별명은 6자 이내 (v2.53) — `타이에어아시아/아시아나`가 줄을 넘겼다
+    assert "에어아시아/아시아나" in m, m
+    for name in N._AIRLINE_BY_CODE.values():
+        assert len(name) <= 6, name
     print("OK 선호시간 밖 표시: 설정 창으로 판정 · 옛 플래그 무시 · 세 화면 동일")
 
 
