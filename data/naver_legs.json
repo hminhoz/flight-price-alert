@@ -594,11 +594,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-04": {
-  "airline": "이스타항공",
-  "at": "2026-08-31T06:27:51+00:00",
+  "airline": "제주항공",
+  "at": "2026-09-03T06:46:40+00:00",
   "card_cond": false,
-  "dep_time": "21:10",
-  "price": 256800,
+  "dep_time": "21:05",
+  "price": 264200,
   "seat": "일반석",
   "source": "naver"
  },
