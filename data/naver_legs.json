@@ -287,15 +287,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-09-08": {
-  "airline": "에어부산",
-  "at": "2026-09-08T01:45:39+00:00",
-  "card_cond": false,
-  "dep_time": "20:05",
-  "price": 125800,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-09-09": {
   "airline": "파라타항공",
   "at": "2026-09-08T01:46:02+00:00",
