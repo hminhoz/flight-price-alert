@@ -1,46 +1,46 @@
 {
  "GMP-CJU|out|2026-09-09": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:48:48+00:00",
+  "airline": "티웨이항공",
+  "at": "2026-09-08T01:54:12+00:00",
   "card_cond": false,
-  "dep_time": "06:15",
-  "price": 52800,
-  "seat": "특가석",
+  "dep_time": "06:25",
+  "price": 76200,
+  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-10": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:46:22+00:00",
+  "airline": "파라타항공",
+  "at": "2026-09-08T01:51:48+00:00",
   "card_cond": false,
-  "dep_time": "06:20",
-  "price": 89600,
-  "seat": "특가석",
+  "dep_time": "06:00",
+  "price": 103800,
+  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-11": {
-  "airline": "파라타항공",
-  "at": "2026-09-04T23:46:47+00:00",
-  "card_cond": false,
-  "dep_time": "06:00",
-  "price": 169800,
-  "seat": "특가석",
+  "airline": "티웨이항공",
+  "at": "2026-09-08T01:52:05+00:00",
+  "card_cond": true,
+  "dep_time": "06:25",
+  "price": 177000,
+  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-12": {
   "airline": "티웨이항공",
-  "at": "2026-09-04T23:47:06+00:00",
-  "card_cond": false,
-  "dep_time": "13:00",
-  "price": 179400,
+  "at": "2026-09-08T01:52:30+00:00",
+  "card_cond": true,
+  "dep_time": "06:25",
+  "price": 177000,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-16": {
-  "airline": "파라타항공",
-  "at": "2026-09-04T23:47:28+00:00",
+  "airline": "이스타항공",
+  "at": "2026-09-08T01:52:50+00:00",
   "card_cond": false,
-  "dep_time": "06:00",
-  "price": 53800,
+  "dep_time": "06:05",
+  "price": 55600,
   "seat": "특가석",
   "source": "naver"
  },
@@ -63,11 +63,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-19": {
-  "airline": "티웨이항공",
-  "at": "2026-09-04T23:48:05+00:00",
+  "airline": "진에어",
+  "at": "2026-09-08T01:53:30+00:00",
   "card_cond": false,
-  "dep_time": "13:00",
-  "price": 160000,
+  "dep_time": "12:45",
+  "price": 157600,
   "seat": "할인석",
   "source": "naver"
  },
@@ -91,10 +91,10 @@
  },
  "GMP-CJU|out|2026-09-25": {
   "airline": "제주항공",
-  "at": "2026-09-04T23:50:49+00:00",
-  "card_cond": false,
+  "at": "2026-09-08T01:56:30+00:00",
+  "card_cond": true,
   "dep_time": "06:20",
-  "price": 242000,
+  "price": 242400,
   "seat": "할인석",
   "source": "naver"
  },
@@ -108,29 +108,29 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-09-30": {
-  "airline": "티웨이항공",
-  "at": "2026-09-04T23:51:12+00:00",
+  "airline": "이스타항공",
+  "at": "2026-09-08T01:56:47+00:00",
   "card_cond": false,
-  "dep_time": "06:25",
-  "price": 65400,
+  "dep_time": "06:05",
+  "price": 61600,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-01": {
   "airline": "제주항공",
-  "at": "2026-09-04T23:48:26+00:00",
+  "at": "2026-09-08T01:53:54+00:00",
   "card_cond": false,
-  "dep_time": "06:20",
-  "price": 124600,
+  "dep_time": "06:15",
+  "price": 130600,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-02": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:49:06+00:00",
-  "card_cond": false,
-  "dep_time": "06:15",
-  "price": 263800,
+  "airline": "티웨이항공",
+  "at": "2026-09-08T01:54:37+00:00",
+  "card_cond": true,
+  "dep_time": "06:25",
+  "price": 263600,
   "seat": "일반석",
   "source": "naver"
  },
@@ -144,11 +144,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-07": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:49:47+00:00",
+  "airline": "에어서울",
+  "at": "2026-09-08T01:55:24+00:00",
   "card_cond": false,
-  "dep_time": "06:20",
-  "price": 106800,
+  "dep_time": "06:00",
+  "price": 105600,
   "seat": "할인석",
   "source": "naver"
  },
@@ -180,11 +180,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-14": {
-  "airline": "에어서울",
-  "at": "2026-09-04T23:49:26+00:00",
+  "airline": "제주항공",
+  "at": "2026-09-08T01:55:00+00:00",
   "card_cond": false,
-  "dep_time": "06:00",
-  "price": 123600,
+  "dep_time": "06:15",
+  "price": 118400,
   "seat": "할인석",
   "source": "naver"
  },
@@ -226,28 +226,28 @@
  },
  "GMP-CJU|out|2026-10-22": {
   "airline": "에어서울",
-  "at": "2026-09-04T23:50:10+00:00",
+  "at": "2026-09-08T01:55:42+00:00",
   "card_cond": false,
   "dep_time": "06:00",
-  "price": 131600,
+  "price": 137600,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-23": {
-  "airline": "이스타항공",
-  "at": "2026-09-04T23:50:31+00:00",
+  "airline": "파라타항공",
+  "at": "2026-09-08T01:56:06+00:00",
   "card_cond": false,
-  "dep_time": "06:05",
-  "price": 219600,
+  "dep_time": "06:00",
+  "price": 223800,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-24": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:51:29+00:00",
-  "card_cond": false,
-  "dep_time": "06:15",
-  "price": 221200,
+  "airline": "진에어",
+  "at": "2026-09-08T01:57:08+00:00",
+  "card_cond": true,
+  "dep_time": "06:30",
+  "price": 219000,
   "seat": "할인석",
   "source": "naver"
  },
@@ -288,20 +288,20 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-08": {
-  "airline": "티웨이항공",
-  "at": "2026-09-04T23:40:49+00:00",
+  "airline": "에어부산",
+  "at": "2026-09-08T01:45:39+00:00",
   "card_cond": false,
-  "dep_time": "21:00",
-  "price": 109200,
+  "dep_time": "20:05",
+  "price": 125800,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-09": {
   "airline": "파라타항공",
-  "at": "2026-09-04T23:41:10+00:00",
+  "at": "2026-09-08T01:46:02+00:00",
   "card_cond": false,
   "dep_time": "21:15",
-  "price": 83800,
+  "price": 87800,
   "seat": "특가석",
   "source": "naver"
  },
@@ -315,11 +315,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-11": {
-  "airline": "이스타항공",
-  "at": "2026-09-04T23:42:06+00:00",
+  "airline": "티웨이항공",
+  "at": "2026-09-08T01:47:07+00:00",
   "card_cond": false,
-  "dep_time": "21:15",
-  "price": 123600,
+  "dep_time": "21:00",
+  "price": 137600,
   "seat": "할인석",
   "source": "naver"
  },
@@ -423,12 +423,12 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-23": {
-  "airline": "이스타항공",
-  "at": "2026-09-04T23:39:30+00:00",
+  "airline": "파라타항공",
+  "at": "2026-09-08T01:44:14+00:00",
   "card_cond": false,
-  "dep_time": "21:10",
-  "price": 131600,
-  "seat": "할인석",
+  "dep_time": "21:15",
+  "price": 125800,
+  "seat": "특가석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-24": {
@@ -450,11 +450,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-26": {
-  "airline": "대한항공",
-  "at": "2026-09-04T10:13:26+00:00",
+  "airline": "에어서울",
+  "at": "2026-09-08T01:43:32+00:00",
   "card_cond": false,
-  "dep_time": "18:15",
-  "price": 285800,
+  "dep_time": "20:50",
+  "price": 265800,
   "seat": "일반석",
   "source": "naver"
  },
@@ -540,11 +540,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-06": {
-  "airline": "진에어",
-  "at": "2026-09-04T23:43:31+00:00",
-  "card_cond": false,
-  "dep_time": "21:20",
-  "price": 239000,
+  "airline": "이스타항공",
+  "at": "2026-09-08T01:48:32+00:00",
+  "card_cond": true,
+  "dep_time": "21:15",
+  "price": 219600,
   "seat": "할인석",
   "source": "naver"
  },
@@ -622,7 +622,7 @@
  },
  "GMP-CJU|ret|2026-10-15": {
   "airline": "이스타항공",
-  "at": "2026-09-04T23:41:27+00:00",
+  "at": "2026-09-08T01:46:26+00:00",
   "card_cond": false,
   "dep_time": "21:10",
   "price": 135600,
@@ -631,10 +631,10 @@
  },
  "GMP-CJU|ret|2026-10-16": {
   "airline": "제주항공",
-  "at": "2026-09-04T23:41:48+00:00",
+  "at": "2026-09-08T01:46:44+00:00",
   "card_cond": false,
   "dep_time": "20:50",
-  "price": 187000,
+  "price": 186400,
   "seat": "할인석",
   "source": "naver"
  },
@@ -648,53 +648,53 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-18": {
-  "airline": "제주항공",
-  "at": "2026-09-04T23:44:33+00:00",
-  "card_cond": false,
-  "dep_time": "21:05",
-  "price": 264800,
+  "airline": "진에어",
+  "at": "2026-09-08T01:49:28+00:00",
+  "card_cond": true,
+  "dep_time": "21:20",
+  "price": 265400,
   "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-19": {
   "airline": "제주항공",
-  "at": "2026-09-04T23:47:46+00:00",
-  "card_cond": false,
-  "dep_time": "20:50",
-  "price": 180600,
+  "at": "2026-09-08T01:53:10+00:00",
+  "card_cond": true,
+  "dep_time": "21:05",
+  "price": 172000,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-20": {
-  "airline": "진에어",
-  "at": "2026-09-04T23:42:26+00:00",
+  "airline": "제주항공",
+  "at": "2026-09-08T01:47:27+00:00",
   "card_cond": false,
-  "dep_time": "21:10",
-  "price": 149600,
+  "dep_time": "20:50",
+  "price": 150800,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-21": {
-  "airline": "진에어",
-  "at": "2026-09-04T23:42:46+00:00",
+  "airline": "제주항공",
+  "at": "2026-09-08T01:47:46+00:00",
   "card_cond": false,
-  "dep_time": "21:10",
-  "price": 156600,
+  "dep_time": "20:50",
+  "price": 142400,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-22": {
-  "airline": "에어서울",
-  "at": "2026-09-04T23:43:49+00:00",
+  "airline": "제주항공",
+  "at": "2026-09-08T01:48:50+00:00",
   "card_cond": false,
   "dep_time": "20:50",
-  "price": 145600,
+  "price": 150800,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-23": {
   "airline": "파라타항공",
-  "at": "2026-09-04T23:44:08+00:00",
+  "at": "2026-09-08T01:49:08+00:00",
   "card_cond": false,
   "dep_time": "21:15",
   "price": 195800,
@@ -711,66 +711,66 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-25": {
-  "airline": "티웨이항공",
-  "at": "2026-09-04T23:45:12+00:00",
-  "card_cond": false,
-  "dep_time": "21:05",
-  "price": 260000,
+  "airline": "에어부산",
+  "at": "2026-09-08T01:50:46+00:00",
+  "card_cond": true,
+  "dep_time": "21:15",
+  "price": 263800,
   "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-26": {
-  "airline": "이스타항공",
-  "at": "2026-09-04T23:45:34+00:00",
-  "card_cond": false,
-  "dep_time": "21:10",
-  "price": 185000,
+  "airline": "제주항공",
+  "at": "2026-09-08T01:51:08+00:00",
+  "card_cond": true,
+  "dep_time": "20:45",
+  "price": 181200,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-27": {
   "airline": "이스타항공",
-  "at": "2026-09-04T23:46:00+00:00",
-  "card_cond": false,
+  "at": "2026-09-08T01:51:30+00:00",
+  "card_cond": true,
   "dep_time": "21:10",
   "price": 171600,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-28": {
+  "airline": "이스타항공",
+  "at": "2026-09-08T01:48:10+00:00",
+  "card_cond": true,
+  "dep_time": "21:20",
+  "price": 177600,
+  "seat": "할인석",
+  "source": "naver"
+ },
+ "GMP-CJU|ret|2026-10-29": {
   "airline": "파라타항공",
-  "at": "2026-09-04T23:43:08+00:00",
+  "at": "2026-09-08T01:44:36+00:00",
   "card_cond": false,
   "dep_time": "21:10",
   "price": 171800,
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-10-29": {
-  "airline": "에어서울",
-  "at": "2026-09-04T23:39:48+00:00",
-  "card_cond": false,
-  "dep_time": "20:40",
-  "price": 161600,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-10-30": {
   "airline": "티웨이항공",
-  "at": "2026-09-04T23:40:07+00:00",
-  "card_cond": false,
+  "at": "2026-09-08T01:44:53+00:00",
+  "card_cond": true,
   "dep_time": "21:05",
-  "price": 216000,
+  "price": 214400,
   "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-31": {
-  "airline": "티웨이항공",
-  "at": "2026-09-04T23:40:29+00:00",
-  "card_cond": false,
-  "dep_time": "20:30",
-  "price": 216000,
-  "seat": "일반석",
+  "airline": "제주항공",
+  "at": "2026-09-08T01:45:16+00:00",
+  "card_cond": true,
+  "dep_time": "20:55",
+  "price": 203800,
+  "seat": "할인석",
   "source": "naver"
  }
 }
