@@ -162,11 +162,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-09": {
-  "airline": "제주항공",
-  "at": "2026-09-04T10:13:44+00:00",
+  "airline": "이스타항공",
+  "at": "2026-09-08T12:02:33+00:00",
   "card_cond": false,
-  "dep_time": "06:15",
-  "price": 266800,
+  "dep_time": "06:05",
+  "price": 265600,
   "seat": "일반석",
   "source": "naver"
  },
