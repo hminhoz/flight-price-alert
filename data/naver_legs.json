@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-09-09": {
-  "airline": "티웨이항공",
-  "at": "2026-09-08T01:54:12+00:00",
-  "card_cond": false,
-  "dep_time": "06:25",
-  "price": 76200,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-09-10": {
   "airline": "파라타항공",
   "at": "2026-09-08T01:51:48+00:00",
@@ -285,15 +276,6 @@
   "dep_time": "12:50",
   "price": 219600,
   "seat": "할인석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-09-09": {
-  "airline": "파라타항공",
-  "at": "2026-09-08T01:46:02+00:00",
-  "card_cond": false,
-  "dep_time": "21:15",
-  "price": 87800,
-  "seat": "특가석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-10": {
