@@ -12,31 +12,31 @@
    762
   ],
   "495657895:h": [
-   "f65e34b27f03",
-   "8f7e23047bb5",
-   "265713103b6b",
-   "15743225f537",
-   "355738cdbef9",
-   "52c2f6598fee",
-   "d1ab0140d0f4",
-   "92be16defcd5"
+   "b58000fb92a4",
+   "4a9819cda5d5",
+   "879aa701a309",
+   "3a522fdc3962",
+   "308412083b7f",
+   "8f71e53c1803",
+   "74d3c8a7db84",
+   "7a840634f096"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-10T19:17:51+00:00",
+ "cycle_started_at": "2026-09-10T21:54:37+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-10T19:17:51+00:00",
+ "last_cycle_done_at": "2026-09-10T21:54:37+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1037,
   "legs_new": 0,
-  "legs_ok": 910,
+  "legs_ok": 912,
   "naver_new": 0,
-  "rt_asked": 174,
-  "rt_cheaper": 89,
-  "rt_ok": 157,
+  "rt_asked": 21,
+  "rt_cheaper": 1,
+  "rt_ok": 5,
   "rt_pool": 456
  },
  "naver_cursor": 63,
@@ -58,13 +58,13 @@
    0
   ],
   "ret": [
-   6,
-   602,
-   2
+   8,
+   1176,
+   4
   ],
   "ret·왕복형": [
-   6,
-   602,
+   8,
+   1176,
    0
   ],
   "ret·왕복형(재시도)": [
@@ -73,21 +73,16 @@
    0
   ],
   "세션1": [
-   7,
-   400,
-   4
+   9,
+   600,
+   6
   ]
  },
  "naver_last_run": "2026-09-11",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 81,
  "recent_runs": [
-  {
-   "at": "2026-09-09T06:55:12+00:00",
-   "attempted": 1105,
-   "failed": 0
-  },
   {
    "at": "2026-09-09T12:12:48+00:00",
    "attempted": 1105,
@@ -132,18 +127,23 @@
    "at": "2026-09-10T19:30:02+00:00",
    "attempted": 1037,
    "failed": 0
+  },
+  {
+   "at": "2026-09-10T22:06:44+00:00",
+   "attempted": 1037,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 776,
+  "legs1": 21,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 89,
-  "gain_sum": 28041808,
-  "ok": 157,
-  "targets": 174
+  "cheaper": 1,
+  "gain_sum": 1,
+  "ok": 5,
+  "targets": 21
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
