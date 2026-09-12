@@ -12,32 +12,32 @@
    762
   ],
   "495657895:h": [
-   "4293ba3ca579",
-   "1374eaca1600",
-   "f2c0cc995015",
-   "8efcb5d97f14",
-   "d6c0fac9f83a",
-   "1036cf0f25e1",
-   "0a142fb911fd",
-   "a9d50aa9005f"
+   "7e98b8174a51",
+   "c6ce05111f2a",
+   "ba5c53007319",
+   "70b167ab1080",
+   "15317c5db9bc",
+   "379544cb1cea",
+   "d41e4d8c7769",
+   "5cbc5c6fcb02"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-12T21:40:45+00:00",
+ "cycle_started_at": "2026-09-12T23:26:06+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-12T21:40:45+00:00",
+ "last_cycle_done_at": "2026-09-12T23:26:06+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 952,
   "legs_new": 0,
-  "legs_ok": 826,
+  "legs_ok": 830,
   "naver_new": 0,
-  "rt_asked": 143,
-  "rt_cheaper": 64,
-  "rt_ok": 132,
-  "rt_pool": 403
+  "rt_asked": 11,
+  "rt_cheaper": 0,
+  "rt_ok": 0,
+  "rt_pool": 407
  },
  "naver_cursor": 63,
  "naver_day": "2026-09-13",
@@ -59,35 +59,30 @@
   ],
   "ret": [
    4,
-   83,
+   88,
    0
   ],
   "ret·왕복형": [
    4,
-   83,
+   88,
    0
   ],
   "ret·왕복형(재시도)": [
    3,
-   0,
+   6,
    0
   ],
   "세션1": [
    7,
-   200,
-   2
+   400,
+   4
   ]
  },
  "naver_last_run": "2026-09-13",
  "naver_remain": 0,
- "naver_runs": 2,
+ "naver_runs": 3,
  "naver_total": 77,
  "recent_runs": [
-  {
-   "at": "2026-09-11T18:07:35+00:00",
-   "attempted": 1003,
-   "failed": 0
-  },
   {
    "at": "2026-09-11T21:32:08+00:00",
    "attempted": 1003,
@@ -132,18 +127,23 @@
    "at": "2026-09-12T21:52:04+00:00",
    "attempted": 952,
    "failed": 0
+  },
+  {
+   "at": "2026-09-12T23:37:09+00:00",
+   "attempted": 952,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 634,
+  "legs1": 0,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 64,
-  "gain_sum": 16576838,
-  "ok": 132,
-  "targets": 143
+  "cheaper": 0,
+  "gain_sum": 0,
+  "ok": 0,
+  "targets": 11
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
