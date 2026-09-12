@@ -522,11 +522,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-11": {
-  "airline": "파라타항공",
-  "at": "2026-09-01T10:45:58+00:00",
+  "airline": "이스타항공",
+  "at": "2026-09-12T06:46:03+00:00",
   "card_cond": false,
-  "dep_time": "21:15",
-  "price": 265800,
+  "dep_time": "18:20",
+  "price": 265600,
   "seat": "일반석",
   "source": "naver"
  },
