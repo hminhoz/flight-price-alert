@@ -251,15 +251,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-09-13": {
-  "airline": "제주항공",
-  "at": "2026-09-11T10:16:35+00:00",
-  "card_cond": false,
-  "dep_time": "21:10",
-  "price": 264800,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-09-14": {
   "airline": "이스타항공",
   "at": "2026-09-13T13:09:19+00:00",
