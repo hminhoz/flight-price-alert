@@ -251,15 +251,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-09-14": {
-  "airline": "이스타항공",
-  "at": "2026-09-13T13:09:19+00:00",
-  "card_cond": false,
-  "dep_time": "20:25",
-  "price": 165600,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-09-15": {
   "airline": "에어서울",
   "at": "2026-09-13T13:15:44+00:00",
