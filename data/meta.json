@@ -2,30 +2,32 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   895,
-   896,
-   897,
-   898,
-   899,
-   900,
-   901,
-   902
+   914,
+   915,
+   916,
+   917,
+   918,
+   919,
+   920,
+   921,
+   922
   ],
   "495657895:h": [
-   "b61af3da0bfb",
-   "feb70264ffc3",
-   "f9cd82ce66e5",
-   "76ac821cbb24",
-   "8ab24818d8ef",
-   "ea24ecf16875",
-   "868bce1ceb76",
-   "d18b1bb3bba6"
+   "6dd1aab7af0a",
+   "dc2fc180721a",
+   "d4d27eb03ab7",
+   "611dc79c03cf",
+   "8b3eb54b1a36",
+   "4c50191d0d80",
+   "e1444334b475",
+   "473a24fb0b8f",
+   "c1821eedb49b"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-15T19:13:41+00:00",
+ "cycle_started_at": "2026-09-15T22:26:23+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-15T19:13:41+00:00",
+ "last_cycle_done_at": "2026-09-15T22:26:23+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
@@ -34,10 +36,10 @@
   "legs_new": 0,
   "legs_ok": 829,
   "naver_new": 0,
-  "rt_asked": 68,
-  "rt_cheaper": 44,
-  "rt_ok": 55,
-  "rt_pool": 419
+  "rt_asked": 97,
+  "rt_cheaper": 41,
+  "rt_ok": 83,
+  "rt_pool": 431
  },
  "naver_cursor": 63,
  "naver_day": "2026-09-16",
@@ -65,14 +67,9 @@
  },
  "naver_last_run": "2026-09-16",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 74,
  "recent_runs": [
-  {
-   "at": "2026-09-14T00:39:21+00:00",
-   "attempted": 952,
-   "failed": 0
-  },
   {
    "at": "2026-09-14T05:39:22+00:00",
    "attempted": 952,
@@ -117,18 +114,23 @@
    "at": "2026-09-15T19:24:50+00:00",
    "attempted": 952,
    "failed": 0
+  },
+  {
+   "at": "2026-09-15T22:37:41+00:00",
+   "attempted": 952,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 196,
+  "legs1": 451,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 44,
-  "gain_sum": 16305163,
-  "ok": 55,
-  "targets": 68
+  "cheaper": 41,
+  "gain_sum": 12499890,
+  "ok": 83,
+  "targets": 97
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
