@@ -486,11 +486,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-11": {
-  "airline": "이스타항공",
-  "at": "2026-09-12T06:46:03+00:00",
+  "airline": "에어서울",
+  "at": "2026-09-15T10:41:16+00:00",
   "card_cond": false,
-  "dep_time": "18:20",
-  "price": 265600,
+  "dep_time": "20:50",
+  "price": 265800,
   "seat": "일반석",
   "source": "naver"
  },
