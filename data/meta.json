@@ -2,41 +2,43 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   933,
-   934,
-   935,
-   936,
-   937,
-   938,
-   939,
-   940
+   949,
+   950,
+   951,
+   952,
+   953,
+   954,
+   955,
+   956,
+   957
   ],
   "495657895:h": [
-   "c319ae173da8",
-   "e15907bc1c73",
-   "660b2c558222",
-   "85c7b16649e2",
-   "05be6ac504d6",
-   "0fff1cebdf2b",
-   "33afe7407cb2",
-   "bf460daec3b9"
+   "e4a9ecf8d6b4",
+   "f3e7f8462349",
+   "04363e42da3e",
+   "ce05d7db9da5",
+   "bdb319a146b4",
+   "95647ff994d2",
+   "9e3e4b9d2d3f",
+   "a53516c411ef",
+   "a68a46fb69fa"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-16T06:46:57+00:00",
+ "cycle_started_at": "2026-09-16T12:50:20+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-16T06:46:57+00:00",
+ "last_cycle_done_at": "2026-09-16T12:50:20+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 952,
   "legs_new": 0,
-  "legs_ok": 813,
+  "legs_ok": 809,
   "naver_new": 0,
-  "rt_asked": 37,
-  "rt_cheaper": 19,
-  "rt_ok": 26,
+  "rt_asked": 55,
+  "rt_cheaper": 29,
+  "rt_ok": 44,
   "rt_pool": 410
  },
  "naver_cursor": 63,
@@ -65,14 +67,9 @@
  },
  "naver_last_run": "2026-09-16",
  "naver_remain": 0,
- "naver_runs": 4,
+ "naver_runs": 5,
  "naver_total": 74,
  "recent_runs": [
-  {
-   "at": "2026-09-14T17:14:48+00:00",
-   "attempted": 952,
-   "failed": 0
-  },
   {
    "at": "2026-09-14T21:15:22+00:00",
    "attempted": 952,
@@ -117,21 +114,26 @@
    "at": "2026-09-16T06:58:38+00:00",
    "attempted": 952,
    "failed": 0
+  },
+  {
+   "at": "2026-09-16T13:02:02+00:00",
+   "attempted": 952,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 93,
+  "legs1": 178,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 19,
-  "gain_sum": 7568251,
-  "ok": 26,
-  "targets": 37
+  "cheaper": 29,
+  "gain_sum": 10119777,
+  "ok": 44,
+  "targets": 55
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159731
+ "tg_offset": 74159739
 }
