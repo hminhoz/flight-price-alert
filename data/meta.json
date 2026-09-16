@@ -2,44 +2,42 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   914,
-   915,
-   916,
-   917,
-   918,
-   919,
-   920,
-   921,
-   922
+   933,
+   934,
+   935,
+   936,
+   937,
+   938,
+   939,
+   940
   ],
   "495657895:h": [
-   "3c25453370ad",
-   "0f0e4e368138",
-   "f3d10d30d236",
-   "f9aae1e649ba",
-   "66f7a2a2ef48",
-   "15f41c14f618",
-   "60a81449f43e",
-   "e9453dd47c01",
-   "339e7dca1396"
+   "c319ae173da8",
+   "e15907bc1c73",
+   "660b2c558222",
+   "85c7b16649e2",
+   "05be6ac504d6",
+   "0fff1cebdf2b",
+   "33afe7407cb2",
+   "bf460daec3b9"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-16T00:49:17+00:00",
+ "cycle_started_at": "2026-09-16T06:46:57+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-16T00:49:17+00:00",
+ "last_cycle_done_at": "2026-09-16T06:46:57+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 952,
   "legs_new": 0,
-  "legs_ok": 825,
+  "legs_ok": 813,
   "naver_new": 0,
-  "rt_asked": 155,
-  "rt_cheaper": 69,
-  "rt_ok": 143,
-  "rt_pool": 423
+  "rt_asked": 37,
+  "rt_cheaper": 19,
+  "rt_ok": 26,
+  "rt_pool": 410
  },
  "naver_cursor": 63,
  "naver_day": "2026-09-16",
@@ -67,14 +65,9 @@
  },
  "naver_last_run": "2026-09-16",
  "naver_remain": 0,
- "naver_runs": 3,
+ "naver_runs": 4,
  "naver_total": 74,
  "recent_runs": [
-  {
-   "at": "2026-09-14T11:10:32+00:00",
-   "attempted": 952,
-   "failed": 0
-  },
   {
    "at": "2026-09-14T17:14:48+00:00",
    "attempted": 952,
@@ -119,18 +112,23 @@
    "at": "2026-09-16T01:00:50+00:00",
    "attempted": 952,
    "failed": 0
+  },
+  {
+   "at": "2026-09-16T06:58:38+00:00",
+   "attempted": 952,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 646,
+  "legs1": 93,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 69,
-  "gain_sum": 21599493,
-  "ok": 143,
-  "targets": 155
+  "cheaper": 19,
+  "gain_sum": 7568251,
+  "ok": 26,
+  "targets": 37
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
