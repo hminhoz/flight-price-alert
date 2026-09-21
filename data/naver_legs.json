@@ -63,11 +63,11 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-03": {
-  "airline": "아시아나항공",
-  "at": "2026-09-17T12:37:19+00:00",
+  "airline": "파라타항공",
+  "at": "2026-09-21T05:46:44+00:00",
   "card_cond": false,
-  "dep_time": "06:30",
-  "price": 291800,
+  "dep_time": "06:00",
+  "price": 265800,
   "seat": "일반석",
   "source": "naver"
  },
@@ -459,11 +459,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-18": {
-  "airline": "아시아나항공",
-  "at": "2026-09-17T23:22:25+00:00",
+  "airline": "이스타항공",
+  "at": "2026-09-21T05:47:06+00:00",
   "card_cond": false,
-  "dep_time": "21:00",
-  "price": 295000,
+  "dep_time": "20:25",
+  "price": 265600,
   "seat": "일반석",
   "source": "naver"
  },
