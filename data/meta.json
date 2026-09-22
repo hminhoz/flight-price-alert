@@ -12,44 +12,44 @@
    1022
   ],
   "495657895:h": [
-   "7b6d5b865431",
-   "11c96ff2a413",
-   "7cff7ddceee9",
-   "9f7129db5349",
-   "6a2bcbf4ffe1",
-   "93d41bb0e71d",
-   "1cb01989ebf3",
-   "ebfdce46d324"
+   "bfa1c6c6474f",
+   "b124a2e48320",
+   "66e67b7facd8",
+   "ed87a4057648",
+   "8fe22a7a3a95",
+   "e5c1bbd55f88",
+   "b501e9995795",
+   "82e90b5a97c2"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-09-21T21:14:34+00:00",
+ "cycle_started_at": "2026-09-22T00:17:39+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-09-21T21:14:34+00:00",
+ "last_cycle_done_at": "2026-09-22T00:17:39+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 799,
   "legs_new": 0,
-  "legs_ok": 686,
+  "legs_ok": 687,
   "naver_new": 0,
-  "rt_asked": 41,
-  "rt_cheaper": 17,
-  "rt_ok": 27,
-  "rt_pool": 371
+  "rt_asked": 43,
+  "rt_cheaper": 22,
+  "rt_ok": 28,
+  "rt_pool": 370
  },
  "naver_cursor": 63,
  "naver_day": "2026-09-22",
  "naver_dstat": {
   "out": [
    2,
-   87,
+   86,
    0
   ],
   "out·왕복형": [
    2,
-   87,
+   86,
    0
   ],
   "out·왕복형(재시도)": [
@@ -69,25 +69,20 @@
   ],
   "ret·왕복형(재시도)": [
    4,
-   3,
+   8,
    0
   ],
   "세션1": [
    7,
-   300,
-   3
+   400,
+   4
   ]
  },
  "naver_last_run": "2026-09-22",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 64,
  "recent_runs": [
-  {
-   "at": "2026-09-20T07:13:57+00:00",
-   "attempted": 799,
-   "failed": 0
-  },
   {
    "at": "2026-09-20T12:46:51+00:00",
    "attempted": 799,
@@ -132,18 +127,23 @@
    "at": "2026-09-21T21:24:09+00:00",
    "attempted": 799,
    "failed": 0
+  },
+  {
+   "at": "2026-09-22T00:27:22+00:00",
+   "attempted": 799,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 86,
+  "legs1": 79,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 17,
-  "gain_sum": 12429149,
-  "ok": 27,
-  "targets": 41
+  "cheaper": 22,
+  "gain_sum": 11316622,
+  "ok": 28,
+  "targets": 43
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
