@@ -207,11 +207,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-26": {
-  "airline": "아시아나항공",
-  "at": "2026-09-13T13:06:24+00:00",
+  "airline": "진에어",
+  "at": "2026-09-25T12:26:45+00:00",
   "card_cond": false,
-  "dep_time": "18:40",
-  "price": 291800,
+  "dep_time": "21:15",
+  "price": 265800,
   "seat": "일반석",
   "source": "naver"
  },
