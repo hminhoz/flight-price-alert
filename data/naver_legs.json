@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-09-26": {
-  "airline": "이스타항공",
-  "at": "2026-09-23T01:11:10+00:00",
-  "card_cond": false,
-  "dep_time": "06:05",
-  "price": 44000,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-09-30": {
   "airline": "이스타항공",
   "at": "2026-09-23T20:58:42+00:00",
@@ -186,15 +177,6 @@
   "dep_time": "06:50",
   "price": 204600,
   "seat": "할인석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-09-26": {
-  "airline": "진에어",
-  "at": "2026-09-25T12:26:45+00:00",
-  "card_cond": false,
-  "dep_time": "21:15",
-  "price": 265800,
-  "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-09-27": {
