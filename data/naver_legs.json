@@ -179,15 +179,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-09-27": {
-  "airline": "대한항공",
-  "at": "2026-09-04T10:13:01+00:00",
-  "card_cond": false,
-  "dep_time": "19:55",
-  "price": 285800,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-09-28": {
   "airline": "이스타항공",
   "at": "2026-09-26T05:43:38+00:00",
