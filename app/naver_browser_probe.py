@@ -18,6 +18,8 @@
 from __future__ import annotations
 
 import json
+import time
+import random
 import logging
 import re
 import subprocess
@@ -159,8 +161,13 @@ def _url(o: str, d: str, dep: str, ret: str, adults: int, domestic: bool) -> str
             f"&isDirect=true&fareType=Y")
 
 
-def run(cases: list, adults: int, out_path: Path) -> dict:
-    """cases: [{origin,dest,dep,ret,domestic,google_price,label}, ...]"""
+def run(cases: list, adults: int, out_path: Path, *,
+        reset_every: int = 3, delay: tuple = (8, 16)) -> dict:
+    """cases: [{origin,dest,dep,ret,domestic,google_price,label}, ...]
+
+    reset_every·delay: 연속 검색 차단 대책 (v2.59). 수집기 기본값(12)보다 짧게 —
+    국제선 페이지는 응답이 커서(홍콩 1건 9.8MB) 더 빨리 막히는 듯하다.
+    """
     result = {"ok": False, "cases": [], "api_calls": [], "note": ""}
     if not _ensure_playwright():
         result["note"] = "playwright 준비 실패"
@@ -180,12 +187,15 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
             headless=not disp,
             args=["--no-sandbox", "--disable-blink-features=AutomationControlled",
                   "--disable-dev-shm-usage", "--window-size=1400,1000"])
-        ctx = browser.new_context(
-            locale="ko-KR", timezone_id="Asia/Seoul",
-            viewport={"width": 1400, "height": 1000},
-            user_agent=("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/139.0.0.0 Safari/537.36"))
+        def _new_ctx():
+            return browser.new_context(
+                locale="ko-KR", timezone_id="Asia/Seoul",
+                viewport={"width": 1400, "height": 1000},
+                user_agent=("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/139.0.0.0 Safari/537.36"))
+
+        ctx = _new_ctx()
 
         bodies: dict = {}
 
@@ -217,7 +227,23 @@ def run(cases: list, adults: int, out_path: Path) -> dict:
         ctx.on("response", on_response)
         page = ctx.new_page()
 
-        for c in cases:
+        for i, c in enumerate(cases):
+            # **한 세션에서 연달아 검색하면 막힌다** (v1.86에서 수집기에 반영).
+            # 탐침은 그 대책이 없어 9/30 동남아 18건 중 3건만 결과가 왔다 — 4번째
+            # (마카오)부터 API 응답 0바이트. 수집기와 같은 대책: 몇 건마다 세션을
+            # 새로 열고 검색 사이 무작위로 쉰다 (v2.59).
+            if i and i % reset_every == 0:
+                try:
+                    ctx.close()
+                except Exception:  # noqa: BLE001
+                    pass
+                ctx = _new_ctx()
+                ctx.add_init_script(_STEALTH)
+                ctx.on("response", on_response)
+                page = ctx.new_page()
+                log.info("NVB 세션 재시작 (%d건마다)", reset_every)
+            if i:
+                time.sleep(random.uniform(*delay))
             url = _url(c["origin"], c["dest"], c["dep"], c["ret"],
                        adults, c.get("domestic", False))
             row = {"label": c.get("label", ""), "url": url,

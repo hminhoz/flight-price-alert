@@ -92,6 +92,13 @@ def parse_domestic(text: str) -> dict | None:
     }
 
 
+_BADGES = ("예약 많은", "많이 찾는", "CO2", "인기", "추천", "최저가", "최단 비행시간", "최단")
+
+
+def _is_badge(s: str) -> bool:
+    return any(s.startswith(b) for b in _BADGES)
+
+
 def parse_intl(text: str) -> dict | None:
     """국제선 왕복 조합 한 줄. 실패하거나 실적 조건이면 None."""
     if not text:
@@ -106,9 +113,17 @@ def parse_intl(text: str) -> dict | None:
     if not price_m:
         return None
     o_dep, o_arr, r_dep, r_arr = legs[:4]
+    # 행 머리에 배지("예약 많은 | 많이 찾는 | CO2 43%")가 붙는다 — 그걸 항공사명으로
+    # 읽어 `CO2 43%`가 항공사로 찍혔다 (9/30 탐침). 배지를 건너뛴 첫 칸이 항공사.
+    airline = ""
+    for seg in text.split("|"):
+        s = seg.strip()
+        if s and not _is_badge(s):
+            airline = s
+            break
     return {
         "kind": "roundtrip",
-        "airline": text.split("|")[0].strip(),
+        "airline": airline,
         "out_from": o_dep[2], "out_to": o_arr[2],
         "out_dep": _to_time(o_dep[0], o_dep[1]),
         "ret_from": r_dep[2], "ret_to": r_arr[2],

@@ -176,6 +176,7 @@ def main():
     test_run_status_rt_fraction_same_set()
     test_verify_pool_per_city_month()
     test_board_min_one_per_month()
+    test_naver_intl_airline_skips_badges()
 
     print("\n=== 전체 통과 ===")
 
@@ -2428,6 +2429,16 @@ def test_board_min_one_per_month():
         clean = re.sub(r"<[^>]+>", "", txt)
         assert "11/" in clean and "12/" in clean, clean[:300]
     print("OK 고정판 월별 최소 1개: 싼 달이 독점하지 않는다")
+
+
+def test_naver_intl_airline_skips_badges():
+    """네이버 국제선 행 머리의 배지는 항공사명이 아니다 (v2.59, 9/30 탐침에서 `CO2 43%`)."""
+    from app import naver as NV
+    row = ("예약 많은 | CO2 43% | 대한항공 | 08:05ICN | 10:55HKG | 직항, 03시간 50분 | "
+           "17:55HKG | 22:45ICN | 직항, 03시간 50분 | 성인/모든 결제수단 | 왕복 | 490,400 | 원")
+    r = NV.parse_intl(row)
+    assert r and r["airline"] == "대한항공", r
+    print("OK 네이버 국제선 항공사명: 배지 건너뜀")
 
 
 if __name__ == "__main__":

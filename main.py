@@ -414,6 +414,8 @@ def main() -> int:
         """
         if not (cs and cfg.verify_roundtrip) or dry_skip_network():
             return 0
+        if naver_probe or tfs_probe or brief or digest:
+            return 0        # 보기·탐침 모드엔 왕복 확인이 필요 없다 — 10분 낭비 (v2.59)
         # 교차 조합(김포 출발/인천 귀국 등)은 왕복 상품 자체가 없다.
         targets = [c for c in engine.verify_targets(cfg, cs) if not c.is_cross]
 
@@ -621,7 +623,8 @@ def main() -> int:
                     "label": f"{c.route.label} {c.dep:%m/%d}~{c.ret:%m/%d}",
                 })
         log.info("네이버 탐침 %d건 시작", len(cases))
-        res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"))
+        res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"),
+                      reset_every=3, delay=tuple(cfg.naver_delay_sec))
         # 수집한 행을 파서에 태워 **구글과 같은 조건으로** 비교한다.
         from app import naver as NV
         lines = ["🧪 <b>네이버 검증</b>", res.get("note", "")]
