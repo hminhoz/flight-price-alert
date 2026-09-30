@@ -363,9 +363,12 @@ def verify_pool(cfg: Settings, combos: list[Combo]) -> list[Combo]:
         if ratio(c) >= cfg.verify_skew_ratio:
             picked[id(c)] = c
 
+    # 도시가 아니라 **도시×월**(= 기준가 단위)마다 최저 N개 (v2.57). 도시 단위로
+    # 뽑으면 기간을 12월까지 늘린 뒤 싼 달(10월)이 N개를 다 차지해 11·12월 조합은
+    # 왕복 확인을 아예 못 받는다. 알림·고정판은 월별로 보므로 확인도 월별이어야 한다.
     by_city: dict[str, list[Combo]] = defaultdict(list)
     for c in pool:
-        by_city[c.unit.split("|")[0]].append(c)
+        by_city[c.unit].append(c)
     for items in by_city.values():
         for c in sorted(items, key=lambda x: x.price)[: cfg.verify_per_city]:
             picked[id(c)] = c

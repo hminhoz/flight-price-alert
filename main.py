@@ -601,29 +601,25 @@ def main() -> int:
         # 숫자만 보고 다섯 번을 고쳤다. 실패하는 방향을 탐침에 명시적으로 넣는다.
         # 오는 편이 8월만 되고 9월부터 전멸한다. 원인 불명 → **추측하지 말고
         # 성공 날짜와 실패 날짜를 나란히 열어 차이를 본다** (v1.85).
+        # v2.57: 동남아 6도시 탐침. 7/26 국제선 탐침은 일본만(오사카 +10% ·
+        # 후쿠오카 -2% → 이득 없음) 봤고 동남아는 미측정이다. 비엣젯·에어아시아처럼
+        # 자사 직판이 강한 LCC는 네이버 쪽이 쌀 수 있다. 도시마다 **현재 화면값(pay)
+        # 최저 조합 3개**를 골라 같은 날짜쌍으로 네이버를 연다. 비교 기준은 편도합산이
+        # 아니라 pay(편도합산·왕복실가 중 싼 쪽) — 구글 왕복이 이미 싼데 편도합산과
+        # 비교하면 네이버가 싸 보이는 착시가 난다. 18건 × 약 25초 ≈ 8분.
         cases = []
-        dom_route = next((r for r in cfg.routes
-                          if getattr(r, "domestic", False)), None)
-        if dom_route:
-            o, d = dom_route.origin, dom_route.destination
-            for day, tag in ((dt.date(2026, 8, 12), "8월(성공하던 날짜)"),
-                             (dt.date(2026, 9, 16), "9월(실패하는 날짜)"),
-                             (dt.date(2026, 10, 14), "10월(실패하는 날짜)")):
+        probe_codes = ("HKG", "MFM", "HAN", "DAD", "SGN", "BKK")
+        for code in probe_codes:
+            cs = sorted((c for c in combos if not c.is_cross
+                         and c.route.destination == code), key=lambda x: x.pay)[:3]
+            for c in cs:
                 cases.append({
-                    "origin": d, "dest": o,          # 오는 편 방향 (CJU→GMP)
-                    "dep": day.strftime("%Y%m%d"),
-                    "ret": (day + dt.timedelta(days=3)).strftime("%Y%m%d"),
-                    "domestic": True, "google_price": 0,
-                    "label": f"{d}→{o} {tag}",
+                    "origin": c.route.origin, "dest": c.route.destination,
+                    "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
+                    "domestic": False, "google_price": c.pay,
+                    "google_kind": "왕복" if c.rt_price and c.rt_price <= c.price else "편도합산",
+                    "label": f"{c.route.label} {c.dep:%m/%d}~{c.ret:%m/%d}",
                 })
-        for c in []:
-
-            cases.append({
-                "origin": c.route.origin, "dest": c.route.destination,
-                "dep": c.dep.strftime("%Y%m%d"), "ret": c.ret.strftime("%Y%m%d"),
-                "domestic": bool(getattr(c.route, "domestic", False)),
-                "google_price": c.price, "label": f"{c.route.label} {c.dep}",
-            })
         log.info("네이버 탐침 %d건 시작", len(cases))
         res = nvb.run(cases, cfg.adults, _P("data/naver_probe.json"))
         # 수집한 행을 파서에 태워 **구글과 같은 조건으로** 비교한다.
@@ -639,6 +635,7 @@ def main() -> int:
                 ret_window=None if dom else cfg.window_for(route_key, "ret"),
                 direct_only=cfg.direct_only)
             g_per = round(c["google_price"] / max(cfg.adults, 1))
+            g_kind = c.get("google_kind", "")
             n_raw = len(rows)
             drop = sum(1 for x in rows if NV.has_spend_condition(x))
             lines.append("")
@@ -652,7 +649,8 @@ def main() -> int:
                              f"{best['seat']}) / 구글 {g_per:,}원/인")
             else:
                 nv_per = best["price"]
-                lines.append(f"네이버 {nv_per:,}원/인 / 구글 {g_per:,}원/인")
+                lines.append(f"네이버 {nv_per:,}원/인 / 구글 {g_per:,}원/인"
+                             f"{f' ({g_kind})' if g_kind else ''}")
             gap = (nv_per - g_per) / max(g_per, 1) * 100
             lines.append(f"→ 네이버가 {abs(gap):.0f}% {'싸다' if gap < 0 else '비싸다'}"
                          f" · {best['airline']}")

@@ -83,7 +83,7 @@ def main():
         combos, alerts = run_day(state, day, 120_000, 130_000)
         assert combos, "콤보 생성 실패"
         assert alerts == [], f"관측 기간에 알림 발생: day{i+1}"
-    unit = "NGO|2026-09"      # v2.07: 기준가 단위는 도시×월
+    unit = f"NGO|{DEP0:%Y-%m}"   # v2.07: 기준가 단위는 도시×월. 월을 박아두면 달이 넘어갈 때 깨진다 (v2.56)
     assert state.baselines[unit]["baseline"] == 250_000
     print(f"OK 관측기간 {obs}일: 기준가 {state.baselines[unit]['baseline']:,}원, 알림 0건")
 
@@ -174,6 +174,8 @@ def main():
     test_roundtrip_uses_effective_window()
     test_return_arrives_same_day()
     test_run_status_rt_fraction_same_set()
+    test_verify_pool_per_city_month()
+    test_board_min_one_per_month()
 
     print("\n=== 전체 통과 ===")
 
@@ -2365,6 +2367,67 @@ def test_run_status_rt_fraction_same_set():
     known = int(m.group(1).replace(",", ""))
     assert known == len(pool) <= n - 5, (known, len(pool), s)
     print("OK 상태줄 왕복 분자/분모: 같은 집합(확인 풀)에서 센다")
+
+
+def test_verify_pool_per_city_month():
+    """왕복 확인 풀은 도시×월마다 최저 N개 (v2.57).
+
+    도시 단위면 싼 달이 N개를 독점해 뒤 달은 확인을 못 받는다.
+    """
+    cfg = load()
+    kix = [x for x in cfg.routes if x.key == "ICN-KIX"][0]
+
+    def mk(dep, price):
+        return engine.Combo(route=kix, dep=dep, nights=3, price=price,
+                            out_leg={"price": price // 2, "dep_time": "07:30"},
+                            ret_leg={"price": price - price // 2, "dep_time": "19:40"},
+                            city="KIX")
+
+    n = cfg.verify_per_city
+    # 10월 조합이 전부 12월보다 싸다 (배율은 1.0이라 배율 조건엔 안 걸림)
+    oct_ = [mk(dt.date(2026, 10, 1) + dt.timedelta(days=i), 200_000 + i) for i in range(n + 5)]
+    dec_ = [mk(dt.date(2026, 12, 1) + dt.timedelta(days=i), 400_000 + i) for i in range(n + 5)]
+    pool = engine.verify_pool(cfg, oct_ + dec_)
+    months = {c.unit.split("|")[1] for c in pool}
+    assert months == {"2026-10", "2026-12"}, months
+    assert sum(1 for c in pool if c.unit.endswith("2026-12")) == n, len(pool)
+    print("OK 왕복 확인 풀: 도시×월마다 최저 N개 (뒤 달도 확인받는다)")
+
+
+def test_board_min_one_per_month():
+    """고정판·전체시세는 도시당 top_n 안에 **달마다 최소 1개** (v2.58).
+
+    12월까지 늘리자 싼 달이 6개를 독점해 11·12월이 화면에서 사라졌다.
+    알림의 유사 날짜(similar)는 이 규칙을 쓰지 않는다 — 그건 같은 달 이웃 날짜다.
+    """
+    import re
+    from app import notify as N
+    cfg = load()
+    kix = [x for x in cfg.routes if x.key == "ICN-KIX"][0]
+
+    def mk(dep, price):
+        return engine.Combo(route=kix, dep=dep, nights=3, price=price,
+                            out_leg={"price": price // 2, "dep_time": "07:30", "airline": "X"},
+                            ret_leg={"price": price - price // 2, "dep_time": "19:40", "airline": "X"},
+                            city="KIX")
+
+    oct_ = [mk(dt.date(2026, 10, 1 + i), 200_000 + i * 1000) for i in range(10)]
+    nov_ = [mk(dt.date(2026, 11, 1 + i), 300_000 + i * 1000) for i in range(10)]
+    dec_ = [mk(dt.date(2026, 12, 1 + i), 400_000 + i * 1000) for i in range(10)]
+    combos = oct_ + nov_ + dec_
+    n = cfg.board_top_n
+    picked = N.pick_dates(combos, n, min_per_month=True)
+    months = [c.dep.month for c in picked]
+    assert len(picked) == n and {10, 11, 12} <= set(months), months
+    assert months.count(10) == n - 2                     # 나머지는 싼 10월이 채운다
+    assert [c.pay for c in picked] == sorted(c.pay for c in picked)   # 표시는 싼 순
+    # 규칙을 안 켜면 종전대로 전부 10월
+    assert {c.dep.month for c in N.pick_dates(combos, n)} == {10}
+    # 실제 고정판·전체시세 렌더에도 세 달이 보인다
+    for txt in N.format_board(cfg, combos, "x") + N.format_digest(cfg, combos, ""):
+        clean = re.sub(r"<[^>]+>", "", txt)
+        assert "11/" in clean and "12/" in clean, clean[:300]
+    print("OK 고정판 월별 최소 1개: 싼 달이 독점하지 않는다")
 
 
 if __name__ == "__main__":

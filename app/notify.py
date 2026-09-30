@@ -205,7 +205,7 @@ TELEGRAM_LIMIT = 4096     # 텔레그램 한 통 한도
 _SAFE_LEN = 3900          # 조립 시 여유를 둔 상한
 
 
-def pick_dates(combos: list, top_n: int) -> list:
+def pick_dates(combos: list, top_n: int, min_per_month: bool = False) -> list:
     """도시 안에서 보여줄 날짜를 고른다. **세 화면이 같은 규칙을 쓴다.**
 
     같은 출발일·같은 가격이면 박 수가 긴 쪽만 남긴다 (3박·4박이 같은 값이라
@@ -221,7 +221,26 @@ def pick_dates(combos: list, top_n: int) -> list:
         k = (c.dep, c.pay)
         if k not in pick or c.nights > pick[k].nights:
             pick[k] = c
-    return sorted(pick.values(), key=lambda c: (c.pay, c.dep))[:top_n]
+    ranked = sorted(pick.values(), key=lambda c: (c.pay, c.dep))
+    if not min_per_month:
+        return ranked[:top_n]
+    # **월별 최소 1개 보장** (v2.58, 사용자 결정). 기간을 12월까지 늘리자 싼 달이
+    # top_n을 독점해 뒤 달이 고정판에서 사라졌다. 각 달의 최저 1개를 먼저 자리에
+    # 앉히고 나머지를 싼 순으로 채운다. 표시는 다시 싼 순 → 이른 날짜 순.
+    chosen: list = []
+    seen_month: set = set()
+    for c in ranked:
+        m = (c.dep.year, c.dep.month)
+        if m not in seen_month:
+            seen_month.add(m)
+            chosen.append(c)
+    chosen = chosen[:top_n]                       # 달이 top_n보다 많으면 싼 달부터
+    for c in ranked:
+        if len(chosen) >= top_n:
+            break
+        if c not in chosen:
+            chosen.append(c)
+    return sorted(chosen, key=lambda c: (c.pay, c.dep))
 
 
 def city_block(cfg, picked: list, label: str) -> str:
@@ -596,7 +615,7 @@ def _screen(cfg: Settings, combos: list, month: int | None, *,
                 min(x.pay for x in v))
     blocks = []
     for city_combos in sorted(by_city.values(), key=rank):
-        picked = pick_dates(city_combos, top_n)
+        picked = pick_dates(city_combos, top_n, min_per_month=True)   # 고정판·전체시세
         block = city_block(cfg, picked, city_label(cfg, picked[0].route))
         blocks.append((country_of(picked[0].route), block) if order else block)
     return pack(cfg, title, blocks, lead=status)
