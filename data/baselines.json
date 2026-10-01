@@ -177,12 +177,12 @@
  },
  "CTS|2026-12": {
   "_seeded": "2026-10-01",
-  "alltime_min": 1026000,
-  "alltime_min_at": "2026-10-01T01:34:06+00:00",
-  "alltime_min_prev": 1026199,
-  "baseline": 1026000,
+  "alltime_min": 1024548,
+  "alltime_min_at": "2026-10-01T08:16:27+00:00",
+  "alltime_min_prev": 1026000,
+  "baseline": 1024548,
   "daily_min": {
-   "2026-10-01": 1026000
+   "2026-10-01": 1024548
   }
  },
  "DAD|2026-09": {
@@ -412,12 +412,12 @@
  },
  "HAN|2026-12": {
   "_seeded": "2026-10-01",
-  "alltime_min": 998802,
-  "alltime_min_at": "2026-09-30T21:45:44+00:00",
-  "alltime_min_prev": 998995,
-  "baseline": 998802,
+  "alltime_min": 994598,
+  "alltime_min_at": "2026-10-01T08:16:27+00:00",
+  "alltime_min_prev": 998802,
+  "baseline": 994598,
   "daily_min": {
-   "2026-10-01": 998802
+   "2026-10-01": 994598
   }
  },
  "HKG|2026-09": {
@@ -567,12 +567,12 @@
  },
  "KIX|2026-11": {
   "_seeded": "2026-10-01",
-  "alltime_min": 595036,
-  "alltime_min_at": "2026-09-30T16:30:13+00:00",
-  "alltime_min_prev": null,
-  "baseline": 595036,
+  "alltime_min": 583299,
+  "alltime_min_at": "2026-10-01T08:16:27+00:00",
+  "alltime_min_prev": 595036,
+  "baseline": 583299,
   "daily_min": {
-   "2026-10-01": 595036
+   "2026-10-01": 583299
   }
  },
  "KIX|2026-12": {
