@@ -495,11 +495,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-10-05": {
-  "airline": "대한항공",
-  "at": "2026-09-23T12:29:29+00:00",
+  "airline": "제주항공",
+  "at": "2026-10-02T00:37:22+00:00",
   "card_cond": false,
   "dep_time": "20:50",
-  "price": 285800,
+  "price": 267000,
   "seat": "일반석",
   "source": "naver"
  },
