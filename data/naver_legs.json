@@ -449,15 +449,6 @@
   "seat": "특가석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-10-05": {
-  "airline": "제주항공",
-  "at": "2026-10-02T00:37:22+00:00",
-  "card_cond": false,
-  "dep_time": "20:50",
-  "price": 267000,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-10-06": {
   "airline": "파라타항공",
   "at": "2026-10-02T23:03:21+00:00",
