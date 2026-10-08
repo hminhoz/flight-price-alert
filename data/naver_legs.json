@@ -873,11 +873,11 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-11-25": {
-  "airline": "에어서울",
-  "at": "2026-10-04T10:38:04+00:00",
+  "airline": "에어부산",
+  "at": "2026-10-08T02:53:05+00:00",
   "card_cond": false,
-  "dep_time": "20:40",
-  "price": 127400,
+  "dep_time": "21:15",
+  "price": 111200,
   "seat": "할인석",
   "source": "naver"
  },
@@ -1044,17 +1044,17 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-14": {
-  "airline": "대한항공",
-  "at": "2026-10-04T03:31:19+00:00",
+  "airline": "제주항공",
+  "at": "2026-10-08T02:47:07+00:00",
   "card_cond": false,
-  "dep_time": "20:45",
-  "price": 135800,
-  "seat": "특가석",
+  "dep_time": "20:15",
+  "price": 128200,
+  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-15": {
   "airline": "이스타항공",
-  "at": "2026-10-04T03:31:42+00:00",
+  "at": "2026-10-08T02:47:27+00:00",
   "card_cond": false,
   "dep_time": "21:10",
   "price": 91800,
@@ -1063,10 +1063,10 @@
  },
  "GMP-CJU|ret|2026-12-16": {
   "airline": "이스타항공",
-  "at": "2026-10-04T03:32:00+00:00",
+  "at": "2026-10-08T02:47:49+00:00",
   "card_cond": false,
   "dep_time": "21:25",
-  "price": 91800,
+  "price": 88800,
   "seat": "할인석",
   "source": "naver"
  },
@@ -1144,29 +1144,29 @@
  },
  "GMP-CJU|ret|2026-12-25": {
   "airline": "트리니티항공",
-  "at": "2026-10-04T19:10:32+00:00",
+  "at": "2026-10-08T02:53:24+00:00",
   "card_cond": true,
   "dep_time": "21:05",
-  "price": 176000,
+  "price": 181600,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-26": {
   "airline": "트리니티항공",
-  "at": "2026-10-04T19:10:50+00:00",
-  "card_cond": false,
+  "at": "2026-10-08T02:53:46+00:00",
+  "card_cond": true,
   "dep_time": "19:55",
-  "price": 210800,
+  "price": 212200,
   "seat": "일반석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-27": {
-  "airline": "트리니티항공",
-  "at": "2026-10-04T10:36:56+00:00",
+  "airline": "에어부산",
+  "at": "2026-10-08T02:52:44+00:00",
   "card_cond": false,
-  "dep_time": "19:55",
-  "price": 253000,
-  "seat": "일반석",
+  "dep_time": "21:15",
+  "price": 251400,
+  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-28": {
