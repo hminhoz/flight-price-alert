@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-10-09": {
-  "airline": "대한항공",
-  "at": "2026-10-08T09:51:51+00:00",
-  "card_cond": false,
-  "dep_time": "06:35",
-  "price": 285800,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-10-10": {
   "airline": "트리니티항공",
   "at": "2026-10-09T10:10:48+00:00",
@@ -428,15 +419,6 @@
   "card_cond": false,
   "dep_time": "06:00",
   "price": 169800,
-  "seat": "할인석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-10-09": {
-  "airline": "진에어",
-  "at": "2026-10-09T02:59:31+00:00",
-  "card_cond": false,
-  "dep_time": "21:15",
-  "price": 253800,
   "seat": "할인석",
   "source": "naver"
  },
