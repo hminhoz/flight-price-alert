@@ -2,30 +2,32 @@
  "baseline_metric": "pay-v2",
  "board_ids": {
   "495657895": [
-   1474,
-   1475,
-   1476,
-   1477,
-   1478,
-   1479,
-   1480,
-   1481
+   1490,
+   1491,
+   1492,
+   1493,
+   1494,
+   1495,
+   1496,
+   1497,
+   1498
   ],
   "495657895:h": [
-   "ef3ceaeb70f2",
-   "21fe581f5716",
-   "c3ddb0da4099",
-   "2a495439bbda",
-   "383723394124",
-   "0e3ea3a26589",
-   "8b53b121b728",
-   "b6d1fb8fec38"
+   "c2c4ee8289c2",
+   "b40bb39cd2e4",
+   "09621b6c860b",
+   "7105ba7ab48c",
+   "5d331c9cf2e9",
+   "e73facafb776",
+   "66a771d93c5c",
+   "81d5c96df5ec",
+   "6afb249da55c"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-10-10T07:45:11+00:00",
+ "cycle_started_at": "2026-10-10T14:45:33+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-10-10T07:45:11+00:00",
+ "last_cycle_done_at": "2026-10-10T14:45:33+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
@@ -34,10 +36,10 @@
   "legs_new": 0,
   "legs_ok": 1475,
   "naver_new": 0,
-  "rt_asked": 51,
-  "rt_cheaper": 23,
-  "rt_ok": 39,
-  "rt_pool": 901
+  "rt_asked": 74,
+  "rt_cheaper": 40,
+  "rt_ok": 53,
+  "rt_pool": 888
  },
  "naver_cursor": 63,
  "naver_day": "2026-10-10",
@@ -94,11 +96,6 @@
  "naver_total": 130,
  "recent_runs": [
   {
-   "at": "2026-10-08T02:38:11+00:00",
-   "attempted": 1802,
-   "failed": 0
-  },
-  {
    "at": "2026-10-08T09:49:41+00:00",
    "attempted": 1802,
    "failed": 0
@@ -142,21 +139,26 @@
    "at": "2026-10-10T08:05:23+00:00",
    "attempted": 1734,
    "failed": 0
+  },
+  {
+   "at": "2026-10-10T15:09:06+00:00",
+   "attempted": 1734,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 207,
+  "legs1": 234,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 23,
-  "gain_sum": 12757372,
-  "ok": 39,
-  "targets": 51
+  "cheaper": 40,
+  "gain_sum": 11842477,
+  "ok": 53,
+  "targets": 74
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74159931
+ "tg_offset": 74159939
 }
