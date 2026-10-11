@@ -413,15 +413,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-10-11": {
-  "airline": "진에어",
-  "at": "2026-10-09T21:40:34+00:00",
-  "card_cond": false,
-  "dep_time": "21:10",
-  "price": 268000,
-  "seat": "일반석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-10-12": {
   "airline": "파라타항공",
   "at": "2026-10-09T02:58:52+00:00",
