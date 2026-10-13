@@ -451,11 +451,25 @@ def parse_time_str(s: str | None) -> dt.time | None:
         return None
 
 
+# 조건에 걸려 **탈락한 직항편의 시각**을 다리별로 남긴다 (v2.62).
+# 동계 스케줄(10/25~)로 가고시마·마카오 귀국편 시각이 바뀌어 11·12월이 통째로
+# 비었는데, 저장된 데이터엔 "편 없음"만 있어 무엇이 몇 시에 뜨는지 알 수 없었다.
+# Actions 로그는 밖에서 볼 수 없으니 **데이터에 남겨야** 진단이 된다.
+_rejected: dict = {}
+_rej_lock = threading.Lock()
+
+
+def pop_rejected(origin: str, dest: str, date: str) -> list:
+    with _rej_lock:
+        return _rejected.pop((origin, dest, date), [])
+
+
 def _pick_best(results, window, direct_only, date, origin="?", dest="?",
                count_hist: bool = True, same_day: bool = False) -> LegResult | None:
     lo, hi = window
     best: LegResult | None = None
     n_items = n_direct = n_price = n_time = n_next = 0
+    seen: set = set()
     for item in results or []:
         try:
             n_items += 1
@@ -479,6 +493,8 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
                 _note_departure(origin, dest, t.hour)
             if t is None or not (lo <= t <= hi):
                 n_time += 1
+                if t is not None:
+                    seen.add(f"{t:%H:%M}")
                 continue
             # **익일 도착 배제** (v2.48). 사용자 목표는 "돌아오는 날 밤 12시 전
             # 인천 도착"인데 18시 이후 출발 규칙은 일본(2시간)에서만 그 뜻이었다.
@@ -490,6 +506,7 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
             at = parse_time(arr)
             if same_day and at is not None and at < t:
                 n_next += 1
+                seen.add(f"{t:%H:%M}(+1)")
                 continue
             airlines = getattr(item, "airlines", None) or []
             a0 = airlines[0] if airlines else None
@@ -509,6 +526,9 @@ def _pick_best(results, window, direct_only, date, origin="?", dest="?",
                 best = cand
         except Exception:  # 항목 하나 파싱 실패는 무시하고 계속
             continue
+    if best is None and seen:
+        with _rej_lock:
+            _rejected[(origin, dest, date)] = sorted(seen)[:8]
     # 진단: 결과는 있는데 조건 통과가 0건이면, 왜 탈락했는지 + 원본 샘플을 노선당 1회 기록
     if best is None and n_items and (origin, dest) not in _diag_logged:
         _diag_logged.add((origin, dest))

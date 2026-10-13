@@ -56,9 +56,13 @@ class State:
 
     def record_leg(self, key: str, *, price: int | None, airline: str = "",
                    dep_time: str = "", arr_time: str = "", carrier: str = "",
-                   off_window: bool = False,
+                   off_window: bool = False, seen: list | None = None,
                    now: dt.datetime | None = None) -> None:
-        """price=None 이면 '조건 만족 편 없음'으로 기록."""
+        """price=None 이면 '조건 만족 편 없음'으로 기록.
+
+        seen: 조건에 걸려 탈락한 직항편 출발 시각들(`17:20`, `23:45(+1)`=익일 도착).
+        편이 없을 때만 남는다 — 무엇이 몇 시에 뜨는지 데이터로 보이게 (v2.62).
+        """
         now = now or dt.datetime.now(dt.timezone.utc)
         today = now.date().isoformat()
         entry = self.legs.get(key, {"history": {}})
@@ -68,6 +72,10 @@ class State:
             "dep_time": dep_time, "arr_time": arr_time,
             "checked_at": now.isoformat(timespec="seconds"),
         })
+        if price is None and seen:
+            entry["seen"] = list(seen)
+        else:
+            entry.pop("seen", None)
         if price is not None:
             hist = entry.setdefault("history", {})
             prev = hist.get(today)

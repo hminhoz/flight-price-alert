@@ -408,6 +408,39 @@ def verify_targets(cfg: Settings, combos: list[Combo]) -> list[Combo]:
                                        -ratio(c)))[: cfg.verify_max_queries]
 
 
+def empty_slots(cfg: Settings, state, today: dt.date) -> list[dict]:
+    """노선·방향·월 단위로 **가격이 하나도 없는 구간** (v2.62).
+
+    동계 스케줄(10/25~)로 가고시마·마카오 귀국편 시각이 선호 창 밖으로 옮겨
+    11·12월이 2주 가까이 통째로 비어 있었는데, 실패가 아니라 '편 없음'이라
+    아무 경고도 없었다. 다리 5개 이상인 달이 0건이면 표시한다.
+    `known_empty`(운휴 확인된 노선)는 뺀다. 탈락한 편의 시각(`seen`)을 함께
+    모아 무엇 때문에 비었는지 바로 보이게 한다.
+    """
+    from collections import defaultdict
+    tot: dict = defaultdict(int)
+    got: dict = defaultdict(int)
+    seen: dict = defaultdict(lambda: defaultdict(int))
+    skip = set(cfg.known_empty or [])
+    for leg in all_legs(cfg, today):
+        if leg.route.key in skip or f"{leg.route.key}|{leg.direction}" in skip:
+            continue
+        k = (leg.route.key, leg.direction, leg.date.month)
+        tot[k] += 1
+        e = state.legs.get(leg.key) or {}
+        if e.get("price"):
+            got[k] += 1
+        for s in e.get("seen") or []:
+            seen[k][s] += 1
+    out = []
+    for k, n in sorted(tot.items()):
+        if n >= 5 and got[k] == 0:
+            top = sorted(seen[k], key=lambda s: -seen[k][s])[:3]
+            out.append({"route": k[0], "dir": k[1], "month": k[2], "legs": n,
+                        "seen": top})
+    return out
+
+
 def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
     """실행이 제대로 돌았는지 **한 줄로.** 고정판 첫 통 제목 아래에 붙인다.
 
@@ -454,7 +487,29 @@ def run_status(cfg: Settings, state, combos: list[Combo]) -> str:
         parts.append(frac("왕복", known, r["rt_pool"], got))
     # 실패는 **0이어도 적는다.** 0을 봐야 정상임이 확인된다.
     parts.append(f"실패 {r.get('failed', 0):,}")
-    return "🔎 " + " · ".join(parts)
+    line = "🔎 " + " · ".join(parts)
+    # 빈 구간은 **있을 때만** 둘째 줄로 (v2.62). 노선·방향별로 달을 모은다.
+    try:
+        today = dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).date()
+        slots = empty_slots(cfg, state, today)
+    except Exception:  # noqa: BLE001 - 상태줄이 화면을 깨면 안 된다
+        slots = []
+    if slots:
+        from collections import OrderedDict
+        grp: "OrderedDict" = OrderedDict()
+        for s in slots:
+            g = grp.setdefault((s["route"], s["dir"]), {"m": [], "seen": []})
+            g["m"].append(s["month"])
+            g["seen"] += [x for x in s["seen"] if x not in g["seen"]]
+        label = {r.key: (r.label.split("-")[-1]) for r in cfg.routes}
+        items = []
+        for (rk, d), g in grp.items():
+            seen = f" (뜨는 편 {', '.join(g['seen'][:2])})" if g["seen"] else ""
+            items.append(f"{label.get(rk, rk)} {'가는편' if d == 'out' else '오는편'} "
+                         f"{'·'.join(str(m) for m in g['m'])}월{seen}")
+        line += "\n⚠ 빈 구간: " + " / ".join(items[:4]) + (
+            f" 외 {len(items) - 4}" if len(items) > 4 else "")
+    return line
 
 
 def alert_selection(cfg: Settings, alerts: list[Alert]) -> dict:

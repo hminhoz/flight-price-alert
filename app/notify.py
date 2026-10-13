@@ -29,7 +29,8 @@ _AIRPORT_KO = {"ICN": "인천", "GMP": "김포", "HND": "하네다", "NRT": "나
                "KIX": "간사이", "NGO": "나고야", "CJU": "제주", "CTS": "삿포로",
                "FUK": "후쿠오카", "OKA": "오키나와", "KOJ": "가고시마",
                "HKG": "홍콩", "MFM": "마카오", "HAN": "하노이", "DAD": "다낭",
-               "SGN": "호치민", "BKK": "수완나품", "DMK": "돈므앙"}
+               "SGN": "호치민", "BKK": "수완나품", "DMK": "돈므앙", "DPS": "발리",
+               "MYJ": "마쓰야마", "TPE": "타오위안", "TSA": "쑹산"}
 
 
 def _ko(code: str) -> str:
@@ -77,6 +78,10 @@ def _leg_time(leg: dict, window=None, mark_src: bool = False) -> str:
     # 자동 인식**한다 — 파랗게 되고 누르면 채팅창에 입력된다(실사용 보고,
     # 가고시마 16:20⚠/19:05). 앞에 붙이면 슬래시 앞뒤가 항상 숫자라 안전하다.
     dep = leg.get("dep_time", "?")
+    # 익일 도착(발리 귀국 밤 비행기, v2.62)은 시각 뒤에 `(익일)`. 다음날 아침에
+    # 인천에 떨어진다는 걸 모르고 사면 일정이 꼬인다.
+    arr = leg.get("arr_time") or ""
+    nxt = "(익일)" if (dep and arr and dep != "?" and arr != "?" and arr < dep) else ""
     mark = ""
     if window is not None:
         t = parse_time_str(dep) if dep and dep != "?" else None
@@ -84,7 +89,7 @@ def _leg_time(leg: dict, window=None, mark_src: bool = False) -> str:
             mark = "⚠"
     elif leg.get("off_window"):
         mark = "⚠"                         # 창을 안 넘긴 호출은 종전대로
-    return f"{mark}{dep}"
+    return f"{mark}{dep}{nxt}"
 
 
 def entry_lines(cfg, c, *, pay: int | None = None, airport: bool = True,
@@ -261,6 +266,8 @@ def _foot(cfg, body: str) -> str:
     parts = [f"성인 {cfg.adults}명 · 1인 기준"]
     if "⚠" in body:
         parts.append("⚠는 선호 시간대 밖")
+    if "(익일)" in body:
+        parts.append("(익일)은 다음날 아침 인천 도착")
     if "<a href" in body:
         parts.append("날짜를 누르면 예약처로")
     # ~와 +가 같이 나온 메시지에만 구분을 설명한다 (한쪽뿐이면 비교 대상이
@@ -345,6 +352,8 @@ _AIRLINE_BY_CODE = {
     "WE": "타이스마일",
     # 실데이터에서 미등록으로 걸린 것 + 이 노선들에 뜰 만한 것 (v2.54)
     "9G": "선푸꾸옥", "VU": "비엣트래블", "BL": "퍼시픽", "ET": "에티오피아",
+    "GA": "가루다", "QZ": "에어아시아",
+    "BR": "에바항공", "CI": "중화항공", "IT": "타이거에어", "JX": "스타럭스",
     "HB": "그레이터베이", "RF": "에어로케이", "TR": "스쿠트", "AK": "에어아시아",
     "D7": "에어아시아X", "SQ": "싱가포르",
 }
@@ -379,6 +388,9 @@ _AIRLINE_BY_NAME = {
     "Thai AirAsia X": "에어아시아X", "Thai AirAsia": "에어아시아", "Thai Lion Air": "타이라이온",
     "Thai Vietjet Air": "타이비엣젯", "Sun PhuQuoc Airways": "선푸꾸옥",
     "Ethiopian": "에티오피아", "Ethiopian Airlines": "에티오피아",
+    "Garuda Indonesia": "가루다", "Indonesia AirAsia": "에어아시아",
+    "EVA Air": "에바항공", "China Airlines": "중화항공", "Tigerair Taiwan": "타이거에어",
+    "STARLUX Airlines": "스타럭스", "Starlux": "스타럭스",
     # 네이버는 한글 정식 사명을 준다 — 구글 쪽 코드 매핑과 같은 짧은 이름으로
     # 맞춘다. 같은 항공사가 편에 따라 "티웨이"/"티웨이항공"으로 갈리던 것 (v2.46)
     "티웨이항공": "티웨이", "파라타항공": "파라타", "이스타항공": "이스타",

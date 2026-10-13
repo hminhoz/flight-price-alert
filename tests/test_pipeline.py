@@ -177,6 +177,9 @@ def main():
     test_verify_pool_per_city_month()
     test_board_min_one_per_month()
     test_naver_intl_airline_skips_badges()
+    test_empty_slots_and_seen_times()
+    test_bali_route()
+    test_taipei_two_airports()
 
     print("\n=== 전체 통과 ===")
 
@@ -863,8 +866,8 @@ def test_off_window_mark_is_short():
     assert "⚠16:20/18:55" in m, m
     assert "선호 시간대 밖입니다" not in m
     # 가고시마 16:20·삿포로 16:20은 각자의 선호 창 안 → 저장된 ⚠ 플래그가 남아 있어도 안 붙는다
-    m = body(mk("ICN-KOJ", "16:20", "18:55", flag=True))
-    assert "16:20/18:55" in m and "⚠" not in m, m
+    m = body(mk("ICN-MYJ", "07:00", "15:50", flag=True))      # v2.63 가고시마 → 마쓰야마
+    assert "07:00/15:50" in m and "⚠" not in m, m
     c = mk("ICN-CTS", "07:10", "16:20", flag=True)
     m = body(c)
     assert "07:10/16:20" in m and "⚠" not in m, m
@@ -2120,14 +2123,17 @@ def test_window_override():
 
     # 삿포로·가고시마는 v2.50부터 **선호 창**이다 — 실측 잡힌 편이 거의 전부
     # 선호 밖(⚠)이라 표시가 정보가 아니라 소음이었다. 양보 창은 없어야 한다.
-    koj = cfg.window_for("ICN-KOJ", "out")
+    myj = cfg.window_for("ICN-MYJ", "ret")
     cts = cfg.window_for("ICN-CTS", "ret")
-    assert koj[1] > cfg.outbound_window[1] and cfg.fallback_window_for("ICN-KOJ", "out") is None
+    assert myj[0] == dt.time(15, 0) and cfg.fallback_window_for("ICN-MYJ", "ret") is None
+    tsa = cfg.window_for("GMP-TSA", "ret")
+    assert tsa[0] == dt.time(14, 0) and cfg.fallback_window_for("GMP-TSA", "ret") is None
+    assert "ICN-KOJ" not in {r.key for r in cfg.routes}, "가고시마는 v2.63에서 제외"
     assert cts[0] < cfg.return_window[0] and cfg.fallback_window_for("ICN-CTS", "ret") is None
     # 삿포로 latest는 실측 당일 도착 한계(소요 최대 3h15 → 20:45) 안 (v2.51)
     assert cts[1] <= dt.time(20, 45), cts
-    print(f"OK 노선 창: ICN-KOJ 가는편 ~{koj[1]:%H:%M}, "
-          f"ICN-CTS 오는편 {cts[0]:%H:%M}~ (선호 창, ⚠ 없음)")
+    print(f"OK 노선 창: 마쓰야마 오는편 {myj[0]:%H:%M}~ · 쑹산 오는편 {tsa[0]:%H:%M}~ · "
+          f"삿포로 오는편 {cts[0]:%H:%M}~ (선호 창, ⚠ 없음)")
 
 
 
@@ -2274,8 +2280,8 @@ def test_roundtrip_uses_effective_window():
     assert cfg.effective_window("ICN-KIX", "ret") == g_ret          # override 없음 → 전역
     cts = cfg.effective_window("ICN-CTS", "ret")
     assert cts == (dt.time(14, 0), dt.time(20, 30)), cts            # 14:00~20:30 (v2.51)
-    koj = cfg.effective_window("ICN-KOJ", "out")
-    assert koj[0] == g_out[0] and koj[1] == dt.time(17, 0), koj    # ~17시 로 넓힘
+    myj = cfg.effective_window("ICN-MYJ", "ret")
+    assert myj == (dt.time(15, 0), g_ret[1]), myj                   # 15시~ (v2.63)
     # 왕복 조회 호출부가 실제로 effective_window를 쓴다 (window_for로 되돌리면 재발)
     src = pathlib.Path(__file__).resolve().parent.parent / "main.py"
     body = src.read_text()
@@ -2284,7 +2290,7 @@ def test_roundtrip_uses_effective_window():
     for seg in calls:
         head = seg[:700]
         assert "effective_window" in head and "window_for(" not in head, head[:200]
-    print("OK 왕복 조회 시간창: 선호 ∪ 양보 (삿포로 14시~ · 가고시마 ~17시)")
+    print("OK 왕복 조회 시간창: 노선 창 그대로 (삿포로 14시~ · 마쓰야마 15시~)")
 
 
 def test_return_arrives_same_day():
@@ -2324,7 +2330,7 @@ def test_return_arrives_same_day():
     # 다낭 17:05 · 호치민 16:45 · 방콕 16:30)보다 latest가 이르거나 같아야 한다.
     limit = {"ICN-HKG": (19, 20), "ICN-MFM": (19, 25), "ICN-HAN": (17, 25),
              "ICN-DAD": (17, 5), "ICN-SGN": (16, 45), "ICN-BKK": (16, 30)}
-    lim = {"ICN-HKG": (14, 0, 18, 59), "ICN-MFM": (18, 0, 19, 20), "ICN-HAN": (12, 0, 17, 0),
+    lim = {"ICN-HKG": (14, 0, 18, 59), "ICN-MFM": (14, 0, 19, 20), "ICN-HAN": (12, 0, 17, 0),
            "ICN-DAD": (13, 0, 17, 0), "ICN-SGN": (12, 0, 16, 30), "ICN-BKK": (11, 0, 16, 0)}
     for key, (h1, m1, h2, m2) in lim.items():
         w = cfg.window_for(key, "ret")
@@ -2334,7 +2340,8 @@ def test_return_arrives_same_day():
     # main이 오는 편에만 same_day를 켠다
     import pathlib
     body = (pathlib.Path(__file__).resolve().parent.parent / "main.py").read_text()
-    assert 'same_day=cfg.return_arrive_same_day and leg.direction == "ret"' in body
+    assert 'same_day=(cfg.return_arrive_same_day and leg.direction == "ret"' in body
+    assert "not leg.route.next_day_ok" in body          # 발리만 예외 (v2.62)
     print("OK 당일 도착 규칙: 익일 도착 편 배제 · 동남아 오는 편 창은 낮 시간대")
 
 
@@ -2439,6 +2446,97 @@ def test_naver_intl_airline_skips_badges():
     r = NV.parse_intl(row)
     assert r and r["airline"] == "대한항공", r
     print("OK 네이버 국제선 항공사명: 배지 건너뜀")
+
+
+def test_empty_slots_and_seen_times():
+    """빈 구간 감지와 탈락 편 시각 기록 (v2.62).
+
+    동계 스케줄로 가고시마·마카오 귀국편이 창 밖으로 옮겨 11·12월이 통째로
+    비었는데 경고가 없었다. 실패가 아니라 '편 없음'이라 조용했다.
+    """
+    from types import SimpleNamespace as NS
+    from app import search as S
+    cfg = load()
+    # 1) 탈락한 편의 시각이 남는다 (창 밖 · 익일 도착 둘 다)
+    def item(price, dep, arr):
+        leg = NS(departure=NS(time=dep), arrival=NS(time=arr))
+        return NS(flights=[leg], price=price, type="KE", airlines=[NS(name="Korean Air")])
+    got = S._pick_best([item(300_000, "17:20", "19:15"), item(250_000, "23:45", "06:45")],
+                       (dt.time(18, 0), dt.time(23, 59)), True, "2026-11-10", "KOJ", "ICN",
+                       count_hist=False, same_day=True)
+    assert got is None
+    assert S.pop_rejected("KOJ", "ICN", "2026-11-10") == ["17:20", "23:45(+1)"]
+    assert S.pop_rejected("KOJ", "ICN", "2026-11-10") == []          # 한 번 꺼내면 비움
+
+    # 2) 한 노선·방향·달이 통째로 0이면 빈 구간, known_empty는 제외
+    st = State.__new__(State)
+    st.legs, st.baselines, st.alerts_sent, st.meta, st.time_hist = {}, {}, {}, {}, {}
+    st.naver_legs, st.rt_prices = {}, {}
+    today = dt.date(2026, 10, 13)
+    for leg in engine.all_legs(cfg, today):
+        if leg.route.key == "ICN-MYJ" and leg.direction == "ret" and leg.date.month == 11:
+            st.record_leg(leg.key, price=None, seen=["17:20"])
+        else:
+            st.record_leg(leg.key, price=100_000)
+    slots = engine.empty_slots(cfg, st, today)
+    assert [(s["route"], s["dir"], s["month"]) for s in slots] == [("ICN-MYJ", "ret", 11)], slots
+    assert slots[0]["seen"] == ["17:20"]
+    s = engine.run_status(cfg, st, [])
+    assert "빈 구간: 마쓰야마 오는편 11월 (뜨는 편 17:20)" in s, s
+    # 가격이 생기면 seen은 지워진다
+    k = next(l.key for l in engine.all_legs(cfg, today)
+             if l.route.key == "ICN-MYJ" and l.direction == "ret" and l.date.month == 11)
+    st.record_leg(k, price=1)
+    assert "seen" not in st.legs[k]
+    print("OK 빈 구간 감지 · 탈락 편 시각 기록")
+
+
+def test_bali_route():
+    """발리: 오후 출발·밤 귀국(익일 아침 도착) 허용, 화면에 (익일) 표시 (v2.62)."""
+    import re
+    from app import notify as N
+    cfg = load()
+    dps = [r for r in cfg.routes if r.key == "ICN-DPS"][0]
+    assert dps.next_day_ok
+    assert cfg.window_for("ICN-DPS", "out") == (dt.time(15, 0), dt.time(18, 30))
+    assert cfg.window_for("ICN-DPS", "ret") == (dt.time(22, 0), dt.time(23, 59))
+    assert cfg.fallback_window_for("ICN-DPS", "ret") is None
+    assert not [r for r in cfg.routes if r.key != "ICN-DPS" and r.next_day_ok], "발리 외엔 금지"
+    c = engine.Combo(route=dps, dep=dt.date(2026, 11, 11), nights=4, price=1_200_000,
+                     out_leg={"price": 600_000, "dep_time": "16:10", "arr_time": "22:20",
+                              "airline": "Korean Air", "carrier": "KE"},
+                     ret_leg={"price": 600_000, "dep_time": "23:45", "arr_time": "08:05",
+                              "airline": "Korean Air", "carrier": "KE"},
+                     city=engine._seoul_group(cfg, dps))
+    txt = "\n".join(re.sub(r"<[^>]+>", "", m) for m in N.format_board(cfg, [c], "x"))
+    assert "16:10/23:45(익일) 대한항공" in txt, txt
+    assert "⚠" not in txt and "(익일)은 다음날 아침 인천 도착" in txt
+    assert "🇮🇩 인도네시아" in txt and "발리" in txt
+    print("OK 발리: 오후 출발 · 밤 귀국 익일 도착 · (익일) 표시")
+
+
+def test_taipei_two_airports():
+    """타이베이: 인천-타오위안·김포-쑹산을 한 도시로, 교차 허용, 대만으로 묶음 (v2.63)."""
+    import re
+    from app import notify as N
+    cfg = load()
+    tpe = [r for r in cfg.routes if r.key == "ICN-TPE"][0]
+    tsa = [r for r in cfg.routes if r.key == "GMP-TSA"][0]
+    assert engine._seoul_group(cfg, tpe) == engine._seoul_group(cfg, tsa) == "타이베이"
+
+    def mk(route, back, price):
+        return engine.Combo(route=route, dep=dt.date(2026, 11, 12), nights=3, price=price,
+                            out_leg={"price": price // 2, "dep_time": "09:05", "airline": "Jeju Air", "carrier": "7C"},
+                            ret_leg={"price": price - price // 2, "dep_time": "14:00", "airline": "T'Way Air", "carrier": "TW"},
+                            ret_route=back, city="타이베이")
+    a, b = mk(tpe, None, 500_000), mk(tpe, tsa, 450_000)
+    assert a.unit == b.unit == "타이베이|2026-11"
+    txt = "\n".join(re.sub(r"<[^>]+>", "", m) for m in N.format_board(cfg, [a, b], "x"))
+    assert "🇹🇼 대만" in txt and "타이베이" in txt, txt
+    assert "⇄ 인천 출발 / 김포 귀국 (타오위안 입 / 쑹산 출)" in txt, txt
+    # 일본 목록에서 가고시마가 빠지고 마쓰야마가 들어갔다
+    assert "KOJ" not in cfg.countries["🇯🇵 일본"] and "MYJ" in cfg.countries["🇯🇵 일본"]
+    print("OK 타이베이: 두 공항 한 도시 · 교차 · 대만 묶음")
 
 
 if __name__ == "__main__":

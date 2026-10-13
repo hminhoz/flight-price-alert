@@ -16,6 +16,9 @@ class Route:
     destination: str
     label: str
     domestic: bool = False
+    # 오는 편 **익일 도착 허용** (v2.62, 발리). 직항이 전부 밤 출발·다음날 아침
+    # 도착뿐인 노선에만 쓴다. 이 노선은 return_arrive_same_day 규칙을 건너뛴다.
+    next_day_ok: bool = False
 
     @property
     def key(self) -> str:
@@ -73,6 +76,7 @@ class Settings:
     cross_airports: bool = True
     city_groups: dict = field(default_factory=dict, repr=False)
     countries: dict = field(default_factory=dict, repr=False)   # 나라 → 공항 목록 (표시 순서)
+    known_empty: list = field(default_factory=list, repr=False)  # 빈 구간 경고에서 뺄 노선(운휴 확인)
     concurrency: int = 3
     leg_freshness_days: int = 3  # 콤보 계산 시 다리(leg) 가격의 최대 허용 나이
 
@@ -236,6 +240,7 @@ def load(path: Path | None = None) -> Settings:
         city_groups={k: list(v) for k, v in (s.get("city_groups") or {}).items()},
         countries={str(k): [str(x).upper() for x in v]
                    for k, v in (s.get("countries") or {}).items()},
+        known_empty=[str(x) for x in (s.get("known_empty") or [])],
         concurrency=max(1, int(sch.get("concurrency", 3))),
         routes=routes,
         route_windows=route_windows,

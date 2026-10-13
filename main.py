@@ -15,7 +15,7 @@ import sys
 
 from app import engine, notify
 from app.search import (NoFlightData, SearchError, polite_delay, search_leg,
-                        search_roundtrip)
+                        search_roundtrip, pop_rejected)
 from app.settings import load
 from app.state import State
 
@@ -169,7 +169,8 @@ def main() -> int:
                 preferred_window=preferred if widened else None,
                 currency=cfg.currency,
                 direct_only=cfg.direct_only, retries=cfg.retry,
-                same_day=cfg.return_arrive_same_day and leg.direction == "ret",
+                same_day=(cfg.return_arrive_same_day and leg.direction == "ret"
+                          and not leg.route.next_day_ok),
             ), None
         except Exception as e:  # noqa: BLE001 - 분류는 아래에서
             return leg, None, e
@@ -183,7 +184,9 @@ def main() -> int:
                                  carrier=res.carrier, off_window=res.off_window)
                 stats[leg.route.key][0] += 1
             else:
-                state.record_leg(leg.key, price=None)
+                state.record_leg(leg.key, price=None,
+                                 seen=pop_rejected(leg.origin, leg.dest,
+                                                   leg.date.isoformat()))
                 stats[leg.route.key][1] += 1
         elif isinstance(err, NoFlightData):
             state.record_leg(leg.key, price=None)
