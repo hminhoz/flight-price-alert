@@ -13,47 +13,58 @@
    1633
   ],
   "495657895:h": [
-   "57a15d871bbb",
-   "8e89457f8e14",
-   "8d2fa4a890f3",
-   "bc12eff3f5ca",
-   "59f61f89c53c",
-   "09131c45674f",
-   "a62baaca1e4c",
-   "b418fb83ead2",
-   "68ab94006bec"
+   "b3da51e53ed7",
+   "b771a67fedfb",
+   "1b3fcb17d5e6",
+   "baf15f872408",
+   "4cb05302fcd4",
+   "6a0053288d87",
+   "808c7e9606fb",
+   "d741972ebf84",
+   "2b21bb610a15"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-10-17T21:46:25+00:00",
+ "cycle_started_at": "2026-10-18T00:22:09+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-10-17T21:46:25+00:00",
+ "last_cycle_done_at": "2026-10-18T00:22:09+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1800,
   "legs_new": 0,
-  "legs_ok": 1608,
+  "legs_ok": 1600,
   "naver_new": 0,
-  "rt_asked": 100,
-  "rt_cheaper": 65,
-  "rt_ok": 90,
-  "rt_pool": 1023
+  "rt_asked": 28,
+  "rt_cheaper": 13,
+  "rt_ok": 16,
+  "rt_pool": 1025
  },
  "naver_cursor": 63,
  "naver_day": "2026-10-18",
- "naver_dstat": {},
+ "naver_dstat": {
+  "ret": [
+   4,
+   931,
+   4
+  ],
+  "ret·왕복형": [
+   4,
+   931,
+   0
+  ],
+  "세션1": [
+   4,
+   400,
+   4
+  ]
+ },
  "naver_last_run": "2026-10-18",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 117,
  "recent_runs": [
-  {
-   "at": "2026-10-16T17:23:28+00:00",
-   "attempted": 1860,
-   "failed": 0
-  },
   {
    "at": "2026-10-16T20:30:30+00:00",
    "attempted": 1860,
@@ -98,18 +109,23 @@
    "at": "2026-10-17T22:07:12+00:00",
    "attempted": 1800,
    "failed": 0
+  },
+  {
+   "at": "2026-10-18T00:45:42+00:00",
+   "attempted": 1800,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 436,
+  "legs1": 106,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 65,
-  "gain_sum": 13705582,
-  "ok": 90,
-  "targets": 100
+  "cheaper": 13,
+  "gain_sum": 2649132,
+  "ok": 16,
+  "targets": 28
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
