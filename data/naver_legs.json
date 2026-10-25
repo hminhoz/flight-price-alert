@@ -9,20 +9,20 @@
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-29": {
-  "airline": "에어서울",
-  "at": "2026-10-22T14:32:44+00:00",
+  "airline": "파라타항공",
+  "at": "2026-10-25T14:55:08+00:00",
   "card_cond": false,
-  "dep_time": "06:00",
-  "price": 125800,
+  "dep_time": "06:10",
+  "price": 138000,
   "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|out|2026-10-30": {
   "airline": "파라타항공",
-  "at": "2026-10-22T14:32:25+00:00",
+  "at": "2026-10-25T14:54:45+00:00",
   "card_cond": false,
   "dep_time": "06:10",
-  "price": 107800,
+  "price": 79800,
   "seat": "특가석",
   "source": "naver"
  },
