@@ -13,60 +13,45 @@
    1815
   ],
   "495657895:h": [
-   "c2da81ae9d8e",
-   "f2a44181bd8d",
-   "a4384ce43a99",
-   "12d960436174",
-   "70a56baa879a",
-   "f1d21aa1db6e",
-   "08ed3c1643f7",
-   "ab9207ac9fac",
-   "10810c8b1bba"
+   "76b26da6efa1",
+   "50844160d20a",
+   "6056d9486284",
+   "70022dc785d5",
+   "93fc967a5574",
+   "7cb51e477fb2",
+   "5e6be8ff6b70",
+   "2ea2b2f7c387",
+   "c1b64fc15b1e"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-10-26T20:45:12+00:00",
+ "cycle_started_at": "2026-10-27T00:50:48+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-10-26T20:45:12+00:00",
+ "last_cycle_done_at": "2026-10-27T00:50:48+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1620,
   "legs_new": 0,
-  "legs_ok": 1443,
+  "legs_ok": 1438,
   "naver_new": 0,
-  "rt_asked": 22,
-  "rt_cheaper": 14,
-  "rt_ok": 19,
-  "rt_pool": 896
+  "rt_asked": 56,
+  "rt_cheaper": 33,
+  "rt_ok": 51,
+  "rt_pool": 890
  },
  "naver_cursor": 63,
  "naver_day": "2026-10-27",
  "naver_dstat": {
-  "out": [
-   9,
-   2322,
-   9
-  ],
-  "out·왕복형": [
-   9,
-   2322,
-   0
-  ],
   "ret": [
-   35,
-   7603,
-   27
+   20,
+   4229,
+   16
   ],
   "ret·왕복형": [
-   35,
-   7603,
-   0
-  ],
-  "ret·왕복형(재시도)": [
-   4,
-   0,
+   20,
+   4229,
    0
   ],
   "세션1": [
@@ -75,16 +60,6 @@
    12
   ],
   "세션2": [
-   12,
-   1000,
-   10
-  ],
-  "세션3": [
-   12,
-   1000,
-   10
-  ],
-  "세션4": [
    8,
    800,
    8
@@ -92,14 +67,9 @@
  },
  "naver_last_run": "2026-10-27",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 104,
  "recent_runs": [
-  {
-   "at": "2026-10-25T05:38:54+00:00",
-   "attempted": 1620,
-   "failed": 0
-  },
   {
    "at": "2026-10-25T10:31:08+00:00",
    "attempted": 1620,
@@ -144,18 +114,23 @@
    "at": "2026-10-26T21:05:02+00:00",
    "attempted": 1620,
    "failed": 0
+  },
+  {
+   "at": "2026-10-27T01:10:02+00:00",
+   "attempted": 1620,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 98,
+  "legs1": 219,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 14,
-  "gain_sum": 6729746,
-  "ok": 19,
-  "targets": 22
+  "cheaper": 33,
+  "gain_sum": 8511457,
+  "ok": 51,
+  "targets": 56
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
