@@ -12,62 +12,57 @@
    1933
   ],
   "495657895:h": [
-   "d56bf633d2ab",
-   "1f3e27a01cdc",
-   "b79d0f7b7a41",
-   "240277674372",
-   "91f3ff00e756",
-   "ae239a258b82",
-   "974c836061b9",
-   "c4b83dfa69a3"
+   "5b3332fc9567",
+   "dfe8e4df5838",
+   "0b2048940ca0",
+   "477bbfc0919f",
+   "2a7e5b31f703",
+   "84abc91c69c1",
+   "2477710bd949",
+   "f4bbfea2eb78"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-10-30T23:15:40+00:00",
+ "cycle_started_at": "2026-10-31T02:43:37+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-10-30T23:15:40+00:00",
+ "last_cycle_done_at": "2026-10-31T02:43:37+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1500,
   "legs_new": 0,
-  "legs_ok": 1329,
+  "legs_ok": 1311,
   "naver_new": 0,
-  "rt_asked": 34,
-  "rt_cheaper": 21,
-  "rt_ok": 31,
-  "rt_pool": 779
+  "rt_asked": 40,
+  "rt_cheaper": 26,
+  "rt_ok": 37,
+  "rt_pool": 751
  },
  "naver_cursor": 63,
  "naver_day": "2026-10-31",
  "naver_dstat": {
   "ret": [
-   2,
-   96,
-   0
+   3,
+   382,
+   1
   ],
   "ret·왕복형": [
-   2,
-   96,
+   3,
+   382,
    0
   ],
   "세션1": [
-   2,
-   200,
-   2
+   3,
+   300,
+   3
   ]
  },
  "naver_last_run": "2026-10-31",
  "naver_remain": 0,
- "naver_runs": 2,
+ "naver_runs": 3,
  "naver_total": 97,
  "recent_runs": [
-  {
-   "at": "2026-10-28T21:38:04+00:00",
-   "attempted": 1580,
-   "failed": 0
-  },
   {
    "at": "2026-10-29T01:32:50+00:00",
    "attempted": 1580,
@@ -112,21 +107,26 @@
    "at": "2026-10-30T23:33:47+00:00",
    "attempted": 1500,
    "failed": 0
+  },
+  {
+   "at": "2026-10-31T03:00:42+00:00",
+   "attempted": 1500,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 142,
+  "legs1": 176,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 21,
-  "gain_sum": 5139246,
-  "ok": 31,
-  "targets": 34
+  "cheaper": 26,
+  "gain_sum": 4805172,
+  "ok": 37,
+  "targets": 40
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74160086
+ "tg_offset": 74160094
 }
