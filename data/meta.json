@@ -12,67 +12,62 @@
    1967
   ],
   "495657895:h": [
-   "7f49534838bf",
-   "af117b45c75c",
-   "817cf244bc57",
-   "faebeb131846",
-   "2519d328b750",
-   "5aa7637a0c60",
-   "c6b48272cf87",
-   "1e9981ed3d42"
+   "7852ca494e7a",
+   "01a719ce1995",
+   "d6bbc1c3287d",
+   "bae28ae87525",
+   "f5d03ed54993",
+   "1dec16e1280f",
+   "625ff96a48bc",
+   "02591dc9e170"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-10-31T20:18:23+00:00",
+ "cycle_started_at": "2026-10-31T23:45:53+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-10-31T20:18:23+00:00",
+ "last_cycle_done_at": "2026-10-31T23:45:53+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1440,
   "legs_new": 0,
-  "legs_ok": 1278,
+  "legs_ok": 1279,
   "naver_new": 0,
-  "rt_asked": 182,
-  "rt_cheaper": 113,
-  "rt_ok": 176,
-  "rt_pool": 724
+  "rt_asked": 14,
+  "rt_cheaper": 7,
+  "rt_ok": 7,
+  "rt_pool": 732
  },
  "naver_cursor": 63,
  "naver_day": "2026-11-01",
  "naver_dstat": {
   "ret": [
    2,
-   74,
-   0
+   96,
+   1
   ],
   "ret·왕복형": [
    2,
-   74,
+   96,
    0
   ],
   "ret·왕복형(재시도)": [
    1,
-   0,
+   3,
    0
   ],
   "세션1": [
    2,
-   100,
-   1
+   200,
+   2
   ]
  },
  "naver_last_run": "2026-11-01",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 95,
  "recent_runs": [
-  {
-   "at": "2026-10-29T20:10:45+00:00",
-   "attempted": 1540,
-   "failed": 0
-  },
   {
    "at": "2026-10-30T00:42:25+00:00",
    "attempted": 1540,
@@ -117,21 +112,26 @@
    "at": "2026-10-31T20:35:31+00:00",
    "attempted": 1440,
    "failed": 0
+  },
+  {
+   "at": "2026-11-01T00:02:15+00:00",
+   "attempted": 1440,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 1059,
+  "legs1": 32,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 113,
-  "gain_sum": 32961433,
-  "ok": 176,
-  "targets": 182
+  "cheaper": 7,
+  "gain_sum": 2629973,
+  "ok": 7,
+  "targets": 14
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74160103
+ "tg_offset": 74160111
 }
