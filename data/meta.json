@@ -12,77 +12,57 @@
    1967
   ],
   "495657895:h": [
-   "9decc140bd8a",
-   "e489ef54f6a7",
-   "32a47dbc864b",
-   "95b6af11d765",
-   "ea837401983a",
-   "dfd003aea48a",
-   "fc34fe66fefe",
-   "938cbf94872f"
+   "93c29e0ab26f",
+   "05910ef8f184",
+   "1326fd6b0c6e",
+   "d5602ca962e1",
+   "3c46e2a1889b",
+   "b85ed2086fab",
+   "b97a441e3d6d",
+   "ceddade2bf26"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-11-01T19:13:05+00:00",
+ "cycle_started_at": "2026-11-01T23:06:58+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-11-01T19:13:05+00:00",
+ "last_cycle_done_at": "2026-11-01T23:06:58+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1440,
   "legs_new": 0,
-  "legs_ok": 1278,
+  "legs_ok": 1275,
   "naver_new": 0,
-  "rt_asked": 119,
-  "rt_cheaper": 85,
-  "rt_ok": 114,
-  "rt_pool": 746
+  "rt_asked": 24,
+  "rt_cheaper": 8,
+  "rt_ok": 10,
+  "rt_pool": 747
  },
  "naver_cursor": 63,
  "naver_day": "2026-11-02",
  "naver_dstat": {
-  "out": [
-   10,
-   2282,
-   10
-  ],
-  "out·왕복형": [
-   10,
-   2282,
+  "ret": [
+   1,
+   36,
    0
   ],
-  "ret": [
-   5,
-   725,
-   4
-  ],
   "ret·왕복형": [
-   5,
-   725,
+   1,
+   36,
    0
   ],
   "세션1": [
-   12,
-   1200,
-   12
-  ],
-  "세션2": [
-   3,
-   300,
-   3
+   1,
+   100,
+   1
   ]
  },
  "naver_last_run": "2026-11-02",
  "naver_remain": 0,
- "naver_runs": 1,
+ "naver_runs": 2,
  "naver_total": 94,
  "recent_runs": [
-  {
-   "at": "2026-10-30T19:11:22+00:00",
-   "attempted": 1500,
-   "failed": 0
-  },
   {
    "at": "2026-10-30T23:33:47+00:00",
    "attempted": 1500,
@@ -127,18 +107,23 @@
    "at": "2026-11-01T19:29:15+00:00",
    "attempted": 1440,
    "failed": 0
+  },
+  {
+   "at": "2026-11-01T23:26:26+00:00",
+   "attempted": 1440,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 523,
+  "legs1": 33,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 85,
-  "gain_sum": 23070001,
-  "ok": 114,
-  "targets": 119
+  "cheaper": 8,
+  "gain_sum": 3996862,
+  "ok": 10,
+  "targets": 24
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
