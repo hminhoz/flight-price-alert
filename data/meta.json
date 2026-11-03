@@ -13,47 +13,42 @@
    1989
   ],
   "495657895:h": [
-   "d6e609a02d16",
-   "3aa4debbc8f0",
-   "42dcc922a876",
-   "fb22b491a7da",
-   "45097bb35917",
-   "fc4e2d3305d2",
-   "8dfd94b4f104",
-   "55c005bb524f",
-   "ad37a2567835"
+   "dfb32561d7c2",
+   "b3664da2e51e",
+   "f53157081cc2",
+   "2fdcd1295ab2",
+   "2990d762a4d8",
+   "71472bb70e46",
+   "cb16ef3867a4",
+   "74d87558544d",
+   "51ef1aacd0d6"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-11-03T11:21:58+00:00",
+ "cycle_started_at": "2026-11-03T18:39:42+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-11-03T11:21:58+00:00",
+ "last_cycle_done_at": "2026-11-03T18:39:42+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1440,
   "legs_new": 0,
-  "legs_ok": 1257,
+  "legs_ok": 1274,
   "naver_new": 0,
-  "rt_asked": 285,
-  "rt_cheaper": 191,
-  "rt_ok": 277,
-  "rt_pool": 745
+  "rt_asked": 69,
+  "rt_cheaper": 41,
+  "rt_ok": 66,
+  "rt_pool": 748
  },
  "naver_cursor": 63,
- "naver_day": "2026-11-03",
+ "naver_day": "2026-11-04",
  "naver_dstat": {},
- "naver_last_run": "2026-11-03",
+ "naver_last_run": "2026-11-04",
  "naver_remain": 0,
- "naver_runs": 2,
- "naver_total": 93,
+ "naver_runs": 0,
+ "naver_total": 92,
  "recent_runs": [
-  {
-   "at": "2026-11-01T00:02:15+00:00",
-   "attempted": 1440,
-   "failed": 0
-  },
   {
    "at": "2026-11-01T07:08:31+00:00",
    "attempted": 1440,
@@ -98,18 +93,23 @@
    "at": "2026-11-03T11:40:09+00:00",
    "attempted": 1440,
    "failed": 0
+  },
+  {
+   "at": "2026-11-03T18:56:49+00:00",
+   "attempted": 1440,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 1251,
+  "legs1": 273,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 191,
-  "gain_sum": 56168615,
-  "ok": 277,
-  "targets": 285
+  "cheaper": 41,
+  "gain_sum": 14778422,
+  "ok": 66,
+  "targets": 69
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
