@@ -1,13 +1,4 @@
 {
- "GMP-CJU|out|2026-11-06": {
-  "airline": "파라타항공",
-  "at": "2026-11-04T11:59:57+00:00",
-  "card_cond": false,
-  "dep_time": "06:10",
-  "price": 128400,
-  "seat": "특가석",
-  "source": "naver"
- },
  "GMP-CJU|out|2026-11-07": {
   "airline": "제주항공",
   "at": "2026-11-05T00:51:28+00:00",
@@ -285,15 +276,6 @@
   "dep_time": "06:10",
   "price": 178600,
   "seat": "특가석",
-  "source": "naver"
- },
- "GMP-CJU|ret|2026-11-06": {
-  "airline": "파라타항공",
-  "at": "2026-11-02T12:02:24+00:00",
-  "card_cond": false,
-  "dep_time": "21:10",
-  "price": 216600,
-  "seat": "할인석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-11-07": {
