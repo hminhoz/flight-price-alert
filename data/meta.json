@@ -13,68 +13,63 @@
    2081
   ],
   "495657895:h": [
-   "53a0d5271ad6",
-   "6cdb256a8f7b",
-   "a7c49d206956",
-   "7fc56689cf04",
-   "60b0a870d708",
-   "51f0130f5446",
-   "834df45e4d93",
-   "6f3f93c300be",
-   "0c315c8d50ee"
+   "a31e9a9a1c5d",
+   "5af2bb55783f",
+   "547ce1d293a2",
+   "72bd51abe5d8",
+   "db7f4f9813a6",
+   "cb3ec758598f",
+   "fe1e80b4ae16",
+   "a5c00b03e4eb",
+   "c757fdb1f8a3"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-11-06T02:50:36+00:00",
+ "cycle_started_at": "2026-11-06T11:31:35+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-11-06T02:50:36+00:00",
+ "last_cycle_done_at": "2026-11-06T11:31:35+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1360,
   "legs_new": 0,
-  "legs_ok": 1172,
+  "legs_ok": 1170,
   "naver_new": 0,
-  "rt_asked": 108,
-  "rt_cheaper": 58,
-  "rt_ok": 85,
-  "rt_pool": 685
+  "rt_asked": 100,
+  "rt_cheaper": 62,
+  "rt_ok": 93,
+  "rt_pool": 680
  },
  "naver_cursor": 63,
  "naver_day": "2026-11-06",
  "naver_dstat": {
   "ret": [
-   9,
-   1505,
-   5
+   8,
+   1092,
+   4
   ],
   "ret·왕복형": [
-   9,
-   1505,
+   8,
+   1092,
    0
   ],
   "ret·왕복형(재시도)": [
-   1,
+   2,
    0,
    0
   ],
   "세션1": [
-   9,
-   800,
-   8
+   8,
+   600,
+   6
   ]
  },
  "naver_last_run": "2026-11-06",
  "naver_remain": 0,
- "naver_runs": 2,
+ "naver_runs": 3,
  "naver_total": 88,
  "recent_runs": [
-  {
-   "at": "2026-11-03T18:56:49+00:00",
-   "attempted": 1440,
-   "failed": 0
-  },
   {
    "at": "2026-11-04T00:00:29+00:00",
    "attempted": 1440,
@@ -119,18 +114,23 @@
    "at": "2026-11-06T03:07:56+00:00",
    "attempted": 1360,
    "failed": 0
+  },
+  {
+   "at": "2026-11-06T11:47:51+00:00",
+   "attempted": 1360,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 382,
+  "legs1": 369,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 58,
-  "gain_sum": 24541166,
-  "ok": 85,
-  "targets": 108
+  "cheaper": 62,
+  "gain_sum": 20049257,
+  "ok": 93,
+  "targets": 100
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
