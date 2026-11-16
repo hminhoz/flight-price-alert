@@ -288,10 +288,10 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-11-22": {
-  "airline": "파라타항공",
-  "at": "2026-11-08T23:24:58+00:00",
+  "airline": "에어서울",
+  "at": "2026-11-16T03:24:14+00:00",
   "card_cond": false,
-  "dep_time": "21:10",
+  "dep_time": "20:40",
   "price": 274600,
   "seat": "일반석",
   "source": "naver"
