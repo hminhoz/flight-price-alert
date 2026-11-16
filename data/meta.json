@@ -13,63 +13,42 @@
    2347
   ],
   "495657895:h": [
-   "a06d90824123",
-   "4eeef1f18e53",
-   "76ac7ab699fa",
-   "2f61ca3c13a5",
-   "0a737f307ed4",
-   "6f3187aa3548",
-   "db13e0fbd16e",
-   "02ac3466ce94",
-   "3dcb6b7317dd"
+   "339aaf277c5f",
+   "cc84f2cf145e",
+   "c00e66e2a4be",
+   "77f9003e1f9b",
+   "82b83980a835",
+   "af800fdb2ac9",
+   "99c1258d3169",
+   "568968088ab4",
+   "c1e39598596d"
   ]
  },
  "cycle_shards": [],
- "cycle_started_at": "2026-11-16T03:09:51+00:00",
+ "cycle_started_at": "2026-11-16T12:04:00+00:00",
  "first_run": "2026-07-24",
- "last_cycle_done_at": "2026-11-16T03:09:51+00:00",
+ "last_cycle_done_at": "2026-11-16T12:04:00+00:00",
  "last_cycle_report": "2026-07-26",
  "last_obs_report": "2026-07-25",
  "last_run": {
   "failed": 0,
   "legs": 1080,
   "legs_new": 0,
-  "legs_ok": 921,
+  "legs_ok": 925,
   "naver_new": 0,
-  "rt_asked": 178,
-  "rt_cheaper": 72,
-  "rt_ok": 139,
-  "rt_pool": 578
+  "rt_asked": 125,
+  "rt_cheaper": 69,
+  "rt_ok": 116,
+  "rt_pool": 588
  },
  "naver_cursor": 63,
  "naver_day": "2026-11-16",
- "naver_dstat": {
-  "ret": [
-   1,
-   54,
-   1
-  ],
-  "ret·왕복형": [
-   1,
-   54,
-   0
-  ],
-  "세션1": [
-   1,
-   100,
-   1
-  ]
- },
+ "naver_dstat": {},
  "naver_last_run": "2026-11-16",
  "naver_remain": 0,
  "naver_runs": 3,
  "naver_total": 72,
  "recent_runs": [
-  {
-   "at": "2026-11-14T00:06:42+00:00",
-   "attempted": 1140,
-   "failed": 0
-  },
   {
    "at": "2026-11-14T07:18:56+00:00",
    "attempted": 1140,
@@ -114,21 +93,26 @@
    "at": "2026-11-16T03:23:36+00:00",
    "attempted": 1080,
    "failed": 0
+  },
+  {
+   "at": "2026-11-16T12:18:08+00:00",
+   "attempted": 1080,
+   "failed": 0
   }
  ],
  "rt_shape": {
-  "legs1": 771,
+  "legs1": 542,
   "legs2": 0,
   "other": 0
  },
  "rt_stats": {
-  "cheaper": 72,
-  "gain_sum": 20308096,
-  "ok": 139,
-  "targets": 178
+  "cheaper": 69,
+  "gain_sum": 19395252,
+  "ok": 116,
+  "targets": 125
  },
  "sent_epoch": "v2.20-shown-only",
  "shard_cursor": 0,
  "startup_sent": true,
- "tg_offset": 74160255
+ "tg_offset": 74160264
 }
