@@ -369,12 +369,12 @@
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-05": {
-  "airline": "에어부산",
-  "at": "2026-11-15T18:17:32+00:00",
+  "airline": "파라타항공",
+  "at": "2026-11-19T12:35:35+00:00",
   "card_cond": false,
-  "dep_time": "21:15",
-  "price": 108800,
-  "seat": "할인석",
+  "dep_time": "21:10",
+  "price": 113400,
+  "seat": "특가석",
   "source": "naver"
  },
  "GMP-CJU|ret|2026-12-06": {
