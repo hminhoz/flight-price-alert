@@ -197,15 +197,6 @@
   "seat": "할인석",
   "source": "naver"
  },
- "GMP-CJU|ret|2026-11-24": {
-  "airline": "트리니티항공",
-  "at": "2026-11-21T22:39:45+00:00",
-  "card_cond": false,
-  "dep_time": "21:05",
-  "price": 99000,
-  "seat": "할인석",
-  "source": "naver"
- },
  "GMP-CJU|ret|2026-11-25": {
   "airline": "트리니티항공",
   "at": "2026-11-21T22:51:21+00:00",
